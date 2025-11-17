@@ -1,0 +1,392 @@
+/* ========================================
+   DARK DESOLATE SPACE GAME - DESIGN SYSTEM
+   Typography, Color, Spacing, and Component Standards
+   ======================================== */
+
+/* ========================================
+   FONT FACE DECLARATIONS
+   ======================================== */
+
+@font-face {
+  font-family: 'Roobert';
+  src: url('../assets/fonts/Roobert-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Roobert';
+  src: url('../assets/fonts/Roobert-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Roobert';
+  src: url('../assets/fonts/Roobert-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Roobert';
+  src: url('../assets/fonts/Roobert-SemiBold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Roobert';
+  src: url('../assets/fonts/Roobert-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Roobert';
+  src: url('../assets/fonts/Roobert-Heavy.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+}
+
+/* ========================================
+   COLOR SYSTEM
+   ======================================== */
+
+:root {
+  /* Base Colors */
+  --color-black: #000000;
+  --color-deep-black: #0a0a0a;
+  --color-dark-bg: #050505;
+  
+  /* Primary Accent - Cyan */
+  --color-cyan-primary: #34e0ff;
+  --color-cyan-muted: rgba(52, 224, 255, 0.7);
+  --color-cyan-faint: rgba(52, 224, 255, 0.3);
+  --color-cyan-glow: rgba(52, 224, 255, 0.4);
+  --color-cyan-glow-bright: rgba(52, 224, 255, 0.6);
+  
+  /* Text Colors */
+  --color-text-primary: #cfd8df;
+  --color-text-muted: rgba(207, 216, 223, 0.6);
+  --color-text-faint: rgba(207, 216, 223, 0.4);
+  
+  /* Status Colors */
+  --color-shields: rgba(52, 224, 255, 0.6);
+  --color-hull: rgba(82, 255, 168, 0.6);
+  --color-power: rgba(255, 180, 50, 0.6);
+  --color-wake: rgba(138, 43, 226, 0.6);
+  --color-radiation: rgba(255, 80, 80, 0.6);
+  
+  /* Alert Colors */
+  --color-warning: #ff5050;
+  --color-success: #52ffa8;
+  --color-info: #34e0ff;
+  
+  /* Legacy Variables (for compatibility) */
+  --deep-black: var(--color-black);
+  --faded-cyan: var(--color-cyan-primary);
+  --muted-white: var(--color-text-primary);
+  --dark-bg: var(--color-deep-black);
+  --terminal-glow: var(--color-cyan-glow);
+  --terminal-glow-bright: var(--color-cyan-glow-bright);
+  --noise-overlay: rgba(52, 224, 255, 0.05);
+}
+
+/* ========================================
+   TYPOGRAPHY SYSTEM
+   ======================================== */
+
+:root {
+  /* Font Families */
+  --font-primary: 'Roobert', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Courier New', monospace;
+  
+  /* Font Weights */
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-heavy: 800;
+  
+  /* Typography Scale - Display */
+  --font-size-display-xl: 48px;
+  --font-size-display-lg: 36px;
+  --font-size-display-md: 28px;
+  --font-size-display-sm: 24px;
+  
+  /* Typography Scale - Headings */
+  --font-size-h1: 20px;
+  --font-size-h2: 16px;
+  --font-size-h3: 14px;
+  --font-size-h4: 12px;
+  --font-size-h5: 11px;
+  --font-size-h6: 10px;
+  
+  /* Typography Scale - Body */
+  --font-size-body-lg: 14px;
+  --font-size-body-md: 12px;
+  --font-size-body-sm: 11px;
+  --font-size-body-xs: 10px;
+  
+  /* Typography Scale - UI */
+  --font-size-ui-lg: 11px;
+  --font-size-ui-md: 10px;
+  --font-size-ui-sm: 9px;
+  --font-size-ui-xs: 8px;
+  --font-size-ui-xxs: 7px;
+  
+  /* Letter Spacing */
+  --letter-spacing-tight: -0.5px;
+  --letter-spacing-normal: 0px;
+  --letter-spacing-wide: 1px;
+  --letter-spacing-wider: 2px;
+  --letter-spacing-widest: 4px;
+  
+  /* Line Heights */
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.6;
+  --line-height-loose: 1.8;
+}
+
+/* ========================================
+   TYPOGRAPHY CLASSES
+   ======================================== */
+
+/* Display Text */
+.display-xl {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-display-xl);
+  font-weight: var(--font-weight-heavy);
+  letter-spacing: var(--letter-spacing-widest);
+  line-height: var(--line-height-tight);
+}
+
+.display-lg {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-display-lg);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-widest);
+  line-height: var(--line-height-tight);
+}
+
+/* Headings */
+.heading-1 {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-widest);
+  text-transform: uppercase;
+  color: var(--color-cyan-primary);
+}
+
+.heading-2 {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-wider);
+  text-transform: uppercase;
+  color: var(--color-cyan-primary);
+}
+
+.heading-3 {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-wider);
+  text-transform: uppercase;
+  color: var(--color-cyan-muted);
+}
+
+.heading-4 {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-h4);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+}
+
+/* Body Text */
+.body-lg {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-body-lg);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
+}
+
+.body-md {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-body-md);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
+}
+
+.body-sm {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+}
+
+/* UI Text */
+.ui-label {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-ui-md);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+  color: var(--color-cyan-primary);
+}
+
+.ui-value {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-ui-md);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-primary);
+}
+
+.ui-small {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-ui-sm);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-muted);
+}
+
+.ui-tiny {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-ui-xs);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-muted);
+}
+
+/* Monospace Text */
+.text-mono {
+  font-family: var(--font-mono);
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+/* Terminal Output */
+.terminal-text {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-body-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
+}
+
+.terminal-prompt {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-body-sm);
+  color: var(--color-cyan-primary);
+}
+
+/* Tab Text */
+.tab-text {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-ui-md);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-wider);
+  text-transform: uppercase;
+  color: var(--color-cyan-primary);
+}
+
+/* Button Text */
+.button-text {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-ui-md);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-wider);
+  text-transform: uppercase;
+}
+
+/* ========================================
+   SPACING SYSTEM
+   ======================================== */
+
+:root {
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 20px;
+  --space-2xl: 24px;
+  --space-3xl: 32px;
+  --space-4xl: 40px;
+}
+
+/* ========================================
+   COMPONENT TOKENS
+   ======================================== */
+
+:root {
+  /* Borders */
+  --border-width-thin: 1px;
+  --border-width-medium: 2px;
+  --border-width-thick: 3px;
+  
+  --border-radius-sm: 2px;
+  --border-radius-md: 4px;
+  --border-radius-lg: 8px;
+  
+  /* Shadows */
+  --shadow-glow-sm: 0 0 10px var(--color-cyan-glow);
+  --shadow-glow-md: 0 0 20px var(--color-cyan-glow);
+  --shadow-glow-lg: 0 0 30px var(--color-cyan-glow);
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Z-Index Scale */
+  --z-base: 1;
+  --z-panel: 10;
+  --z-overlay: 50;
+  --z-tabs: 100;
+  --z-modal: 200;
+  --z-toast: 300;
+  --z-effects: 999;
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+/* Text Utilities */
+.text-cyan { color: var(--color-cyan-primary); }
+.text-muted { color: var(--color-text-muted); }
+.text-faint { color: var(--color-text-faint); }
+.text-warning { color: var(--color-warning); }
+.text-success { color: var(--color-success); }
+
+.text-uppercase { text-transform: uppercase; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+
+/* Opacity */
+.opacity-90 { opacity: 0.9; }
+.opacity-80 { opacity: 0.8; }
+.opacity-70 { opacity: 0.7; }
+.opacity-60 { opacity: 0.6; }
+.opacity-50 { opacity: 0.5; }
+
+/* Glow Effects */
+.holo-glow-text {
+  color: var(--color-cyan-primary);
+  text-shadow: 
+    0 0 5px var(--color-cyan-glow),
+    0 0 10px var(--color-cyan-glow);
+}
+
+.holo-glow-box {
+  border: var(--border-width-thin) solid var(--color-cyan-glow);
+  box-shadow: 
+    0 0 10px var(--color-cyan-glow),
+    inset 0 0 10px rgba(52, 224, 255, 0.1);
+}
