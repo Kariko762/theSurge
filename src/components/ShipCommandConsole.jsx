@@ -688,6 +688,53 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                 const handleMouseUp = () => setIsDragging(false);
                 const handleMouseLeave = () => setIsDragging(false);
                 
+                // Mouse wheel zoom
+                const handleWheel = (e) => {
+                  e.preventDefault();
+                  const delta = -Math.sign(e.deltaY);
+                  if (delta > 0) {
+                    setZoom(z => Math.min(maxZoom, z < 2 ? Math.round((z + 0.2) * 10) / 10 : Math.round((z + 0.5) * 10) / 10));
+                  } else {
+                    setZoom(z => Math.max(minZoom, z <= 2 ? Math.round((z - 0.2) * 10) / 10 : Math.round((z - 0.5) * 10) / 10));
+                  }
+                };
+                
+                // Off-screen indicator for selected POI
+                const offScreenIndicator = selectedPOI && selectedPOI !== 'SUN' ? (() => {
+                  const poi = parents.find(p => p.id === selectedPOI);
+                  if (!poi) return null;
+                  const pos = toXY(poi.distanceAU, poi.angleRad);
+                  const x = parseFloat(pos.left);
+                  const y = parseFloat(pos.top);
+                  const isOffScreen = x < 0 || x > 100 || y < 0 || y > 100;
+                  if (!isOffScreen) return null;
+                  
+                  // Calculate edge position and angle
+                  const angle = Math.atan2(y - 50, x - 50);
+                  const edgeX = 50 + 45 * Math.cos(angle);
+                  const edgeY = 50 + 45 * Math.sin(angle);
+                  const rotation = (angle * 180 / Math.PI) + 90;
+                  
+                  return (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        left: `${edgeX}%`,
+                        top: `${edgeY}%`,
+                        transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+                        width: 0,
+                        height: 0,
+                        borderLeft: '8px solid transparent',
+                        borderRight: '8px solid transparent',
+                        borderBottom: '14px solid rgba(52, 224, 255, 0.8)',
+                        filter: 'drop-shadow(0 0 4px rgba(52, 224, 255, 0.6))',
+                        pointerEvents: 'none',
+                        zIndex: 100
+                      }}
+                    />
+                  );
+                })() : null;
+                
                 // Ship marker
                 const shipMarker = (
                   <div
@@ -706,9 +753,15 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                   </div>
                 );
                 
-                // Sun marker
+                // Sun marker - now moves with pan
                 const sunMarker = (
-                  <div className="map-poi sun" style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
+                  <div 
+                    className="map-poi sun" 
+                    style={{ 
+                      left: `${(0.5 + panOffset.x) * 100}%`, 
+                      top: `${(0.5 + panOffset.y) * 100}%`, 
+                      transform: 'translate(-50%, -50%)' 
+                    }}
                     onClick={() => { setSelectedPOI('SUN'); setLockedSelection(true); }}
                   >
                     <div className="poi-tooltip">SUN ({system.star.class}-TYPE)</div>
@@ -768,6 +821,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseLeave}
+                    onWheel={handleWheel}
                     style={{ 
                       position: 'absolute', 
                       top: 0, 
@@ -788,6 +842,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                     {sunMarker}
                     {markers}
                     {highlightCircle}
+                    {offScreenIndicator}
                   </div>
                 </>);
               })()}
@@ -802,6 +857,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                 bottom: terminalExpanded ? 0 : 'auto',
                 left: terminalExpanded ? 0 : 'auto',
                 right: terminalExpanded ? 0 : 'auto',
+                width: '100%',
                 marginTop: terminalExpanded ? 0 : '12px',
                 height: terminalExpanded ? '50vh' : 'auto',
                 zIndex: terminalExpanded ? 10 : 1,
@@ -843,9 +899,21 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                 className="action-btn" 
                 onClick={startSystemScan}
                 disabled={scanningActive}
-                style={{ width: '100%', opacity: scanningActive ? 0.5 : 1 }}
+                style={{ width: '100%', opacity: scanningActive ? 0.5 : 1, marginBottom: '8px' }}
               >
                 {scanningActive ? 'Scanning...' : 'Scan System'}
+              </button>
+              <button 
+                className="action-btn" 
+                disabled={!selectedPOI || selectedPOI === 'SUN'}
+                style={{ 
+                  width: '100%', 
+                  opacity: (!selectedPOI || selectedPOI === 'SUN') ? 0.3 : 1,
+                  background: (!selectedPOI || selectedPOI === 'SUN') ? 'rgba(100, 100, 100, 0.2)' : 'rgba(52, 224, 255, 0.15)'
+                }}
+                title={!selectedPOI ? 'Select a destination first' : 'Move ship to selected location'}
+              >
+                Move Ship to {selectedPOI && selectedPOI !== 'SUN' ? pois.find(p => p.id === selectedPOI)?.type : 'Target'}
               </button>
             </div>
 
