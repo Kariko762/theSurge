@@ -14,8 +14,9 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
   const [lockedSelection, setLockedSelection] = useState(false);
   const [sectionsOpen, setSectionsOpen] = useState({ power: true, ship: false });
   const [fullscreen, setFullscreen] = useState(false);
-  const [zoom, setZoom] = useState(1.0);
+  const [zoom, setZoom] = useState(0.2);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [panTransition, setPanTransition] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [gamePhase, setGamePhase] = useState('jumped'); // jumped | dialogue | scanning
@@ -47,13 +48,21 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
   // Seed + generated system
   const [seedInput, setSeedInput] = useState(initialSeed || exampleSeeds()[0]);
   const system = useMemo(() => {
-    return generateSystem(seedInput, { 
+    const generated = generateSystem(seedInput, { 
       sensorsPower: shipAttributes.sensorRange, 
       wake: shipAttributes.staticSignature 
     });
+    console.log(`[SEED: ${seedInput}] Generated system:`, {
+      star: generated.star.class,
+      heliosphere: generated.heliosphere.radiusAU.toFixed(2),
+      orbitCount: generated.orbits.length,
+      extraCount: generated.extras.length,
+      firstPlanet: generated.orbits.find(o => o.parent.type === 'planet')?.parent.name || 'none'
+    });
+    return generated;
   }, [seedInput, shipAttributes.sensorRange, shipAttributes.staticSignature]);
   
-  // Sync ship position on mount
+  // Sync ship position on mount and center view
   useEffect(() => {
     if (system) {
       const edgeAU = system.heliosphere.radiusAU * 0.95;
@@ -61,6 +70,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
       shipState.setPosition(edgeAU, angleRad);
       shipState.visitSystem(seedInput);
       setShipStateVersion(v => v + 1);
+      // Center view on ship at 20% zoom
+      setTimeout(() => centerOnShip(), 50);
     }
   }, [system, seedInput]);
   
@@ -76,6 +87,30 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
     if (!system) return { distanceAU: 0, angleRad: 0, x: 0, y: 0 };
     return currentShipState.position;
   }, [system, currentShipState.position]);
+  
+  // Center view on ship at 20% zoom (initial view)
+  const centerOnShip = () => {
+    if (!system || !shipPosition) return;
+    setPanTransition(true);
+    const r = (shipPosition.distanceAU / system.heliosphere.radiusAU) * 0.92 * 0.2;
+    const offsetX = -r * Math.cos(shipPosition.angleRad);
+    const offsetY = -r * Math.sin(shipPosition.angleRad);
+    setZoom(0.2);
+    setPanOffset({ x: offsetX, y: offsetY });
+    setTimeout(() => setPanTransition(false), 1000);
+  };
+  
+  // Center view on a POI at 150% zoom
+  const centerOnPOI = (poi) => {
+    if (!system) return;
+    setPanTransition(true);
+    const r = (poi.distanceAU / system.heliosphere.radiusAU) * 0.92 * 1.5;
+    const offsetX = -r * Math.cos(poi.angleRad);
+    const offsetY = -r * Math.sin(poi.angleRad);
+    setZoom(1.5);
+    setPanOffset({ x: offsetX, y: offsetY });
+    setTimeout(() => setPanTransition(false), 1000);
+  };
 
   const startSystemScan = () => {
     if (scanningActive) return;
@@ -657,7 +692,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                 <>
                   {(() => {
                 // Zoom support (0.6x to 10x)
-                const [minZoom, maxZoom] = [0.6, 10.0];
+                const [minZoom, maxZoom] = [0.2, 10.0];
                 const [zoomIn, zoomOut] = [
                   () => setZoom(z => Math.min(maxZoom, z < 2 ? Math.round((z + 0.2) * 10) / 10 : Math.round((z + 0.5) * 10) / 10)),
                   () => setZoom(z => Math.max(minZoom, z <= 2 ? Math.round((z - 0.2) * 10) / 10 : Math.round((z - 0.5) * 10) / 10))
@@ -665,7 +700,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                 const toXY = (au, angle) => {
                   const centerX = 0.5 + panOffset.x; 
                   const centerY = 0.5 + panOffset.y;
-                  const r = (au / system.heliosphere.radiusAU) * 0.46 * zoom;
+                  const r = (au / system.heliosphere.radiusAU) * 0.92 * zoom; // use more of the available space
                   const x = centerX + r * Math.cos(angle);
                   const y = centerY + r * Math.sin(angle);
                   return { left: `${x * 100}%`, top: `${y * 100}%` };
@@ -673,6 +708,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                 
                 // Drag handlers for panning
                 const handleMouseDown = (e) => {
+                  setPanTransition(false);
                   setIsDragging(true);
                   setDragStart({ x: e.clientX, y: e.clientY });
                 };
@@ -698,6 +734,97 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                     setZoom(z => Math.max(minZoom, z <= 2 ? Math.round((z - 0.2) * 10) / 10 : Math.round((z - 0.5) * 10) / 10));
                   }
                 };
+                
+                // Ship marker
+                const shipMarker = (
+                  <div
+                    className="map-poi"
+                    style={{
+                      ...toXY(shipPosition.distanceAU, shipPosition.angleRad),
+                      background: 'rgba(255, 200, 100, 0.9)',
+                      borderColor: 'rgba(255, 200, 100, 1)',
+                      boxShadow: '0 0 20px rgba(255, 200, 100, 0.8)',
+                      width: '12px',
+                      height: '12px',
+                      clipPath: 'polygon(50% 0, 100% 100%, 0 100%)',
+                      transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none'
+                    }}
+                  >
+                    <div className="poi-tooltip">SHIP (SS-ARKOSE)</div>
+                  </div>
+                );
+                
+                // Sun marker - now moves with pan
+                const sunMarker = (
+                  <div 
+                    className="map-poi sun" 
+                    style={{ 
+                      left: `${(0.5 + panOffset.x) * 100}%`, 
+                      top: `${(0.5 + panOffset.y) * 100}%`, 
+                      transform: 'translate(-50%, -50%)',
+                      transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none'
+                    }}
+                    onClick={() => { setSelectedPOI('SUN'); setLockedSelection(true); }}
+                  >
+                    <div className="poi-tooltip">SUN ({system.star.class}-TYPE)</div>
+                  </div>
+                );
+                // Get scanned parents first
+                const parents = [
+                  ...system.orbits.map(o => ({ ...o.parent, distanceAU: o.distanceAU, angleRad: o.angleRad, orbitIndex: o.index })),
+                  ...(system.extras || []).map(e => ({ ...e.parent, distanceAU: e.distanceAU, angleRad: e.angleRad, orbitIndex: -1 })),
+                ].filter(p => scanProgress.includes(p.id));
+                
+                // Orbits as rings - only show rings for scanned planets
+                const planetDistances = system.orbits
+                  .filter(o => o.parent.type === 'planet' && scanProgress.includes(o.parent.id))
+                  .map(o => o.distanceAU);
+                const rings = planetDistances.map((distAU, idx) => {
+                  const r = (distAU / system.heliosphere.radiusAU) * 0.92 * zoom; // radius in viewport units
+                  const diameter = r * 2; // rings are sized by diameter (width/height)
+                  return (
+                    <div key={`ring-${idx}`} className="orbit-ring" style={{
+                      left: `${(0.5 + panOffset.x) * 100}%`, 
+                      top: `${(0.5 + panOffset.y) * 100}%`, 
+                      transform: 'translate(-50%, -50%)',
+                      width: `${diameter * 100}%`,
+                      height: `${diameter * 100}%`,
+                      transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out, width 0.8s ease-in-out, height 0.8s ease-in-out' : 'none'
+                    }} />
+                  );
+                });
+                const markers = parents.map(p => (
+                  <div
+                    key={p.id}
+                    className={`map-poi ${p.type} ${shapeForType(p.type)} ${selectedPOI === p.id ? 'selected' : ''}`}
+                    style={{
+                      ...toXY(p.distanceAU, p.angleRad),
+                      transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none'
+                    }}
+                    onMouseEnter={() => { if (!lockedSelection) setSelectedPOI(p.id); }}
+                    onMouseLeave={() => { if (!lockedSelection) setSelectedPOI(null); }}
+                    onClick={() => { setSelectedPOI(p.id); setLockedSelection(true); }}
+                  >
+                    <div className="poi-tooltip">{p.name} — {p.distanceAU.toFixed(2)} AU</div>
+                  </div>
+                ));
+                // Highlight circle for selected POI
+                const highlightCircle = selectedPOI && selectedPOI !== 'SUN' ? (() => {
+                  const poi = parents.find(p => p.id === selectedPOI);
+                  if (!poi) return null;
+                  const pos = toXY(poi.distanceAU, poi.angleRad);
+                  return (
+                    <div
+                      className="poi-highlight-circle"
+                      style={{
+                        left: pos.left,
+                        top: pos.top,
+                        transform: 'translate(-50%, -50%)',
+                        transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none'
+                      }}
+                    />
+                  );
+                })() : null;
                 
                 // Off-screen indicator for selected POI
                 const offScreenIndicator = selectedPOI && selectedPOI !== 'SUN' ? (() => {
@@ -734,87 +861,6 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                     />
                   );
                 })() : null;
-                
-                // Ship marker
-                const shipMarker = (
-                  <div
-                    className="map-poi"
-                    style={{
-                      ...toXY(shipPosition.distanceAU, shipPosition.angleRad),
-                      background: 'rgba(255, 200, 100, 0.9)',
-                      borderColor: 'rgba(255, 200, 100, 1)',
-                      boxShadow: '0 0 20px rgba(255, 200, 100, 0.8)',
-                      width: '12px',
-                      height: '12px',
-                      clipPath: 'polygon(50% 0, 100% 100%, 0 100%)'
-                    }}
-                  >
-                    <div className="poi-tooltip">SHIP (SS-ARKOSE)</div>
-                  </div>
-                );
-                
-                // Sun marker - now moves with pan
-                const sunMarker = (
-                  <div 
-                    className="map-poi sun" 
-                    style={{ 
-                      left: `${(0.5 + panOffset.x) * 100}%`, 
-                      top: `${(0.5 + panOffset.y) * 100}%`, 
-                      transform: 'translate(-50%, -50%)' 
-                    }}
-                    onClick={() => { setSelectedPOI('SUN'); setLockedSelection(true); }}
-                  >
-                    <div className="poi-tooltip">SUN ({system.star.class}-TYPE)</div>
-                  </div>
-                );
-                // Get scanned parents first
-                const parents = [
-                  ...system.orbits.map(o => ({ ...o.parent, distanceAU: o.distanceAU, angleRad: o.angleRad, orbitIndex: o.index })),
-                  ...(system.extras || []).map(e => ({ ...e.parent, distanceAU: e.distanceAU, angleRad: e.angleRad, orbitIndex: -1 })),
-                ].filter(p => scanProgress.includes(p.id));
-                
-                // Orbits as rings - only show rings for scanned POIs
-                const scannedOrbitIndices = new Set(parents.filter(p => p.orbitIndex >= 0).map(p => p.orbitIndex));
-                const rings = system.orbits.filter(o => scannedOrbitIndices.has(o.index)).map(o => {
-                  const size = (o.distanceAU / system.heliosphere.radiusAU) * 0.92 * zoom;
-                  return (
-                    <div key={`ring-${o.index}`} className="orbit-ring" style={{
-                      left: `${(0.5 + panOffset.x) * 100}%`, 
-                      top: `${(0.5 + panOffset.y) * 100}%`, 
-                      transform: 'translate(-50%, -50%)',
-                      width: `${size * 100}%`,
-                      height: `${size * 100}%`,
-                    }} />
-                  );
-                });
-                const markers = parents.map(p => (
-                  <div
-                    key={p.id}
-                    className={`map-poi ${p.type} ${shapeForType(p.type)} ${selectedPOI === p.id ? 'selected' : ''}`}
-                    style={toXY(p.distanceAU, p.angleRad)}
-                    onMouseEnter={() => { if (!lockedSelection) setSelectedPOI(p.id); }}
-                    onMouseLeave={() => { if (!lockedSelection) setSelectedPOI(null); }}
-                    onClick={() => { setSelectedPOI(p.id); setLockedSelection(true); }}
-                  >
-                    <div className="poi-tooltip">{p.name} — {p.distanceAU.toFixed(2)} AU</div>
-                  </div>
-                ));
-                // Highlight circle for selected POI
-                const highlightCircle = selectedPOI && selectedPOI !== 'SUN' ? (() => {
-                  const poi = parents.find(p => p.id === selectedPOI);
-                  if (!poi) return null;
-                  const pos = toXY(poi.distanceAU, poi.angleRad);
-                  return (
-                    <div
-                      className="poi-highlight-circle"
-                      style={{
-                        left: pos.left,
-                        top: pos.top,
-                        transform: 'translate(-50%, -50%)'
-                      }}
-                    />
-                  );
-                })() : null;
                 return (<>
                   <div 
                     onMouseDown={handleMouseDown}
@@ -835,7 +881,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                       <button className="small-btn" onClick={zoomOut}>-</button>
                       <span className="ui-small text-muted">{(zoom*100).toFixed(0)}%</span>
                       <button className="small-btn" onClick={zoomIn}>+</button>
-                      <button className="small-btn" onClick={() => { setZoom(1.0); setPanOffset({ x: 0, y: 0 }); }} title="Reset view">⊙</button>
+                      <button className="small-btn" onClick={centerOnShip} title="Reset view to ship">⊙</button>
                     </div>
                     {rings}
                     {shipMarker}
@@ -923,7 +969,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
               {/* SHIP */}
               <div
                 className="map-poi-sidebar-item"
-                style={{ background: 'rgba(255, 200, 100, 0.15)', borderColor: 'rgba(255, 200, 100, 0.6)' }}
+                style={{ background: 'rgba(255, 200, 100, 0.15)', borderColor: 'rgba(255, 200, 100, 0.6)', cursor: 'pointer' }}
+                onClick={() => centerOnPOI({ distanceAU: shipPosition.distanceAU, angleRad: shipPosition.angleRad })}
               >
                 <div className="map-poi-sidebar-name" style={{ color: 'rgba(255, 200, 100, 1)' }}>SHIP (SS-ARKOSE)</div>
                 <div className="map-poi-sidebar-meta">Type: SURVEY FRIGATE • Distance: 0.00 AU</div>
@@ -935,7 +982,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
               {/* SUN */}
               <div
                 className={`map-poi-sidebar-item ${selectedPOI === 'SUN' ? 'active' : ''}`}
-                onClick={() => { setSelectedPOI('SUN'); setLockedSelection(true); }}
+                onClick={() => { setSelectedPOI('SUN'); setLockedSelection(true); centerOnPOI({ distanceAU: 0, angleRad: 0 }); }}
               >
                 <div className="map-poi-sidebar-name">SUN</div>
                 <div className="map-poi-sidebar-meta">Type: {system.star.class}-CLASS STAR • Distance: {shipPosition.distanceAU.toFixed(2)} AU</div>
@@ -955,7 +1002,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                   <div
                     key={poi.id}
                     className={`map-poi-sidebar-item ${selectedPOI === poi.id ? 'active' : ''}`}
-                    onClick={() => { setSelectedPOI(poi.id); setLockedSelection(true); }}
+                    onClick={() => { setSelectedPOI(poi.id); setLockedSelection(true); centerOnPOI(poi); }}
                   >
                     <div className="map-poi-sidebar-name">{poi.name}</div>
                     <div className="map-poi-sidebar-meta">

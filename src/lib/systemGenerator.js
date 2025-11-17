@@ -43,13 +43,15 @@ function rollParentType(rng, starClass) {
     ['orbital', classWeights(starClass,'orbital')],
     ['anomaly', classWeights(starClass,'anomaly')],
     ['habitat', classWeights(starClass,'habitat')], // O'Neill cylinders
+    ['moon',    2], // moons appear on orbits but typically near planets
   ], rng);
 }
 
 function rollSize(rng, type) {
-  // Larger bias for major bodies, smaller for orbitals
+  // Larger bias for major bodies, smaller for orbitals/moons
   const w = type === 'planet' || type === 'habitat' ? [['Large', 3], ['Medium', 1]]
           : type === 'belt' ? [['Large', 2], ['Medium', 1]]
+          : type === 'moon' ? [['Large', 1], ['Medium', 3]]
           : [['Large', 1], ['Medium', 2]]; // orbitals, anomalies
   return weighted(w, rng);
 }
@@ -80,8 +82,8 @@ function makeZones(rng, lum, starClass) {
 
 function makeOrbits(rng, starClass) {
   const n = randInt(rng, 6, 12);
-  const r = lerp(1.4, 2.1, rng());
-  let d0 = lerp(0.18, 0.6, rng());
+  const r = lerp(1.8, 2.6, rng()); // much wider spread ratio
+  let d0 = lerp(1.0, 2.5, rng()); // start even further from sun
   const out = [];
   for (let i = 0; i < n; i++) {
     const eps = lerp(-0.08, 0.08, rng());
@@ -92,16 +94,49 @@ function makeOrbits(rng, starClass) {
   return out;
 }
 
+function generateName(rng, type, size, index) {
+  // Generate placeholder names based on orbit index - actual names revealed on investigation
+  switch(type) {
+    case 'planet':
+      return `Planet ${index + 1}` + (size === 'Medium' ? '-M' : '');
+    case 'moon':
+      return `Moon ${index + 1}` + (size === 'Medium' ? '-M' : '');
+    case 'belt':
+      return `Belt ${index + 1}` + (size === 'Medium' ? '-M' : '');
+    case 'orbital':
+      return `Station ${index + 1}` + (size === 'Medium' ? '-M' : '');
+    case 'anomaly':
+      return `Anomaly ${index + 1}` + (size === 'Medium' ? '-M' : '');
+    case 'habitat':
+      return `Habitat ${index + 1}` + (size === 'Medium' ? '-M' : '');
+    default:
+      return type.toUpperCase();
+  }
+}
+
 function parentForOrbit(rng, starClass, seedBase, orbit) {
   const type = rollParentType(rng, starClass);
   const size = rollSize(rng, type);
   const id = `${orbit.index}:${type}`;
+  const name = generateName(rng, type, size, orbit.index);
   const tags = [];
+  
+  // Add planetary activity tags (hidden until investigation)
+  if (type === 'planet' && rng() > 0.6) {
+    const activities = ['habitable', 'industrial', 'mining', 'abandoned', 'contested', 'volcanic'];
+    tags.push(pick(activities, rng));
+  }
+  
   // Rough base signal strength per type/size
-  const baseSignal = (type === 'planet' ? 1.0 : type === 'belt' ? 0.8 : type === 'habitat' ? 0.9 : 0.7) * (size === 'Large' ? 1.0 : 0.6);
+  const baseSignal = (type === 'planet' ? 1.0 
+                    : type === 'moon' ? 0.7
+                    : type === 'belt' ? 0.8 
+                    : type === 'habitat' ? 0.9 
+                    : type === 'anomaly' ? 0.5 // anomalies are harder to detect
+                    : 0.7) * (size === 'Large' ? 1.0 : 0.6);
   // Scan DC baselines
   const scanDC = size === 'Large' ? 10 : 12 + randInt(rng, 0, 4);
-  return { id, type, size, name: type.toUpperCase(), tags, baseSignal, scanDC };
+  return { id, type, size, name, tags, baseSignal, scanDC };
 }
 
 function detectionAtEdge(parent, distanceAU, sensorsPower, wake) {
@@ -143,10 +178,10 @@ export function generateSystem(seedStr, opts = {}) {
     return { ...o, parent: { ...p, ...det } };
   });
 
-  // Anchor ORBITAL platforms to nearest PLANET (or SUN) with slight angle offset
+  // Anchor ORBITAL platforms and MOONS to nearest PLANET (or SUN) with slight angle offset
   const planetEntries = withParents.filter(w => w.parent.type === 'planet');
   withParents = withParents.map(entry => {
-    if (entry.parent.type !== 'orbital') return entry;
+    if (entry.parent.type !== 'orbital' && entry.parent.type !== 'moon') return entry;
     let anchor = null;
     if (planetEntries.length > 0) {
       anchor = planetEntries.reduce((best, p) => {
@@ -158,7 +193,7 @@ export function generateSystem(seedStr, opts = {}) {
     const anchorId = anchor ? anchor.parent.id : 'SUN';
     const anchorDistance = anchor ? anchor.distanceAU : 0.0;
     const anchorAngle = anchor ? anchor.angleRad : 0.0;
-    const angleJitter = (rngLinks() - 0.5) * 0.35; // small offset
+    const angleJitter = (rngLinks() - 0.5) * (entry.parent.type === 'moon' ? 0.15 : 0.35); // moons closer to planet
     const newAngle = (anchorAngle + angleJitter + Math.PI * 2) % (Math.PI * 2);
     const parent = { ...entry.parent, anchorId };
     return { ...entry, distanceAU: anchorDistance, angleRad: newAngle, parent };
@@ -169,13 +204,37 @@ export function generateSystem(seedStr, opts = {}) {
   const extrasCount = randInt(rngExtras, 1, 3);
   const extras = Array.from({ length: extrasCount }, (_, i) => {
     const type = pick(extraTypes, rngExtras);
-    const size = 'Large';
+    // Conflict and wake can be Medium, others Large
+    const size = (type === 'conflict' || type === 'wake') && rngExtras() > 0.6 ? 'Medium' : 'Large';
     const angleRad = lerp(0, Math.PI * 2, rngExtras());
     const au = lerp(zones.darkAU * 1.3, zones.staticAU * 1.05, rngExtras());
     const id = `X${i}:${type}`;
-    const baseSignal = 1.1; // large coherent signature
-    const scanDC = 10;
-    const parent = { id, type, size, name: type.toUpperCase(), tags: [], baseSignal, scanDC };
+    
+    // Generate placeholder names for extras - details revealed on investigation
+    let name;
+    switch(type) {
+      case 'facility':
+        name = `Facility ${i + 1}` + (size === 'Medium' ? '-M' : '');
+        break;
+      case 'nebula':
+        name = `Nebula ${i + 1}` + (size === 'Medium' ? '-M' : '');
+        break;
+      case 'conflict':
+        name = `Conflict Zone ${i + 1}` + (size === 'Medium' ? '-M' : '');
+        break;
+      case 'wake':
+        name = `Wake ${i + 1}` + (size === 'Medium' ? '-M' : '');
+        break;
+      case 'distress':
+        name = `Distress ${i + 1}` + (size === 'Medium' ? '-M' : '');
+        break;
+      default:
+        name = type.toUpperCase();
+    }
+    
+    const baseSignal = size === 'Large' ? 1.1 : 0.8; // coherent signature varies by size
+    const scanDC = size === 'Large' ? 10 : 12;
+    const parent = { id, type, size, name, tags: [], baseSignal, scanDC };
     const det = detectionAtEdge(parent, heliosphere.radiusAU, sensorsPower, wake);
     return { index: -1, distanceAU: au, angleRad, parent: { ...parent, ...det } };
   });
