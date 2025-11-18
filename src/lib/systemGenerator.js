@@ -4,6 +4,7 @@
 import { makeRng, randInt, lerp, pick, weighted } from './rng.js';
 
 const STAR_CLASSES = ['O','B','A','F','G','K','M'];
+const GALACTIC_ZONES = ['Quiet', 'Dark', 'Static'];
 
 function parseSeed(seedStr) {
   // Expect patterns like: SSG1-G:SECTOR:PAYLOAD  or  ANY_STRING
@@ -64,6 +65,43 @@ function rollLuminosity(rng, starClass) {
   };
   const [a, b] = ranges[starClass] || [0.8, 1.2];
   return lerp(a, b, rng());
+}
+
+function rollGalacticZone(rng) {
+  // Weighted distribution: more Dark zones, fewer Static
+  return weighted([
+    ['Quiet', 30],  // Low surge, safer for exploration
+    ['Dark', 50],   // Medium surge, balanced
+    ['Static', 20]  // High surge, dangerous but bright stars protect
+  ], rng);
+}
+
+function calculateStellarProtection(starClass, lum) {
+  // Stellar radiation creates protective bubble against galactic surge
+  // O/B/A stars = strong protection, K/M = weak
+  const classBase = {
+    O: 1.0, B: 0.9, A: 0.75, F: 0.6, G: 0.45, K: 0.3, M: 0.15
+  };
+  const base = classBase[starClass] || 0.5;
+  return base * lum; // luminosity amplifies protection
+}
+
+function calculateGalacticSurge(galacticZone) {
+  // Base surge radiation per zone type (mSv/h at heliosphere edge)
+  const surgeBase = {
+    Quiet: 5,   // Low background surge
+    Dark: 20,   // Medium surge
+    Static: 80  // High surge, deadly at edges
+  };
+  return surgeBase[galacticZone] || 20;
+}
+
+function calculateEncounterActivity(starClass, lum) {
+  // Brighter stars = more activity, settlements, patrols
+  const classActivity = {
+    O: 0.3, B: 0.5, A: 0.7, F: 0.85, G: 1.0, K: 0.8, M: 0.5
+  };
+  return (classActivity[starClass] || 0.5) * lum;
 }
 
 function makeZones(rng, lum, starClass) {
@@ -157,10 +195,17 @@ export function generateSystem(seedStr, opts = {}) {
   const rngZones = makeRng(baseSeed, 'zones');
   const rngExtras = makeRng(baseSeed, 'extras');
   const rngLinks = makeRng(baseSeed, 'links');
+  const rngGalaxy = makeRng(baseSeed, 'galaxy');
 
   const starClass = rollStarClass(rngStar, starClassHint);
   const lum = rollLuminosity(rngStar, starClass);
   const flare = lerp(0, 1, rngStar());
+  
+  // Galactic zone determines background surge radiation
+  const galacticZone = rollGalacticZone(rngGalaxy);
+  const galacticSurge = calculateGalacticSurge(galacticZone);
+  const stellarProtection = calculateStellarProtection(starClass, lum);
+  const encounterActivity = calculateEncounterActivity(starClass, lum);
 
   // Heliosphere radius scales with lum; outer boundary for first-pass visibility
   const heliosphere = { radiusAU: lerp(40, 120, rngStar()) * lum };
@@ -243,6 +288,12 @@ export function generateSystem(seedStr, opts = {}) {
     seed: seedStr,
     heliosphere,
     star: { class: starClass, lum, flare },
+    galactic: { 
+      zone: galacticZone, 
+      surgeRadiation: galacticSurge,
+      stellarProtection,
+      encounterActivity
+    },
     zones,
     orbits: withParents,
     extras,
@@ -255,4 +306,101 @@ export function exampleSeeds() {
     'SSG1-K:ASH-DELTA:9KCM7Q',
     'SSG1-M:RED-GLARE:7F2Q9K',
   ];
+}
+
+/**
+ * Calculate environmental static exposure at given position
+ * @param {Object} system - Generated system
+ * @param {number} distanceAU - Distance from sun in AU
+ * @returns {number} Static radiation in mSv/h
+ */
+export function calculateStaticExposure(system, distanceAU) {
+  const { galactic, star, heliosphere } = system;
+  
+  // Normalized distance (0 at sun, 1 at heliosphere edge)
+  const normalizedDist = Math.min(distanceAU / heliosphere.radiusAU, 1.0);
+  
+  // Stellar protection decreases with distance (inverse square-ish)
+  const protectionFactor = galactic.stellarProtection / (1 + normalizedDist * normalizedDist * 3);
+  
+  // Environmental static = galactic surge - stellar protection
+  // At sun: maximum protection. At edge: minimum protection
+  const baseStatic = galactic.surgeRadiation * normalizedDist;
+  const netStatic = Math.max(baseStatic - protectionFactor * 10, 0);
+  
+  return netStatic;
+}
+
+/**
+ * Calculate encounter risk based on proximity to sun and stellar activity
+ * @param {Object} system - Generated system
+ * @param {number} distanceAU - Distance from sun in AU
+ * @returns {number} Encounter chance multiplier (0-1)
+ */
+export function calculateEncounterRisk(system, distanceAU) {
+  const { galactic, heliosphere } = system;
+  
+  // Normalized distance (0 at sun, 1 at heliosphere edge)
+  const normalizedDist = Math.min(distanceAU / heliosphere.radiusAU, 1.0);
+  
+  // Closer to sun = more activity (inverse of distance)
+  const proximityFactor = 1 - normalizedDist;
+  
+  // Encounter base = stellar activity × proximity
+  // Quiet zones have more life → more encounters when near sun
+  const zoneEncounterMod = galactic.zone === 'Quiet' ? 1.5 
+                          : galactic.zone === 'Dark' ? 1.0 
+                          : 0.6; // Static zones: harsh, less life
+  
+  return galactic.encounterActivity * proximityFactor * zoneEncounterMod;
+}
+
+/**
+ * Calculate wake signature based on movement speed and distance traveled
+ * @param {number} speedAUperHour - Movement speed in AU/hour
+ * @param {number} totalPowerPercent - Total ship power allocation (100-200%)
+ * @returns {number} Wake signature strength
+ */
+export function calculateWakeSignature(speedAUperHour, totalPowerPercent) {
+  // Faster movement + higher power = bigger wake in solar weather
+  const speedFactor = speedAUperHour * speedAUperHour; // Squared for dramatic effect
+  const powerFactor = totalPowerPercent / 100;
+  return speedFactor * powerFactor * 0.5;
+}
+
+/**
+ * Calculate total risk level combining all factors
+ * @param {Object} system - Generated system
+ * @param {number} distanceAU - Distance from sun in AU
+ * @param {number} wakeSignature - Current wake signature
+ * @param {number} systemTier - System difficulty tier (0.0-1.0, lower = more dangerous)
+ * @returns {Object} Risk breakdown with level and components
+ */
+export function calculateTotalRisk(system, distanceAU, wakeSignature = 0, systemTier = 1.0) {
+  const staticExposure = calculateStaticExposure(system, distanceAU);
+  const encounterRisk = calculateEncounterRisk(system, distanceAU);
+  const wakeMod = wakeSignature * 0.1; // Wake adds to detection/encounter chance
+  const tierMod = (1 - systemTier) * 50; // Lower tier = more dangerous
+  
+  // Combined risk score
+  const environmentalRisk = staticExposure;
+  const combatRisk = (encounterRisk + wakeMod) * 100;
+  const totalRisk = environmentalRisk + combatRisk + tierMod;
+  
+  // Risk level classification
+  let level = 'MINIMAL';
+  if (totalRisk > 100) level = 'EXTREME';
+  else if (totalRisk > 60) level = 'HIGH';
+  else if (totalRisk > 30) level = 'MODERATE';
+  else if (totalRisk > 10) level = 'LOW';
+  
+  return {
+    level,
+    totalRisk: Math.round(totalRisk),
+    environmental: Math.round(environmentalRisk),
+    combat: Math.round(combatRisk),
+    staticExposure: Math.round(staticExposure * 10) / 10,
+    encounterChance: Math.round(encounterRisk * 100),
+    wake: Math.round(wakeSignature * 10) / 10
+  };
 }

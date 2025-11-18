@@ -71,6 +71,12 @@ body {
   z-index: 999;
 }
 
+/* Disable scanlines for specific views */
+.no-scanlines::before,
+.no-scanlines::after {
+  display: none !important;
+}
+
 /* ========================================
    HOLOGRAPHIC GLOW EFFECTS
    ======================================== */
@@ -483,7 +489,7 @@ body {
   position: fixed;
   right: 0;
   top: 0;
-  width: 320px;
+  width: 470px;
   height: 100vh;
   background: rgba(5, 5, 5, 0.9);
   border-left: 2px solid rgba(52, 224, 255, 0.5);
@@ -684,6 +690,14 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   opacity: 0.8;
+}
+
+.status-bar-value {
+  margin-left: 8px;
+  font-size: 9px;
+  color: #00ffcc;
+  white-space: nowrap;
+  font-weight: bold;
 }
 
 .status-bar-blocks {
@@ -1087,8 +1101,41 @@ body {
   flex: 1;
   margin-top: 12px;
   border: 1px solid rgba(52, 224, 255, 0.3);
-  background: rgba(0, 0, 0, 0.6);
+  background: 
+    radial-gradient(ellipse at 20% 30%, rgba(52, 100, 255, 0.12) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 70%, rgba(150, 52, 255, 0.10) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(15, 20, 40, 0.95) 0%, rgba(5, 8, 15, 1) 100%);
   overflow: hidden;
+}
+
+.map-fullscreen-canvas::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 20% 30%, rgba(255, 255, 255, 0.95), transparent),
+    radial-gradient(1.5px 1.5px at 40% 70%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(1.5px 1.5px at 60% 20%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1.5px 1.5px at 80% 60%, rgba(255, 255, 255, 0.75), transparent),
+    radial-gradient(1.5px 1.5px at 10% 80%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(1.5px 1.5px at 90% 40%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1.5px 1.5px at 30% 50%, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 70% 90%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(1px 1px at 15% 15%, rgba(255, 255, 255, 0.65), transparent),
+    radial-gradient(1px 1px at 85% 25%, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1px 1px at 45% 85%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 65% 45%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(0.8px 0.8px at 25% 60%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(0.8px 0.8px at 75% 15%, rgba(255, 255, 255, 0.45), transparent),
+    radial-gradient(0.8px 0.8px at 55% 75%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(0.8px 0.8px at 35% 35%, rgba(255, 255, 255, 0.4), transparent);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  opacity: 0.85;
 }
 
 .map-poi-sidebar {
@@ -1114,6 +1161,25 @@ body {
 }
 
 .map-poi-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(52, 224, 255, 0.6);
+}
+
+/* Custom scrollbar for map panels (Universe/Galaxy/Solar System views) */
+.holo-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.holo-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-left: 1px solid rgba(52, 224, 255, 0.2);
+}
+
+.holo-scroll::-webkit-scrollbar-thumb {
+  background: rgba(52, 224, 255, 0.4);
+  border-radius: 3px;
+}
+
+.holo-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(52, 224, 255, 0.6);
 }
 
@@ -1220,7 +1286,7 @@ body {
   top: 50%;
   left: 30px;
   transform: translateY(-50%);
-  width: calc(100% - 380px);
+  width: calc(100% - 530px);
   max-width: none;
   height: 85vh;
   padding: 30px;

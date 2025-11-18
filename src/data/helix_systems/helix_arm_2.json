@@ -1,0 +1,1123 @@
+[
+  {
+    "id": "A2_ENTRY",
+    "name": "Radiant Span",
+    "type": "Main Sequence",
+    "zone": "Quiet",
+    "position": { "x": 1180, "y": 1000 },
+    "tier": 0.00,
+    "radiation": "Low",
+    "size": 4,
+    "seed": "A2-ENTRY",
+    "connections": {
+      "forward": ["A2_001"],
+      "backward": ["RING_03", "RING_01"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_001",
+    "name": "Silver Reach",
+    "type": "Main Sequence",
+    "zone": "Quiet",
+    "position": { "x": 1230, "y": 970 },
+    "tier": 0.02,
+    "radiation": "Low",
+    "size": 3,
+    "seed": "A2-001",
+    "connections": {
+      "forward": ["A2_002"],
+      "backward": ["A2_ENTRY"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_002",
+    "name": "Quiet Strand",
+    "type": "Dwarf",
+    "zone": "Quiet",
+    "position": { "x": 1285, "y": 945 },
+    "tier": 0.04,
+    "radiation": "Low",
+    "size": 2,
+    "seed": "A2-002",
+    "connections": {
+      "forward": ["A2_003", "A2_B1_001"],
+      "backward": ["A2_001"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_B1_001",
+    "name": "Lumen Drift",
+    "type": "Dwarf",
+    "zone": "Quiet",
+    "position": { "x": 1340, "y": 955 },
+    "tier": 0.05,
+    "radiation": "Low",
+    "size": 2,
+    "seed": "A2-B1-001",
+    "connections": {
+      "forward": ["A2_B1_002"],
+      "backward": ["A2_002"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_B1_002",
+    "name": "Shining Fold",
+    "type": "Dwarf",
+    "zone": "Quiet",
+    "position": { "x": 1380, "y": 975 },
+    "tier": 0.06,
+    "radiation": "Low",
+    "size": 2,
+    "seed": "A2-B1-002",
+    "connections": {
+      "forward": [],
+      "backward": ["A2_B1_001"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_003",
+    "name": "Astral Gate",
+    "type": "Main Sequence",
+    "zone": "Quiet",
+    "position": { "x": 1340, "y": 920 },
+    "tier": 0.06,
+    "radiation": "Low",
+    "size": 3,
+    "seed": "A2-003",
+    "connections": {
+      "forward": ["A2_004"],
+      "backward": ["A2_002"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_004",
+    "name": "Crystalline Verge",
+    "type": "Subgiant",
+    "zone": "Quiet",
+    "position": { "x": 1405, "y": 890 },
+    "tier": 0.08,
+    "radiation": "Low",
+    "size": 4,
+    "seed": "A2-004",
+    "connections": {
+      "forward": ["A2_005", "A2_B2_001"],
+      "backward": ["A2_003"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_B2_001",
+    "name": "Cerulean Line",
+    "type": "Dwarf",
+    "zone": "Quiet",
+    "position": { "x": 1450, "y": 905 },
+    "tier": 0.10,
+    "radiation": "Low",
+    "size": 2,
+    "seed": "A2-B2-001",
+    "connections": {
+      "forward": ["A2_B2_002"],
+      "backward": ["A2_004"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_B2_002",
+    "name": "Blue Ashen Rise",
+    "type": "Main Sequence",
+    "zone": "Quiet",
+    "position": { "x": 1490, "y": 930 },
+    "tier": 0.11,
+    "radiation": "Low",
+    "size": 3,
+    "seed": "A2-B2-002",
+    "connections": {
+      "forward": [],
+      "backward": ["A2_B2_001"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_005",
+    "name": "Starweave Crossing",
+    "type": "Main Sequence",
+    "zone": "Quiet",
+    "position": { "x": 1475, "y": 860 },
+    "tier": 0.10,
+    "radiation": "Low",
+    "size": 3,
+    "seed": "A2-005",
+    "connections": {
+      "forward": ["A2_006"],
+      "backward": ["A2_004"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_006",
+    "name": "Harrowglass",
+    "type": "Red Giant",
+    "zone": "Static",
+    "position": { "x": 1550, "y": 825 },
+    "tier": 0.12,
+    "radiation": "Medium",
+    "size": 5,
+    "seed": "A2-006",
+    "connections": {
+      "forward": ["A2_007", "A2_B3_001"],
+      "backward": ["A2_005"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_B3_001",
+    "name": "Prism Echo",
+    "type": "Dwarf",
+    "zone": "Static",
+    "position": { "x": 1605, "y": 840 },
+    "tier": 0.14,
+    "radiation": "Medium",
+    "size": 2,
+    "seed": "A2-B3-001",
+    "connections": {
+      "forward": ["A2_B3_002"],
+      "backward": ["A2_006"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_B3_002",
+    "name": "Glassrift",
+    "type": "Dwarf",
+    "zone": "Static",
+    "position": { "x": 1650, "y": 870 },
+    "tier": 0.15,
+    "radiation": "Medium",
+    "size": 2,
+    "seed": "A2-B3-002",
+    "connections": {
+      "forward": [],
+      "backward": ["A2_B3_001"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_007",
+    "name": "Pale Circuit",
+    "type": "Main Sequence",
+    "zone": "Static",
+    "position": { "x": 1620, "y": 785 },
+    "tier": 0.14,
+    "radiation": "Medium",
+    "size": 3,
+    "seed": "A2-007",
+    "connections": {
+      "forward": ["A2_008", "A2_B4_001"],
+      "backward": ["A2_006"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_B4_001",
+    "name": "Hollow Spectrum",
+    "type": "Dwarf",
+    "zone": "Static",
+    "position": { "x": 1680, "y": 800 },
+    "tier": 0.16,
+    "radiation": "Medium",
+    "size": 2,
+    "seed": "A2-B4-001",
+    "connections": {
+      "forward": ["A2_B4_002"],
+      "backward": ["A2_007"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_B4_002",
+    "name": "Lucent Shard",
+    "type": "Dwarf",
+    "zone": "Static",
+    "position": { "x": 1730, "y": 825 },
+    "tier": 0.17,
+    "radiation": "Medium",
+    "size": 2,
+    "seed": "A2-B4-002",
+    "connections": {
+      "forward": [],
+      "backward": ["A2_B4_001"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_008",
+    "name": "Crown of Glass",
+    "type": "Subgiant",
+    "zone": "Static",
+    "position": { "x": 1690, "y": 740 },
+    "tier": 0.16,
+    "radiation": "Medium",
+    "size": 4,
+    "seed": "A2-008",
+    "connections": {
+      "forward": ["A2_009"],
+      "backward": ["A2_007"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_009",
+    "name": "Shaded Meridian",
+    "type": "Main Sequence",
+    "zone": "Static",
+    "position": { "x": 1760, "y": 690 },
+    "tier": 0.18,
+    "radiation": "Medium",
+    "size": 3,
+    "seed": "A2-009",
+    "connections": {
+      "forward": ["A2_010"],
+      "backward": ["A2_008"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_010",
+    "name": "Glimmerbreak",
+    "type": "Dwarf",
+    "zone": "Static",
+    "position": { "x": 1820, "y": 635 },
+    "tier": 0.20,
+    "radiation": "Medium",
+    "size": 2,
+    "seed": "A2-010",
+    "connections": {
+      "forward": ["A2_011"],
+      "backward": ["A2_009"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_011",
+    "name": "Azure Scar",
+    "type": "Subgiant",
+    "zone": "Static",
+    "position": { "x": 1870, "y": 575 },
+    "tier": 0.22,
+    "radiation": "Medium",
+    "size": 4,
+    "seed": "A2-011",
+    "connections": {
+      "forward": ["A2_012", "A2_B5_001"],
+      "backward": ["A2_010"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_B5_001",
+    "name": "Violet Verge",
+    "type": "Dwarf",
+    "zone": "Static",
+    "position": { "x": 1920, "y": 590 },
+    "tier": 0.24,
+    "radiation": "Medium",
+    "size": 2,
+    "seed": "A2-B5-001",
+    "connections": {
+      "forward": ["A2_B5_002"],
+      "backward": ["A2_011"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_B5_002",
+    "name": "Suncleft Bight",
+    "type": "Dwarf",
+    "zone": "Static",
+    "position": { "x": 1960, "y": 620 },
+    "tier": 0.25,
+    "radiation": "Medium",
+    "size": 2,
+    "seed": "A2-B5-002",
+    "connections": {
+      "forward": [],
+      "backward": ["A2_B5_001"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_012",
+    "name": "Frostline Ascendant",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1920, "y": 520 },
+    "tier": 0.24,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A2-012",
+    "connections": {
+      "forward": ["A2_013"],
+      "backward": ["A2_011"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_013",
+    "name": "Bleak Spiral",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1960, "y": 455 },
+    "tier": 0.26,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A2-013",
+    "connections": {
+      "forward": ["A2_014"],
+      "backward": ["A2_012"],
+      "cross": ["PENDING_A3"]
+    }
+  },
+
+  {
+    "id": "A2_014",
+    "name": "Darkened Halo",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1985, "y": 380 },
+    "tier": 0.28,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A2-014",
+    "connections": {
+      "forward": ["A2_015"],
+      "backward": ["A2_013"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_015",
+    "name": "Grim Expanse",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1995, "y": 300 },
+    "tier": 0.30,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A2-015",
+    "connections": {
+      "forward": ["A2_016"],
+      "backward": ["A2_014"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_016",
+    "name": "Cobalt Void",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1985, "y": 230 },
+    "tier": 0.32,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A2-016",
+    "connections": {
+      "forward": ["A2_017", "A2_B6_001"],
+      "backward": ["A2_015"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_B6_001",
+    "name": "Hollow Step",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1930, "y": 260 },
+    "tier": 0.34,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A2-B6-001",
+    "connections": {
+      "forward": ["A2_B6_002"],
+      "backward": ["A2_016"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_B6_002",
+    "name": "Waning Curve",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1880, "y": 290 },
+    "tier": 0.35,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A2-B6-002",
+    "connections": {
+      "forward": [],
+      "backward": ["A2_B6_001"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_017",
+    "name": "The Whispering Pale",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1950, "y": 165 },
+    "tier": 0.34,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A2-017",
+    "connections": {
+      "forward": ["A2_018"],
+      "backward": ["A2_016"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_018",
+    "name": "Frozen Trace",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1880, "y": 115 },
+    "tier": 0.36,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A2-018",
+    "connections": {
+      "forward": ["A2_019"],
+      "backward": ["A2_017"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_019",
+    "name": "Ebon Crest",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1805, "y": 95 },
+    "tier": 0.38,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A2-019",
+    "connections": {
+      "forward": ["A2_020", "A2_CLUSTER_01"],
+      "backward": ["A2_018"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_CLUSTER_01",
+    "name": "Cluster Node Alpha",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1700, "y": 110 },
+    "tier": 0.38,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A2-C1-A",
+    "connections": {
+      "forward": ["A2_CLUSTER_02"],
+      "backward": ["A2_019"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_CLUSTER_02",
+    "name": "Cluster Node Beta",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1670, "y": 150 },
+    "tier": 0.39,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A2-C1-B",
+    "connections": {
+      "forward": ["A2_CLUSTER_03"],
+      "backward": ["A2_CLUSTER_01"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_CLUSTER_03",
+    "name": "Cluster Node Gamma",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1650, "y": 190 },
+    "tier": 0.40,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A2-C1-C",
+    "connections": {
+      "forward": [],
+      "backward": ["A2_CLUSTER_02"],
+      "cross": ["PENDING_A5"]
+    }
+  },
+
+  {
+    "id": "A2_020",
+    "name": "Frostspine Gate",
+    "type": "Red Giant",
+    "zone": "Dark",
+    "position": { "x": 1750, "y": 45 },
+    "tier": 0.40,
+    "radiation": "High",
+    "size": 5,
+    "seed": "A2-020",
+    "connections": {
+      "forward": ["A2_021"],
+      "backward": ["A2_019"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_021",
+    "name": "Outer Crescent",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1650, "y": 35 },
+    "tier": 0.42,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A2-021",
+    "connections": {
+      "forward": ["A2_022"],
+      "backward": ["A2_020"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_022",
+    "name": "Starfall Terminal",
+    "type": "Dead Star",
+    "zone": "Dark",
+    "position": { "x": 1520, "y": 20 },
+    "tier": 0.44,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A2-022",
+    "connections": {
+      "forward": ["A2_023"],
+      "backward": ["A2_021"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_023",
+    "name": "The Withered Coil",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1390, "y": 25 },
+    "tier": 0.46,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A2-023",
+    "connections": {
+      "forward": ["A2_024"],
+      "backward": ["A2_022"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_024",
+    "name": "Dustshroud Halo",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1260, "y": 40 },
+    "tier": 0.48,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A2-024",
+    "connections": {
+      "forward": ["A2_025"],
+      "backward": ["A2_023"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_025",
+    "name": "Horizon Break",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1130, "y": 60 },
+    "tier": 0.50,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A2-025",
+    "connections": {
+      "forward": ["A2_026"],
+      "backward": ["A2_024"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_026",
+    "name": "Sable Spark",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1000, "y": 90 },
+    "tier": 0.52,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A2-026",
+    "connections": {
+      "forward": ["A2_027"],
+      "backward": ["A2_025"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_027",
+    "name": "The Pale Rift",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 880, "y": 135 },
+    "tier": 0.54,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A2-027",
+    "connections": {
+      "forward": ["A2_028"],
+      "backward": ["A2_026"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_028",
+    "name": "Fracture Rise",
+    "type": "Red Giant",
+    "zone": "Dark",
+    "position": { "x": 770, "y": 190 },
+    "tier": 0.56,
+    "radiation": "High",
+    "size": 5,
+    "seed": "A2-028",
+    "connections": {
+      "forward": ["A2_029"],
+      "backward": ["A2_027"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_029",
+    "name": "The Breaking Star",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 660, "y": 260 },
+    "tier": 0.58,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A2-029",
+    "connections": {
+      "forward": ["A2_030"],
+      "backward": ["A2_028"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_030",
+    "name": "Duskline Path",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 560, "y": 345 },
+    "tier": 0.60,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A2-030",
+    "connections": {
+      "forward": ["A2_031"],
+      "backward": ["A2_029"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_031",
+    "name": "The Low Ember",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 475, "y": 435 },
+    "tier": 0.62,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A2-031",
+    "connections": {
+      "forward": ["A2_032"],
+      "backward": ["A2_030"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_032",
+    "name": "Final Prism",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 400, "y": 530 },
+    "tier": 0.64,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A2-032",
+    "connections": {
+      "forward": ["A2_033"],
+      "backward": ["A2_031"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_033",
+    "name": "Outer Abyss",
+    "type": "Dead Star",
+    "zone": "Dark",
+    "position": { "x": 345, "y": 630 },
+    "tier": 0.66,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A2-033",
+    "connections": {
+      "forward": ["A2_034"],
+      "backward": ["A2_032"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_034",
+    "name": "The Bloomless Maw",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 300, "y": 740 },
+    "tier": 0.68,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A2-034",
+    "connections": {
+      "forward": ["A2_035"],
+      "backward": ["A2_033"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_035",
+    "name": "Cobalt Terminus",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 260, "y": 855 },
+    "tier": 0.70,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A2-035",
+    "connections": {
+      "forward": ["A2_036"],
+      "backward": ["A2_034"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_036",
+    "name": "Gloomspire Edge",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 230, "y": 980 },
+    "tier": 0.72,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A2-036",
+    "connections": {
+      "forward": ["A2_037"],
+      "backward": ["A2_035"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_037",
+    "name": "The Dim Ascendant",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 210, "y": 1110 },
+    "tier": 0.74,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A2-037",
+    "connections": {
+      "forward": ["A2_038"],
+      "backward": ["A2_036"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_038",
+    "name": "The Verdigris Fold",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 195, "y": 1240 },
+    "tier": 0.76,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A2-038",
+    "connections": {
+      "forward": ["A2_039"],
+      "backward": ["A2_037"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_039",
+    "name": "Hollowstar Reach",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 185, "y": 1370 },
+    "tier": 0.78,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A2-039",
+    "connections": {
+      "forward": ["A2_040"],
+      "backward": ["A2_038"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_040",
+    "name": "Twilight Solum",
+    "type": "Red Giant",
+    "zone": "Dark",
+    "position": { "x": 180, "y": 1500 },
+    "tier": 0.80,
+    "radiation": "High",
+    "size": 5,
+    "seed": "A2-040",
+    "connections": {
+      "forward": ["A2_041"],
+      "backward": ["A2_039"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_041",
+    "name": "Final Meridian",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 185, "y": 1620 },
+    "tier": 0.82,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A2-041",
+    "connections": {
+      "forward": ["A2_042"],
+      "backward": ["A2_040"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_042",
+    "name": "Outer Blackline",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 200, "y": 1730 },
+    "tier": 0.84,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A2-042",
+    "connections": {
+      "forward": ["A2_043"],
+      "backward": ["A2_041"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_043",
+    "name": "Crown of Ash",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 230, "y": 1825 },
+    "tier": 0.86,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A2-043",
+    "connections": {
+      "forward": ["A2_044"],
+      "backward": ["A2_042"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_044",
+    "name": "Waning Starfall",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 275, "y": 1910 },
+    "tier": 0.88,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A2-044",
+    "connections": {
+      "forward": ["A2_045"],
+      "backward": ["A2_043"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_045",
+    "name": "Sorrowscale",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 340, "y": 1980 },
+    "tier": 0.90,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A2-045",
+    "connections": {
+      "forward": ["A2_046"],
+      "backward": ["A2_044"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_046",
+    "name": "Fading Emberline",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 420, "y": 2040 },
+    "tier": 0.92,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A2-046",
+    "connections": {
+      "forward": ["A2_047"],
+      "backward": ["A2_045"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_047",
+    "name": "Hollowpoint Terminus",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 510, "y": 2085 },
+    "tier": 0.94,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A2-047",
+    "connections": {
+      "forward": ["A2_048"],
+      "backward": ["A2_046"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_048",
+    "name": "Edge of All Suns",
+    "type": "Red Giant",
+    "zone": "Dark",
+    "position": { "x": 610, "y": 2115 },
+    "tier": 0.96,
+    "radiation": "High",
+    "size": 5,
+    "seed": "A2-048",
+    "connections": {
+      "forward": ["A2_049"],
+      "backward": ["A2_047"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_049",
+    "name": "The Last Spiral",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 720, "y": 2125 },
+    "tier": 0.98,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A2-049",
+    "connections": {
+      "forward": ["A2_050"],
+      "backward": ["A2_048"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A2_050",
+    "name": "The Outer Veil",
+    "type": "Dead Star",
+    "zone": "Dark",
+    "position": { "x": 840, "y": 2120 },
+    "tier": 1.00,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A2-050",
+    "connections": {
+      "forward": [],
+      "backward": ["A2_049"],
+      "cross": []
+    }
+  }
+]

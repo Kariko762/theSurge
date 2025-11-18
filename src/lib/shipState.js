@@ -53,9 +53,21 @@ export const INITIAL_SHIP_STATE = {
   // Exploration & Scan State
   scannedPOIs: [],        // IDs of POIs revealed by scans
   visitedSystems: [],     // Seeds of visited systems
+  scannedSystems: ['HOMEBASE'],  // System IDs that have been scanned (HOMEBASE pre-scanned)
+  activeScan: null,       // { systemId, progress: 0-100, startTime } - currently scanning system
   
   // Mission & Progress
   gEjarValeFragments: 7,  // G'ejar-Vale coordinate fragments (out of 30)
+  
+  // Navigation & Route Planning
+  navigator: {
+    plannedRoute: [],      // Array of system IDs forming the route
+    currentRouteIndex: 0,  // Current position in route
+    routeStats: null,      // Cached stats: { totalLY, estimatedTravelTime, systems: [] }
+  },
+  
+  // Game Time
+  gameTime: 0,            // Total game ticks elapsed
 };
 
 // Ship State Manager Class
@@ -170,6 +182,84 @@ export class ShipStateManager {
   // Add G'ejar-Vale fragment
   addFragment() {
     this.state.gEjarValeFragments = Math.min(30, this.state.gEjarValeFragments + 1);
+  }
+
+  // Navigator: Set planned route
+  setPlannedRoute(routeSystemIds, stats) {
+    this.state.navigator.plannedRoute = routeSystemIds;
+    this.state.navigator.currentRouteIndex = 0;
+    this.state.navigator.routeStats = stats;
+  }
+
+  // Navigator: Clear route
+  clearRoute() {
+    this.state.navigator.plannedRoute = [];
+    this.state.navigator.currentRouteIndex = 0;
+    this.state.navigator.routeStats = null;
+  }
+
+  // Navigator: Advance to next system in route
+  advanceRoute() {
+    if (this.state.navigator.currentRouteIndex < this.state.navigator.plannedRoute.length - 1) {
+      this.state.navigator.currentRouteIndex++;
+      return this.state.navigator.plannedRoute[this.state.navigator.currentRouteIndex];
+    }
+    return null;
+  }
+
+  // Navigator: Get current destination
+  getCurrentDestination() {
+    if (this.state.navigator.plannedRoute.length === 0) return null;
+    return this.state.navigator.plannedRoute[this.state.navigator.currentRouteIndex];
+  }
+
+  // Game Time: Update
+  setGameTime(ticks) {
+    this.state.gameTime = ticks;
+  }
+
+  // Scan system methods
+  isSystemScanned(systemId) {
+    return this.state.scannedSystems.includes(systemId);
+  }
+
+  markSystemScanned(systemId) {
+    if (!this.state.scannedSystems.includes(systemId)) {
+      this.state.scannedSystems.push(systemId);
+    }
+  }
+
+  startScan(systemId) {
+    this.state.activeScan = {
+      systemId,
+      progress: 0,
+      startTime: Date.now()
+    };
+  }
+
+  updateScanProgress(progress) {
+    if (this.state.activeScan) {
+      this.state.activeScan.progress = Math.min(100, Math.max(0, progress));
+    }
+  }
+
+  completeScan() {
+    if (this.state.activeScan) {
+      const systemId = this.state.activeScan.systemId;
+      this.markSystemScanned(systemId);
+      this.state.activeScan = null;
+      return systemId;
+    }
+    return null;
+  }
+
+  cancelScan() {
+    this.state.activeScan = null;
+  }
+
+  // General state update
+  setState(updates) {
+    this.state = { ...this.state, ...updates };
   }
 
   // Export state for save/persistence

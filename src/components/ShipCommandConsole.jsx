@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
-import { generateSystem, exampleSeeds } from '../lib/systemGenerator.js'
+import { generateSystem, exampleSeeds, calculateTotalRisk, calculateStaticExposure, calculateWakeSignature } from '../lib/systemGenerator.js'
 import { calculateShipAttributes, DEFAULT_SHIP_LOADOUT, DEFAULT_POWER_ALLOCATION, COMPONENTS } from '../lib/shipComponents.js'
 import { getShipState } from '../lib/shipState.js'
 
@@ -27,6 +27,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
   const [scanningActive, setScanningActive] = useState(false);
   const [terminalLog, setTerminalLog] = useState([]);
   const [terminalExpanded, setTerminalExpanded] = useState(false);
+  const [isMoving, setIsMoving] = useState(false);
+  const [movementProgress, setMovementProgress] = useState(0);
   const terminalRef = useRef(null);
   
   // Ship state manager (singleton)
@@ -87,6 +89,32 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
     if (!system) return { distanceAU: 0, angleRad: 0, x: 0, y: 0 };
     return currentShipState.position;
   }, [system, currentShipState.position]);
+
+  // Passive hull damage from static exposure (damage-over-time)
+  useEffect(() => {
+    if (!system || !shipPosition || gamePhase !== 'scanning') return;
+    
+    const damageInterval = setInterval(() => {
+      const exposure = calculateStaticExposure(system, shipPosition.distanceAU);
+      
+      // Damage scales with exposure: 0 damage below 10 mSv/h, ramps up above
+      if (exposure > 10) {
+        const damagePerSecond = (exposure - 10) * 0.01; // 0.01% hull per mSv/h above threshold
+        shipState.damageHull(damagePerSecond);
+        setShipStateVersion(v => v + 1);
+        
+        // Log warning at dangerous levels
+        if (exposure > 50 && Math.random() < 0.05) { // 5% chance per tick
+          setTerminalLog(prev => [
+            ...prev,
+            `> WARNING: Critical static exposure (${exposure.toFixed(1)} mSv/h). Hull integrity degrading.`
+          ]);
+        }
+      }
+    }, 1000); // Tick every second
+    
+    return () => clearInterval(damageInterval);
+  }, [system, shipPosition, gamePhase]);
   
   // Center view on ship at 20% zoom (initial view)
   const centerOnShip = () => {
@@ -112,10 +140,77 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
     setTimeout(() => setPanTransition(false), 1000);
   };
 
+  const moveShipTo = (targetPOI) => {
+    if (!targetPOI || !system || isMoving) return;
+    
+    const target = pois.find(p => p.id === targetPOI);
+    if (!target) return;
+
+    const currentPos = shipPosition;
+    const targetX = target.distanceAU * Math.cos(target.angleRad);
+    const targetY = target.distanceAU * Math.sin(target.angleRad);
+    const distance = Math.sqrt(
+      Math.pow(targetX - currentPos.x, 2) + Math.pow(targetY - currentPos.y, 2)
+    );
+
+    // Calculate travel time based on engine speed (AU/hour)
+    const engineSpeed = shipAttributes.speed || 1.0; // AU per hour
+    const travelTimeHours = distance / engineSpeed;
+    const travelTimeSeconds = Math.min(travelTimeHours * 2, 10); // Cap at 10 seconds for gameplay
+
+    // Fuel consumption (arbitrary units per AU)
+    const fuelNeeded = distance * 0.5;
+    
+    setTerminalLog(prev => [...prev, 
+      `> ARIA: Plotting course to ${target.name}...`,
+      `> Distance: ${distance.toFixed(2)} AU`,
+      `> Travel time: ${travelTimeHours.toFixed(1)} hours (${travelTimeSeconds.toFixed(1)}s real-time)`,
+      `> Fuel required: ${fuelNeeded.toFixed(1)} units`,
+      `> Engaging engines...`
+    ]);
+
+    setIsMoving(true);
+    setMovementProgress(0);
+
+    // Animate movement
+    const startTime = Date.now();
+    const animationInterval = setInterval(() => {
+      const elapsed = (Date.now() - startTime) / 1000;
+      const progress = Math.min(elapsed / travelTimeSeconds, 1);
+      setMovementProgress(progress);
+
+      // Interpolate position
+      const newX = currentPos.x + (targetX - currentPos.x) * progress;
+      const newY = currentPos.y + (targetY - currentPos.y) * progress;
+      const newDistanceAU = Math.sqrt(newX * newX + newY * newY);
+      const newAngleRad = Math.atan2(newY, newX);
+
+      shipState.setPosition(newDistanceAU, newAngleRad);
+      setShipStateVersion(v => v + 1);
+
+      if (progress >= 1) {
+        clearInterval(animationInterval);
+        setIsMoving(false);
+        setMovementProgress(0);
+        setTerminalLog(prev => [...prev, 
+          `> ARIA: Arrived at ${target.name}`,
+          `> Position: ${target.distanceAU.toFixed(2)} AU from sun`
+        ]);
+        // Center view on new position
+        setTimeout(() => centerOnShip(), 100);
+      }
+    }, 50); // Update every 50ms for smooth animation
+  };
+
   const startSystemScan = () => {
     if (scanningActive) return;
     setScanningActive(true);
-    setTerminalLog(prev => [...prev, '> ARIA: Initiating full system scan...']);
+    setTerminalLog(prev => [
+      ...prev, 
+      '> ARIA: Initiating full system scan...',
+      `> ARIA: Galactic zone: ${system.galactic.zone}. Surge radiation: ${system.galactic.surgeRadiation.toFixed(1)} mSv/h baseline.`,
+      `> ARIA: Star class ${system.star.class}, luminosity ${system.star.lum.toFixed(2)}. Stellar protection: ${system.galactic.stellarProtection.toFixed(2)}.`
+    ]);
     
     // Sort POIs by distance from ship
     const sorted = [...pois.filter(p => p.id !== 'SUN')].sort((a, b) => {
@@ -155,6 +250,25 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
     static: shipAttributes.staticSignature,
     radiation: 28
   };
+
+  // Calculate real-time risk based on position
+  const riskData = useMemo(() => {
+    if (!system || !shipPosition) return null;
+    
+    // Calculate wake based on movement (for now, assume static when not moving)
+    const wake = isMoving ? calculateWakeSignature(1.0, shipAttributes.totalPower) : 0;
+    
+    // System tier (will come from galaxy later, default to 1.0 for now)
+    const systemTier = 1.0;
+    
+    return calculateTotalRisk(system, shipPosition.distanceAU, wake, systemTier);
+  }, [system, shipPosition, isMoving, shipAttributes.totalPower]);
+  
+  // Static exposure for display
+  const staticExposure = useMemo(() => {
+    if (!system || !shipPosition) return 0;
+    return calculateStaticExposure(system, shipPosition.distanceAU);
+  }, [system, shipPosition]);
 
   const shapeForType = (t) => {
     switch (t) {
@@ -207,6 +321,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
       setGamePhase('scanning');
       setScanned(true);
       setFullscreen(true);
+      // Start the progressive scan animation
+      setTimeout(() => startSystemScan(), 500);
     } else {
       setGamePhase('jumped'); // remain in terminal
     }
@@ -557,21 +673,46 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
           <div className="status-bar-divider">- - - - - - - - - - - - -</div>
           
           <div className="status-bar-row">
-            <span className="status-bar-label">Plasma Static :</span>
+            <span className="status-bar-label">Plasma Wake :</span>
             <div className="status-bar-blocks">
               {[...Array(7)].map((_, i) => (
                 <div key={i} className={`status-block ${i < Math.floor(shipVitals.static / 14.3) ? 'filled wake' : ''}`}></div>
               ))}
             </div>
+            <span className="status-bar-value">{riskData?.wake || 0} AU²</span>
           </div>
           
           <div className="status-bar-row">
-            <span className="status-bar-label">Surge Levels :</span>
+            <span className="status-bar-label">Surge Static :</span>
             <div className="status-bar-blocks">
               {[...Array(7)].map((_, i) => (
-                <div key={i} className={`status-block ${i < Math.floor(shipVitals.radiation / 14.3) ? 'filled radiation' : ''}`}></div>
+                <div key={i} className={`status-block ${i < Math.floor((staticExposure / 100) * 100 / 14.3) ? 'filled radiation' : ''}`}></div>
               ))}
             </div>
+            <span className="status-bar-value" style={{ 
+              color: staticExposure < 15 ? '#0f0' : staticExposure < 40 ? '#ff0' : '#f00'
+            }}>
+              {staticExposure.toFixed(1)} mSv/h
+            </span>
+          </div>
+          
+          <div className="status-bar-divider">- - - - - - - - - - - - -</div>
+          
+          <div className="status-bar-row">
+            <span className="status-bar-label">Dist from Sun :</span>
+            <span className="status-bar-value" style={{ color: '#00aaff' }}>
+              {shipPosition?.distanceAU.toFixed(1) || 0} AU
+              <span style={{ 
+                marginLeft: '8px', 
+                fontSize: '8px',
+                color: staticExposure < system?.galactic.surgeRadiation ? '#0f0' : '#f00'
+              }}>
+                {staticExposure < system?.galactic.surgeRadiation 
+                  ? `-${(system?.galactic.surgeRadiation - staticExposure).toFixed(1)} mSv/h`
+                  : `+${(staticExposure - system?.galactic.surgeRadiation).toFixed(1)} mSv/h`
+                }
+              </span>
+            </span>
           </div>
         </div>
 
@@ -688,9 +829,9 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                   <span style={{ fontSize: '10px', opacity: 0.5 }}>Initiate scan from terminal</span>
                 </div>
               )}
-              {scanned && (
-                <>
-                  {(() => {
+              
+              {/* Solar System Map - Always show, but POIs only visible if scanned */}
+              {(() => {
                 // Zoom support (0.6x to 10x)
                 const [minZoom, maxZoom] = [0.2, 10.0];
                 const [zoomIn, zoomOut] = [
@@ -892,8 +1033,6 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                   </div>
                 </>);
               })()}
-                </>
-              )}
             </div>
             
             {/* Terminal Output under the map - can expand as overlay */}
@@ -951,15 +1090,16 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
               </button>
               <button 
                 className="action-btn" 
-                disabled={!selectedPOI || selectedPOI === 'SUN'}
+                onClick={() => moveShipTo(selectedPOI)}
+                disabled={!selectedPOI || selectedPOI === 'SUN' || isMoving}
                 style={{ 
                   width: '100%', 
-                  opacity: (!selectedPOI || selectedPOI === 'SUN') ? 0.3 : 1,
-                  background: (!selectedPOI || selectedPOI === 'SUN') ? 'rgba(100, 100, 100, 0.2)' : 'rgba(52, 224, 255, 0.15)'
+                  opacity: (!selectedPOI || selectedPOI === 'SUN' || isMoving) ? 0.3 : 1,
+                  background: (!selectedPOI || selectedPOI === 'SUN' || isMoving) ? 'rgba(100, 100, 100, 0.2)' : 'rgba(52, 224, 255, 0.15)'
                 }}
-                title={!selectedPOI ? 'Select a destination first' : 'Move ship to selected location'}
+                title={!selectedPOI ? 'Select a destination first' : isMoving ? 'Ship is currently moving' : 'Move ship to selected location'}
               >
-                Move Ship to {selectedPOI && selectedPOI !== 'SUN' ? pois.find(p => p.id === selectedPOI)?.type : 'Target'}
+                {isMoving ? `Moving... ${(movementProgress * 100).toFixed(0)}%` : `Move Ship to ${selectedPOI && selectedPOI !== 'SUN' ? pois.find(p => p.id === selectedPOI)?.type : 'Target'}`}
               </button>
             </div>
 

@@ -1,0 +1,199 @@
+{
+  "id": "GALAXY_ANDROMEDA",
+  "name": "Andromeda Cluster",
+  "scaleLy": 100,
+  "unitsPerLy": 20,
+  "homebaseSystemId": "SYS_HOMEBASE",
+  "systems": [
+    {
+      "id": "SYS_HOMEBASE",
+      "x": 1000,
+      "y": 1000,
+      "branchId": 0,
+      "tier": 0.1,
+      "zone": "Dark",
+      "scannedAttributes": {
+        "name": "HOMEBASE",
+        "type": "Asteroid Shelter",
+        "seed": "HOMEBASE_SEED",
+        "scanned": true,
+        "pois": [
+          { "id": "POI_ALPHA7", "name": "Asteroid Shelter Alpha-7", "type": "habitat" }
+        ]
+      },
+      "connections": {
+        "forward": ["SYS_001", "SYS_002"],
+        "backward": [],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_001",
+      "x": 1050,
+      "y": 980,
+      "branchId": 0,
+      "tier": 0.2,
+      "zone": "Dark",
+      "scannedAttributes": null,
+      "connections": {
+        "forward": ["SYS_003"],
+        "backward": ["SYS_HOMEBASE"],
+        "cross": ["SYS_002"]
+      }
+    },
+    {
+      "id": "SYS_002",
+      "x": 1020,
+      "y": 1050,
+      "branchId": 1,
+      "tier": 0.2,
+      "zone": "Quiet",
+      "scannedAttributes": null,
+      "connections": {
+        "forward": ["SYS_004"],
+        "backward": ["SYS_HOMEBASE"],
+        "cross": ["SYS_001"]
+      }
+    },
+    {
+      "id": "SYS_003",
+      "x": 1100,
+      "y": 960,
+      "branchId": 0,
+      "tier": 0.3,
+      "zone": "Dark",
+      "scannedAttributes": null,
+      "connections": {
+        "forward": ["SYS_005", "SYS_006"],
+        "backward": ["SYS_001"],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_004",
+      "x": 1040,
+      "y": 1100,
+      "branchId": 1,
+      "tier": 0.3,
+      "zone": "Quiet",
+      "scannedAttributes": null,
+      "connections": {
+        "forward": ["SYS_007"],
+        "backward": ["SYS_002"],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_005",
+      "x": 1150,
+      "y": 940,
+      "branchId": 0,
+      "tier": 0.4,
+      "zone": "Quiet",
+      "scannedAttributes": null,
+      "connections": {
+        "forward": ["SYS_008"],
+        "backward": ["SYS_003"],
+        "cross": ["SYS_006"]
+      }
+    },
+    {
+      "id": "SYS_006",
+      "x": 1120,
+      "y": 1000,
+      "branchId": 2,
+      "tier": 0.35,
+      "zone": "Dark",
+      "scannedAttributes": null,
+      "connections": {
+        "forward": ["SYS_009"],
+        "backward": ["SYS_003"],
+        "cross": ["SYS_005"]
+      }
+    },
+    {
+      "id": "SYS_007",
+      "x": 1060,
+      "y": 1150,
+      "branchId": 1,
+      "tier": 0.45,
+      "zone": "Quiet",
+      "scannedAttributes": null,
+      "connections": {
+        "forward": ["SYS_010"],
+        "backward": ["SYS_004"],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_008",
+      "x": 1200,
+      "y": 920,
+      "branchId": 0,
+      "tier": 0.5,
+      "zone": "Quiet",
+      "scannedAttributes": null,
+      "connections": {
+        "forward": ["SYS_011"],
+        "backward": ["SYS_005"],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_009",
+      "x": 1170,
+      "y": 1040,
+      "branchId": 2,
+      "tier": 0.5,
+      "zone": "Quiet",
+      "scannedAttributes": null,
+      "connections": {
+        "forward": ["SYS_012"],
+        "backward": ["SYS_006"],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_010",
+      "x": 1080,
+      "y": 1200,
+      "branchId": 1,
+      "tier": 0.6,
+      "zone": "Static",
+      "scannedAttributes": null,
+      "connections": {
+        "forward": [],
+        "backward": ["SYS_007"],
+        "cross": ["SYS_012"]
+      }
+    },
+    {
+      "id": "SYS_011",
+      "x": 1250,
+      "y": 900,
+      "branchId": 0,
+      "tier": 0.65,
+      "zone": "Static",
+      "scannedAttributes": null,
+      "connections": {
+        "forward": [],
+        "backward": ["SYS_008"],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_012",
+      "x": 1220,
+      "y": 1080,
+      "branchId": 2,
+      "tier": 0.7,
+      "zone": "Static",
+      "scannedAttributes": null,
+      "connections": {
+        "forward": [],
+        "backward": ["SYS_009"],
+        "cross": ["SYS_010"]
+      }
+    }
+  ]
+}

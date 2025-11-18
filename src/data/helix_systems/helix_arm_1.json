@@ -1,0 +1,1275 @@
+[
+  {
+    "id": "A1_HOMEBASE",
+    "name": "The Refuge",
+    "type": "Main Sequence",
+    "zone": "Quiet",
+    "position": { "x": 820, "y": 1000 },
+    "tier": 0.00,
+    "radiation": "Low",
+    "size": 4,
+    "seed": "A1-HOME",
+    "connections": {
+      "forward": ["A1_001"],
+      "backward": ["RING_01", "RING_05"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_001",
+    "name": "Hearthline Gate",
+    "type": "Main Sequence",
+    "zone": "Quiet",
+    "position": { "x": 770, "y": 960 },
+    "tier": 0.02,
+    "radiation": "Low",
+    "size": 3,
+    "seed": "A1-001",
+    "connections": {
+      "forward": ["A1_002"],
+      "backward": ["A1_HOMEBASE"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_002",
+    "name": "Fallow Drift",
+    "type": "Dwarf",
+    "zone": "Quiet",
+    "position": { "x": 720, "y": 920 },
+    "tier": 0.04,
+    "radiation": "Low",
+    "size": 2,
+    "seed": "A1-002",
+    "connections": {
+      "forward": ["A1_003", "A1_B1_001"],
+      "backward": ["A1_001"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B1_001",
+    "name": "Ashspur Node",
+    "type": "Dwarf",
+    "zone": "Quiet",
+    "position": { "x": 675, "y": 960 },
+    "tier": 0.05,
+    "radiation": "Low",
+    "size": 2,
+    "seed": "A1-B1-001",
+    "connections": {
+      "forward": ["A1_B1_002"],
+      "backward": ["A1_002"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B1_002",
+    "name": "Cinder Vault",
+    "type": "Dwarf",
+    "zone": "Quiet",
+    "position": { "x": 630, "y": 1000 },
+    "tier": 0.06,
+    "radiation": "Low",
+    "size": 2,
+    "seed": "A1-B1-002",
+    "connections": {
+      "forward": [],
+      "backward": ["A1_B1_001"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_003",
+    "name": "Gloomtrace Reach",
+    "type": "Main Sequence",
+    "zone": "Quiet",
+    "position": { "x": 700, "y": 865 },
+    "tier": 0.06,
+    "radiation": "Low",
+    "size": 3,
+    "seed": "A1-003",
+    "connections": {
+      "forward": ["A1_004"],
+      "backward": ["A1_002"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_004",
+    "name": "Shadewire Arch",
+    "type": "Subgiant",
+    "zone": "Quiet",
+    "position": { "x": 690, "y": 800 },
+    "tier": 0.08,
+    "radiation": "Low",
+    "size": 4,
+    "seed": "A1-004",
+    "connections": {
+      "forward": ["A1_005", "A1_B2_001"],
+      "backward": ["A1_003"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B2_001",
+    "name": "Umberline Shard",
+    "type": "Dwarf",
+    "zone": "Quiet",
+    "position": { "x": 640, "y": 775 },
+    "tier": 0.10,
+    "radiation": "Low",
+    "size": 2,
+    "seed": "A1-B2-001",
+    "connections": {
+      "forward": ["A1_B2_002"],
+      "backward": ["A1_004"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B2_002",
+    "name": "Nullstar Lattice",
+    "type": "Dwarf",
+    "zone": "Quiet",
+    "position": { "x": 590, "y": 760 },
+    "tier": 0.11,
+    "radiation": "Low",
+    "size": 2,
+    "seed": "A1-B2-002",
+    "connections": {
+      "forward": [],
+      "backward": ["A1_B2_001"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_005",
+    "name": "Crestwell Verge",
+    "type": "Main Sequence",
+    "zone": "Quiet",
+    "position": { "x": 705, "y": 725 },
+    "tier": 0.10,
+    "radiation": "Low",
+    "size": 3,
+    "seed": "A1-005",
+    "connections": {
+      "forward": ["A1_006"],
+      "backward": ["A1_004"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_006",
+    "name": "Gloamspire Array",
+    "type": "Red Giant",
+    "zone": "Static",
+    "position": { "x": 740, "y": 660 },
+    "tier": 0.12,
+    "radiation": "Medium",
+    "size": 5,
+    "seed": "A1-006",
+    "connections": {
+      "forward": ["A1_007", "A1_B3_001"],
+      "backward": ["A1_005"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B3_001",
+    "name": "Charrlight Bend",
+    "type": "Dwarf",
+    "zone": "Static",
+    "position": { "x": 695, "y": 630 },
+    "tier": 0.14,
+    "radiation": "Medium",
+    "size": 2,
+    "seed": "A1-B3-001",
+    "connections": {
+      "forward": ["A1_B3_002"],
+      "backward": ["A1_006"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B3_002",
+    "name": "Hollowfire Point",
+    "type": "Dwarf",
+    "zone": "Static",
+    "position": { "x": 645, "y": 620 },
+    "tier": 0.15,
+    "radiation": "Medium",
+    "size": 2,
+    "seed": "A1-B3-002",
+    "connections": {
+      "forward": [],
+      "backward": ["A1_B3_001"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_007",
+    "name": "Amberline Rest",
+    "type": "Main Sequence",
+    "zone": "Static",
+    "position": { "x": 800, "y": 625 },
+    "tier": 0.14,
+    "radiation": "Medium",
+    "size": 3,
+    "seed": "A1-007",
+    "connections": {
+      "forward": ["A1_008", "A1_B4_001"],
+      "backward": ["A1_006"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B4_001",
+    "name": "Dustspire Knot",
+    "type": "Dwarf",
+    "zone": "Static",
+    "position": { "x": 760, "y": 570 },
+    "tier": 0.16,
+    "radiation": "Medium",
+    "size": 2,
+    "seed": "A1-B4-001",
+    "connections": {
+      "forward": ["A1_B4_002"],
+      "backward": ["A1_007"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B4_002",
+    "name": "Windshear Hollow",
+    "type": "Dwarf",
+    "zone": "Static",
+    "position": { "x": 720, "y": 540 },
+    "tier": 0.17,
+    "radiation": "Medium",
+    "size": 2,
+    "seed": "A1-B4-002",
+    "connections": {
+      "forward": [],
+      "backward": ["A1_B4_001"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_008",
+    "name": "Glimmertrace Field",
+    "type": "Subgiant",
+    "zone": "Static",
+    "position": { "x": 865, "y": 580 },
+    "tier": 0.16,
+    "radiation": "Medium",
+    "size": 4,
+    "seed": "A1-008",
+    "connections": {
+      "forward": ["A1_009"],
+      "backward": ["A1_007"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_009",
+    "name": "Greyfall Meridian",
+    "type": "Main Sequence",
+    "zone": "Static",
+    "position": { "x": 940, "y": 545 },
+    "tier": 0.18,
+    "radiation": "Medium",
+    "size": 3,
+    "seed": "A1-009",
+    "connections": {
+      "forward": ["A1_010"],
+      "backward": ["A1_008"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_010",
+    "name": "Stillwake Ridge",
+    "type": "Dwarf",
+    "zone": "Static",
+    "position": { "x": 1010, "y": 525 },
+    "tier": 0.20,
+    "radiation": "Medium",
+    "size": 2,
+    "seed": "A1-010",
+    "connections": {
+      "forward": ["A1_011"],
+      "backward": ["A1_009"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_011",
+    "name": "Veilpoint Crest",
+    "type": "Subgiant",
+    "zone": "Static",
+    "position": { "x": 1080, "y": 510 },
+    "tier": 0.22,
+    "radiation": "Medium",
+    "size": 4,
+    "seed": "A1-011",
+    "connections": {
+      "forward": ["A1_012", "A1_B5_001"],
+      "backward": ["A1_010"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B5_001",
+    "name": "Hollow Circuit",
+    "type": "Dwarf",
+    "zone": "Static",
+    "position": { "x": 1040, "y": 465 },
+    "tier": 0.24,
+    "radiation": "Medium",
+    "size": 2,
+    "seed": "A1-B5-001",
+    "connections": {
+      "forward": ["A1_B5_002"],
+      "backward": ["A1_011"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B5_002",
+    "name": "Latticefall Edge",
+    "type": "Dwarf",
+    "zone": "Static",
+    "position": { "x": 990, "y": 430 },
+    "tier": 0.25,
+    "radiation": "Medium",
+    "size": 2,
+    "seed": "A1-B5-002",
+    "connections": {
+      "forward": [],
+      "backward": ["A1_B5_001"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_012",
+    "name": "Gloomspire Bastion",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1140, "y": 460 },
+    "tier": 0.24,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A1-012",
+    "connections": {
+      "forward": ["A1_013"],
+      "backward": ["A1_011"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_013",
+    "name": "Solmire Chasm",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1185, "y": 400 },
+    "tier": 0.26,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-013",
+    "connections": {
+      "forward": ["A1_014"],
+      "backward": ["A1_012"],
+      "cross": ["PENDING_A3"]
+    }
+  },
+
+  {
+    "id": "A1_014",
+    "name": "Hearthfall Reaches",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1200, "y": 330 },
+    "tier": 0.28,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A1-014",
+    "connections": {
+      "forward": ["A1_015"],
+      "backward": ["A1_013"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_015",
+    "name": "Cindernest Verge",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1180, "y": 260 },
+    "tier": 0.30,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A1-015",
+    "connections": {
+      "forward": ["A1_016", "A1_CLUSTER_01"],
+      "backward": ["A1_014"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_CLUSTER_01",
+    "name": "Cluster Node Delta",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1090, "y": 220 },
+    "tier": 0.30,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-C1-A",
+    "connections": {
+      "forward": ["A1_CLUSTER_02"],
+      "backward": ["A1_015"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_CLUSTER_02",
+    "name": "Cluster Node Epsilon",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1020, "y": 190 },
+    "tier": 0.31,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A1-C1-B",
+    "connections": {
+      "forward": ["A1_CLUSTER_03"],
+      "backward": ["A1_CLUSTER_01"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_CLUSTER_03",
+    "name": "Cluster Node Sigma",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 960, "y": 170 },
+    "tier": 0.32,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-C1-C",
+    "connections": {
+      "forward": [],
+      "backward": ["A1_CLUSTER_02"],
+      "cross": ["PENDING_A5"]
+    }
+  },
+  {
+    "id": "A1_016",
+    "name": "Duskspire Traverse",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1120, "y": 200 },
+    "tier": 0.33,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A1-016",
+    "connections": {
+      "forward": ["A1_017", "A1_B6_001"],
+      "backward": ["A1_015"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B6_001",
+    "name": "Fraypoint Minor",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1065, "y": 150 },
+    "tier": 0.33,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-B6-001",
+    "connections": {
+      "forward": ["A1_B6_002"],
+      "backward": ["A1_016"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B6_002",
+    "name": "Gravemire Echo",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 995, "y": 125 },
+    "tier": 0.34,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-B6-002",
+    "connections": {
+      "forward": [],
+      "backward": ["A1_B6_001"],
+      "cross": ["PENDING_A5"]
+    }
+  },
+
+  {
+    "id": "A1_017",
+    "name": "Hollowstar Gate",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1180, "y": 155 },
+    "tier": 0.34,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A1-017",
+    "connections": {
+      "forward": ["A1_018"],
+      "backward": ["A1_016"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_018",
+    "name": "Silentward Rise",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1240, "y": 130 },
+    "tier": 0.35,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A1-018",
+    "connections": {
+      "forward": ["A1_019", "A1_B7_001"],
+      "backward": ["A1_017"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B7_001",
+    "name": "Wraithline Edge",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1185, "y": 85 },
+    "tier": 0.36,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-B7-001",
+    "connections": {
+      "forward": ["A1_B7_002"],
+      "backward": ["A1_018"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B7_002",
+    "name": "Umbral Drift",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1125, "y": 60 },
+    "tier": 0.37,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-B7-002",
+    "connections": {
+      "forward": [],
+      "backward": ["A1_B7_001"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_019",
+    "name": "Frostbreak Shallows",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1300, "y": 115 },
+    "tier": 0.36,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A1-019",
+    "connections": {
+      "forward": ["A1_020"],
+      "backward": ["A1_018"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_020",
+    "name": "Nightspire’s Deep",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1355, "y": 105 },
+    "tier": 0.38,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A1-020",
+    "connections": {
+      "forward": ["A1_021"],
+      "backward": ["A1_019"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_021",
+    "name": "Iceshard Meridian",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1410, "y": 110 },
+    "tier": 0.40,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-021",
+    "connections": {
+      "forward": ["A1_022", "A1_B8_001"],
+      "backward": ["A1_020"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B8_001",
+    "name": "Coldflare Node",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1370, "y": 70 },
+    "tier": 0.40,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-B8-001",
+    "connections": {
+      "forward": ["A1_B8_002"],
+      "backward": ["A1_021"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B8_002",
+    "name": "Chillgrave Shard",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1310, "y": 45 },
+    "tier": 0.41,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-B8-002",
+    "connections": {
+      "forward": [],
+      "backward": ["A1_B8_001"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_022",
+    "name": "Blackreach Verge",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1470, "y": 130 },
+    "tier": 0.42,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A1-022",
+    "connections": {
+      "forward": ["A1_023"],
+      "backward": ["A1_021"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_023",
+    "name": "Greyglass Anchor",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1520, "y": 160 },
+    "tier": 0.44,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A1-023",
+    "connections": {
+      "forward": ["A1_024"],
+      "backward": ["A1_022"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_024",
+    "name": "Crescentfall Reach",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1580, "y": 200 },
+    "tier": 0.47,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-024",
+    "connections": {
+      "forward": ["A1_025", "A1_B9_001"],
+      "backward": ["A1_023"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B9_001",
+    "name": "Pale Ember Rise",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1540, "y": 245 },
+    "tier": 0.47,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-B9-001",
+    "connections": {
+      "forward": ["A1_B9_002"],
+      "backward": ["A1_024"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_B9_002",
+    "name": "Gloamhaze Rift",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1480, "y": 285 },
+    "tier": 0.48,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-B9-002",
+    "connections": {
+      "forward": [],
+      "backward": ["A1_B9_001"],
+      "cross": ["PENDING_A3"]
+    }
+  },
+
+  {
+    "id": "A1_025",
+    "name": "Stargrave Expanse",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1640, "y": 260 },
+    "tier": 0.50,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A1-025",
+    "connections": {
+      "forward": ["A1_026"],
+      "backward": ["A1_024"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_026",
+    "name": "Deepmire Fold",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1700, "y": 310 },
+    "tier": 0.52,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-026",
+    "connections": {
+      "forward": ["A1_027"],
+      "backward": ["A1_025"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_027",
+    "name": "Shatterline Gate",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1750, "y": 360 },
+    "tier": 0.54,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A1-027",
+    "connections": {
+      "forward": ["A1_028", "A1_CLUSTER_04"],
+      "backward": ["A1_026"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_CLUSTER_04",
+    "name": "Cradle of Ash",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1680, "y": 395 },
+    "tier": 0.55,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-C4-A",
+    "connections": {
+      "forward": ["A1_CLUSTER_05"],
+      "backward": ["A1_027"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_CLUSTER_05",
+    "name": "The Quiet Maw",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1620, "y": 440 },
+    "tier": 0.56,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A1-C4-B",
+    "connections": {
+      "forward": ["A1_CLUSTER_06"],
+      "backward": ["A1_CLUSTER_04"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_CLUSTER_06",
+    "name": "Sundered Choir",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1560, "y": 480 },
+    "tier": 0.58,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-C4-C",
+    "connections": {
+      "forward": [],
+      "backward": ["A1_CLUSTER_05"],
+      "cross": ["PENDING_A4"]
+    }
+  },
+
+  {
+    "id": "A1_028",
+    "name": "The Far Meridian",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1810, "y": 425 },
+    "tier": 0.58,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A1-028",
+    "connections": {
+      "forward": ["A1_029"],
+      "backward": ["A1_027"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_029",
+    "name": "Abysswalker’s Rest",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1865, "y": 490 },
+    "tier": 0.60,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A1-029",
+    "connections": {
+      "forward": ["A1_030"],
+      "backward": ["A1_028"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_030",
+    "name": "Endspire Vault",
+    "type": "Giant",
+    "zone": "Dark",
+    "position": { "x": 1920, "y": 560 },
+    "tier": 0.62,
+    "radiation": "High",
+    "size": 5,
+    "seed": "A1-030",
+    "connections": {
+      "forward": ["A1_031"],
+      "backward": ["A1_029"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_031",
+    "name": "Vantablack Reach",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1960, "y": 630 },
+    "tier": 0.64,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A1-031",
+    "connections": {
+      "forward": ["A1_032"],
+      "backward": ["A1_030"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_032",
+    "name": "Obsidian Fringe",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1985, "y": 700 },
+    "tier": 0.66,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A1-032",
+    "connections": {
+      "forward": ["A1_033"],
+      "backward": ["A1_031"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_033",
+    "name": "Gloamwhisper Edge",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1995, "y": 770 },
+    "tier": 0.68,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-033",
+    "connections": {
+      "forward": ["A1_034"],
+      "backward": ["A1_032"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_034",
+    "name": "The Silent Verge",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1980, "y": 840 },
+    "tier": 0.70,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A1-034",
+    "connections": {
+      "forward": ["A1_035"],
+      "backward": ["A1_033"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_035",
+    "name": "Ashen Crestfall",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1940, "y": 900 },
+    "tier": 0.72,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-035",
+    "connections": {
+      "forward": ["A1_036"],
+      "backward": ["A1_034"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_036",
+    "name": "Fargrave’s End",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1890, "y": 940 },
+    "tier": 0.74,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A1-036",
+    "connections": {
+      "forward": ["A1_037"],
+      "backward": ["A1_035"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_037",
+    "name": "The Last Meridian",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1830, "y": 970 },
+    "tier": 0.76,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A1-037",
+    "connections": {
+      "forward": ["A1_038"],
+      "backward": ["A1_036"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_038",
+    "name": "Ashfall Drift",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1765, "y": 985 },
+    "tier": 0.78,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-038",
+    "connections": {
+      "forward": ["A1_039"],
+      "backward": ["A1_037"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_039",
+    "name": "Voidspire Delta",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1695, "y": 990 },
+    "tier": 0.80,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A1-039",
+    "connections": {
+      "forward": ["A1_040"],
+      "backward": ["A1_038"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_040",
+    "name": "Outerline Bastion",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1620, "y": 985 },
+    "tier": 0.82,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A1-040",
+    "connections": {
+      "forward": ["A1_041"],
+      "backward": ["A1_039"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_041",
+    "name": "Starfall Divide",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1550, "y": 970 },
+    "tier": 0.84,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-041",
+    "connections": {
+      "forward": ["A1_042"],
+      "backward": ["A1_040"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_042",
+    "name": "Umbral Gate",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1485, "y": 945 },
+    "tier": 0.86,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A1-042",
+    "connections": {
+      "forward": ["A1_043"],
+      "backward": ["A1_041"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_043",
+    "name": "Deep Hollow Strand",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1420, "y": 910 },
+    "tier": 0.88,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A1-043",
+    "connections": {
+      "forward": ["A1_044"],
+      "backward": ["A1_042"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_044",
+    "name": "Nightglass Reach",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1360, "y": 865 },
+    "tier": 0.90,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-044",
+    "connections": {
+      "forward": ["A1_045"],
+      "backward": ["A1_043"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_045",
+    "name": "Ebonwake Node",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1305, "y": 810 },
+    "tier": 0.92,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A1-045",
+    "connections": {
+      "forward": ["A1_046"],
+      "backward": ["A1_044"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_046",
+    "name": "The Last Passage",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1260, "y": 745 },
+    "tier": 0.94,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A1-046",
+    "connections": {
+      "forward": ["A1_047"],
+      "backward": ["A1_045"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_047",
+    "name": "Fracturepoint Expanse",
+    "type": "Dwarf",
+    "zone": "Dark",
+    "position": { "x": 1230, "y": 680 },
+    "tier": 0.96,
+    "radiation": "High",
+    "size": 2,
+    "seed": "A1-047",
+    "connections": {
+      "forward": ["A1_048"],
+      "backward": ["A1_046"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_048",
+    "name": "The Void Approach",
+    "type": "Main Sequence",
+    "zone": "Dark",
+    "position": { "x": 1210, "y": 620 },
+    "tier": 0.98,
+    "radiation": "High",
+    "size": 3,
+    "seed": "A1-048",
+    "connections": {
+      "forward": ["A1_049"],
+      "backward": ["A1_047"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_049",
+    "name": "Beyond the Gloom",
+    "type": "Subgiant",
+    "zone": "Dark",
+    "position": { "x": 1200, "y": 560 },
+    "tier": 0.99,
+    "radiation": "High",
+    "size": 4,
+    "seed": "A1-049",
+    "connections": {
+      "forward": ["A1_050"],
+      "backward": ["A1_048"],
+      "cross": []
+    }
+  },
+
+  {
+    "id": "A1_050",
+    "name": "Eclipse Terminus",
+    "type": "Giant",
+    "zone": "Dark",
+    "position": { "x": 1195, "y": 500 },
+    "tier": 1.00,
+    "radiation": "High",
+    "size": 5,
+    "seed": "A1-050",
+    "connections": {
+      "forward": [],
+      "backward": ["A1_049"],
+      "cross": []
+    }
+  }
+]

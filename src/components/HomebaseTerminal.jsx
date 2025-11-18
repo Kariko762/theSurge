@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import MapGalaxies from './hb_mapGalaxies.jsx'
+import MapSystems from './hb_mapSystems.jsx'
 
 /**
  * FRAME 2: Homebase Terminal - Main Base UI
@@ -21,12 +23,6 @@ const HomebaseTerminal = ({ onLaunch }) => {
     { name: 'GHOST', role: 'Sensors', power: 50, status: 'OFFLINE', integrity: 92 }
   ];
 
-  const systemOptions = [
-    { name: 'KEPLER-442', star: 'G-TYPE', radiation: 'MEDIUM', threat: 'MODERATE', distance: '12 LY', seed: '8A4F29E1' },
-    { name: 'VEGA-7', star: 'A-TYPE', radiation: 'HIGH', threat: 'HIGH', distance: '25 LY', seed: 'F3C91A28' },
-    { name: "BARNARD'S REFUGE", star: 'M-TYPE', radiation: 'LOW', threat: 'LOW', distance: '6 LY', seed: '4E7B2D90' }
-  ];
-
   const toggleLeftTab = (tab) => {
     setLeftActiveTab(leftActiveTab === tab ? null : tab);
   };
@@ -34,6 +30,30 @@ const HomebaseTerminal = ({ onLaunch }) => {
   const toggleRightTab = (tab) => {
     setRightActiveTab(rightActiveTab === tab ? null : tab);
   };
+
+  // If MAP is active, render it fullscreen instead of in panel
+  if (rightActiveTab === 'MAP') {
+    return (
+      <div className="no-scanlines" style={{ position: 'relative', width: '100%', height: '100%' }}>
+        <MapGalaxies />
+        {/* Close button overlay */}
+        <button 
+          className="small-btn" 
+          onClick={() => setRightActiveTab(null)}
+          style={{ 
+            position: 'fixed', 
+            top: '20px', 
+            right: '20px', 
+            zIndex: 2000,
+            fontSize: '10px',
+            padding: '8px 16px'
+          }}
+        >
+          CLOSE MAP
+        </button>
+      </div>
+    );
+  }
 
   const renderLeftPanelContent = () => {
     switch(leftActiveTab) {
@@ -236,81 +256,145 @@ const HomebaseTerminal = ({ onLaunch }) => {
           HOMEBASE TERMINAL // ASTEROID SHELTER ALPHA-7
         </div>
         <div className="display-content">
-          {/* System Status */}
-          <div style={{ marginBottom: '25px' }}>
-            <p className="holo-text" style={{ fontSize: '11px', marginBottom: '12px', letterSpacing: '2px' }}>
-              {'> '}STATION STATUS
-            </p>
-            <div className="data-grid">
-              <div className="data-cell fade-in" style={{ animationDelay: '0.1s' }}>
-                <div className="data-cell-label">Power Grid</div>
-                <div className="data-cell-value">67%</div>
-                <div className="progress-bar">
-                  <div className="progress-bar-fill" style={{ width: '67%' }}></div>
+          {/* Split Status Display: Ship (Left) | Homebase (Right) */}
+          <div style={{ display: 'flex', gap: '20px', marginBottom: '25px' }}>
+            {/* Ship Status (Left 50%) */}
+            <div className="holo-border" style={{ flex: 1, padding: '20px' }}>
+              <p className="holo-text" style={{ fontSize: '11px', marginBottom: '15px', letterSpacing: '2px' }}>
+                {'> '}SHIP STATUS
+              </p>
+              <div className="data-grid">
+                <div className="data-cell fade-in" style={{ animationDelay: '0.1s' }}>
+                  <div className="data-cell-label">Hull Integrity</div>
+                  <div className="data-cell-value">89%</div>
+                  <div className="progress-bar">
+                    <div className="progress-bar-fill" style={{ width: '89%', backgroundColor: 'rgba(82, 255, 168, 0.6)' }}></div>
+                  </div>
+                </div>
+                <div className="data-cell fade-in" style={{ animationDelay: '0.2s' }}>
+                  <div className="data-cell-label">Shield Status</div>
+                  <div className="data-cell-value">78%</div>
+                  <div className="progress-bar">
+                    <div className="progress-bar-fill" style={{ width: '78%', backgroundColor: 'rgba(52, 224, 255, 0.6)' }}></div>
+                  </div>
+                </div>
+                <div className="data-cell fade-in" style={{ animationDelay: '0.3s' }}>
+                  <div className="data-cell-label">Fuel (He-3 Pellets)</div>
+                  <div className="data-cell-value">500 units</div>
+                  <div className="progress-bar">
+                    <div className="progress-bar-fill" style={{ width: '84%', backgroundColor: 'rgba(255, 180, 50, 0.6)' }}></div>
+                  </div>
                 </div>
               </div>
-              <div className="data-cell fade-in" style={{ animationDelay: '0.2s' }}>
-                <div className="data-cell-label">Life Support</div>
-                <div className="data-cell-value">42%</div>
-                <div className="progress-bar">
-                  <div className="progress-bar-fill" style={{ width: '42%' }}></div>
+              <div className="text-muted" style={{ fontSize: '9px', marginTop: '15px', lineHeight: '1.8' }}>
+                <div style={{ marginBottom: '6px' }}>
+                  <span className="holo-text">Current System:</span> HOMEBASE (Quiet Zone)
+                </div>
+                <div style={{ marginBottom: '6px' }}>
+                  <span className="holo-text">Distance from Homebase:</span> 0.0 LY
+                </div>
+                <div>
+                  <span className="holo-text">Surge Static:</span> <span style={{ color: '#0f0' }}>2.3 mSv/h</span>
                 </div>
               </div>
-              <div className="data-cell fade-in" style={{ animationDelay: '0.3s' }}>
-                <div className="data-cell-label">Defenses</div>
-                <div className="data-cell-value">31%</div>
-                <div className="progress-bar">
-                  <div className="progress-bar-fill" style={{ width: '31%' }}></div>
+            </div>
+
+            {/* Homebase Status (Right 50%) */}
+            <div className="holo-border" style={{ flex: 1, padding: '20px' }}>
+              <p className="holo-text" style={{ fontSize: '11px', marginBottom: '15px', letterSpacing: '2px' }}>
+                {'> '}HOMEBASE STATUS
+              </p>
+              <div className="data-grid">
+                <div className="data-cell fade-in" style={{ animationDelay: '0.1s' }}>
+                  <div className="data-cell-label">Power Grid</div>
+                  <div className="data-cell-value">67%</div>
+                  <div className="progress-bar">
+                    <div className="progress-bar-fill" style={{ width: '67%' }}></div>
+                  </div>
+                </div>
+                <div className="data-cell fade-in" style={{ animationDelay: '0.2s' }}>
+                  <div className="data-cell-label">Life Support</div>
+                  <div className="data-cell-value">42%</div>
+                  <div className="progress-bar">
+                    <div className="progress-bar-fill" style={{ width: '42%' }}></div>
+                  </div>
+                </div>
+                <div className="data-cell fade-in" style={{ animationDelay: '0.3s' }}>
+                  <div className="data-cell-label">Defenses</div>
+                  <div className="data-cell-value">31%</div>
+                  <div className="progress-bar">
+                    <div className="progress-bar-fill" style={{ width: '31%' }}></div>
+                  </div>
+                </div>
+              </div>
+              <div className="text-muted" style={{ fontSize: '9px', marginTop: '15px', lineHeight: '1.8' }}>
+                <div style={{ marginBottom: '6px' }}>
+                  <span className="holo-text">Active AI Cores:</span> 2/4 (ARIA, FORGE)
+                </div>
+                <div style={{ marginBottom: '6px' }}>
+                  <span className="holo-text">Power Draw:</span> 80/100 Units
+                </div>
+                <div>
+                  <span className="holo-text">Run Duration:</span> 0h 00m
                 </div>
               </div>
             </div>
           </div>
 
-          {/* AI Core Status */}
-          <div className="holo-border" style={{ padding: '20px', marginBottom: '20px' }}>
-            <p className="holo-text" style={{ fontSize: '11px', marginBottom: '12px', letterSpacing: '2px' }}>
-              {'> '}AI CORE STATUS
-            </p>
-            <div className="text-muted" style={{ fontSize: '9px', lineHeight: '1.8' }}>
-              ARIA (Navigation) - ONLINE - Integrity: 100%
-              <br />
-              FORGE (Engineering) - ONLINE - Integrity: 100%
-              <br />
-              CIPHER (Research) - OFFLINE - Integrity: 87%
-              <br />
-              GHOST (Sensors) - OFFLINE - Integrity: 92%
-              <br /><br />
-              <span className="holo-text">POWER USAGE: 80/100 UNITS (2 Active AI)</span>
-            </div>
-          </div>
-
-          {/* Available Expeditions */}
+          {/* Current Automation (100% width) */}
           <div className="holo-border" style={{ padding: '20px', marginBottom: '20px' }}>
             <p className="holo-text" style={{ fontSize: '11px', marginBottom: '15px', letterSpacing: '2px' }}>
-              {'> '}AVAILABLE EXPEDITIONS
+              {'> '}CURRENT AUTOMATION
             </p>
-            {systemOptions.map((system, idx) => (
-              <div key={idx} className="data-cell mb-2" style={{ position: 'relative', transition: 'all 0.3s ease' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <div>
-                    <div className="holo-text" style={{ fontSize: '11px' }}>{system.name}</div>
-                    <div className="text-muted" style={{ fontSize: '8px' }}>
-                      {system.star} STAR • {system.distance} • SEED: {system.seed}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '9px', color: '#34e0ff' }}>{system.radiation}</div>
-                    <div className="text-muted" style={{ fontSize: '8px' }}>THREAT: {system.threat}</div>
-                  </div>
+            
+            {/* ARIA - Navigation AI */}
+            <div className="data-cell mb-2">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <div>
+                  <div className="holo-text" style={{ fontSize: '10px' }}>ARIA (Navigation AI)</div>
+                  <div className="text-muted" style={{ fontSize: '8px' }}>Surveying: Asteroid Belt Sigma-9</div>
                 </div>
-                <div className="text-muted" style={{ fontSize: '8px' }}>
-                  Select a destination and launch.
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '9px', color: '#34e0ff' }}>IN PROGRESS</div>
+                  <div className="text-muted" style={{ fontSize: '8px' }}>40W</div>
                 </div>
-                <button className="small-btn" style={{ position: 'absolute', right: '10px', bottom: '10px' }} onClick={() => onLaunch && onLaunch(system.seed)}>
-                  Launch
-                </button>
               </div>
-            ))}
+              <div className="progress-bar" style={{ height: '10px', marginBottom: '6px' }}>
+                <div className="progress-bar-fill" style={{ width: '67%' }}></div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8px' }} className="text-muted">
+                <span>Duration: 2h 30m</span>
+                <span>Time Left: 50m</span>
+              </div>
+            </div>
+
+            {/* FORGE - Engineering AI */}
+            <div className="data-cell mb-2">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <div>
+                  <div className="holo-text" style={{ fontSize: '10px' }}>FORGE (Engineering AI)</div>
+                  <div className="text-muted" style={{ fontSize: '8px' }}>Building: Shield Capacitor Array</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '9px', color: '#34e0ff' }}>IN PROGRESS</div>
+                  <div className="text-muted" style={{ fontSize: '8px' }}>40W</div>
+                </div>
+              </div>
+              <div className="progress-bar" style={{ height: '10px', marginBottom: '6px' }}>
+                <div className="progress-bar-fill" style={{ width: '23%' }}></div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8px' }} className="text-muted">
+                <span>Duration: 6h 00m</span>
+                <span>Time Left: 4h 37m</span>
+              </div>
+            </div>
+
+            {/* Offline AI cores */}
+            <div className="text-muted" style={{ fontSize: '9px', marginTop: '12px', opacity: 0.6 }}>
+              {'> '}CIPHER (Research AI) - OFFLINE
+              <br />
+              {'> '}GHOST (Sensors AI) - OFFLINE
+            </div>
           </div>
 
           {/* G'ejar-Vale Progress */}
