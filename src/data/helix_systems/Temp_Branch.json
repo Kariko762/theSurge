@@ -17,6 +17,7 @@
       "radiation": "Low",
       "size": 4,
       "seed": "SSG1-G:HOMEBASE:ALPHA7",
+      "scanned": true,
       "connections": {
         "forward": [
           "SYS_002"
@@ -38,6 +39,7 @@
       "radiation": "Low",
       "size": 5,
       "seed": "SYS-1763505673844-1-1775",
+      "scanned": true,
       "connections": {
         "forward": [
           "SYS_003"
@@ -61,6 +63,7 @@
       "radiation": "Low",
       "size": 2,
       "seed": "SYS-1763505673844-2-9295",
+      "scanned": true,
       "connections": {
         "forward": [
           "SYS_004"

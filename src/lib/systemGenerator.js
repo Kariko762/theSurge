@@ -120,8 +120,8 @@ function makeZones(rng, lum, starClass) {
 
 function makeOrbits(rng, starClass) {
   const n = randInt(rng, 6, 12);
-  const r = lerp(1.8, 2.6, rng()); // much wider spread ratio
-  let d0 = lerp(1.0, 2.5, rng()); // start even further from sun
+  const r = lerp(1.4, 1.6, rng()); // Tighter range for more consistent spacing
+  let d0 = lerp(0.5, 1.2, rng()); // Start closer to sun
   const out = [];
   for (let i = 0; i < n; i++) {
     const eps = lerp(-0.08, 0.08, rng());
@@ -140,7 +140,7 @@ function generateName(rng, type, size, index) {
     case 'moon':
       return `Moon ${index + 1}` + (size === 'Medium' ? '-M' : '');
     case 'belt':
-      return `Belt ${index + 1}` + (size === 'Medium' ? '-M' : '');
+      return `Cluster ${index + 1}` + (size === 'Medium' ? '-M' : '');
     case 'orbital':
       return `Station ${index + 1}` + (size === 'Medium' ? '-M' : '');
     case 'anomaly':
@@ -207,11 +207,29 @@ export function generateSystem(seedStr, opts = {}) {
   const stellarProtection = calculateStellarProtection(starClass, lum);
   const encounterActivity = calculateEncounterActivity(starClass, lum);
 
-  // Heliosphere radius scales with lum; outer boundary for first-pass visibility
-  const heliosphere = { radiusAU: lerp(40, 120, rngStar()) * lum };
-
   const zones = makeZones(rngZones, lum, starClass);
   const orbits = makeOrbits(rngOrbits, starClass);
+
+  // Heliosphere size table - [min, max] ranges
+  const heliosphereSizes = [
+    { size: 1, range: [50, 80] },
+    { size: 2, range: [80, 120] },
+    { size: 3, range: [120, 180] },
+    { size: 4, range: [180, 250] },
+    { size: 5, range: [250, 350] }
+  ];
+  
+  // Find max orbit distance
+  const maxOrbitDistance = orbits.length > 0 ? Math.max(...orbits.map(o => o.distanceAU)) : 10;
+  
+  // Find smallest heliosphere size where min > maxOrbit
+  const sizeEntry = heliosphereSizes.find(s => s.range[0] > maxOrbitDistance) || heliosphereSizes[heliosphereSizes.length - 1];
+  
+  // Random heliosphere within that range, ensuring it's always > maxOrbit
+  const [minHelio, maxHelio] = sizeEntry.range;
+  const heliosphere = { 
+    radiusAU: Math.max(maxOrbitDistance * 1.3, lerp(minHelio, maxHelio, rngStar()))
+  };
 
   // Build parents and detection hints (edge distance ~ heliosphere radius)
   const sensorsPower = opts.sensorsPower ?? 20; // baseline ship
