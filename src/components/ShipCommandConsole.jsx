@@ -4,6 +4,10 @@ import { calculateShipAttributes, DEFAULT_SHIP_LOADOUT, DEFAULT_POWER_ALLOCATION
 import { getShipState } from '../lib/shipState.js'
 import { loadGalaxy } from '../lib/galaxyLoader.js'
 import SettingsDropdown from './SettingsDropdown.jsx'
+import ActionsPanel from './ActionsPanel.jsx'
+import TerminalModal from './TerminalModal.jsx'
+import RightPanelTabs from './RightPanelTabs.jsx'
+import { executeDREAction } from '../lib/dre/engine.js'
 
 /**
  * FRAME 3: Ship Command Console - Ship Run View
@@ -15,13 +19,13 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
   const [selectedPOI, setSelectedPOI] = useState(null);
   const [lockedSelection, setLockedSelection] = useState(false);
   const [sectionsOpen, setSectionsOpen] = useState({ power: true, ship: false });
-  const [fullscreen, setFullscreen] = useState(false);
+  const [fullscreen, setFullscreen] = useState(true);
   const [zoom, setZoom] = useState(1.0); // Will be recalculated based on heliosphere
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [panTransition, setPanTransition] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [gamePhase, setGamePhase] = useState('jumped'); // jumped | dialogue | scanning
+  const [gamePhase, setGamePhase] = useState('scanning'); // scanning mode - skip jumped/dialogue
   const [dialogueComplete, setDialogueComplete] = useState(false);
   const [showScanPrompt, setShowScanPrompt] = useState(false);
   const [scanned, setScanned] = useState(false);
@@ -38,9 +42,19 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
   const [droppedPins, setDroppedPins] = useState([]); // Array of {id, x, y, name}
   const [dropPinMode, setDropPinMode] = useState(false); // Is user in drop pin mode
   const [showPOINames, setShowPOINames] = useState(true);
+  const [showScaleRings, setShowScaleRings] = useState(true); // Show distance scale rings
+  const [backgroundOpacity, setBackgroundOpacity] = useState(0.25); // Background image opacity (0-1)
   const [showNavMenu, setShowNavMenu] = useState(false);
   const [shipRotation, setShipRotation] = useState(0); // Ship rotation angle in degrees
   const [hoveredPin, setHoveredPin] = useState(null); // Currently hovered pin for delete button
+  const [showTerminalModal, setShowTerminalModal] = useState(false);
+  const [terminalModalContent, setTerminalModalContent] = useState([]);
+  const [rightPanelTab, setRightPanelTab] = useState('pois'); // pois | ship | inventory | actions | comms
+  const [openDropdown, setOpenDropdown] = useState(null); // {type: 'moveTo'|'tag'|'actions', poiId: string}
+  const [poiTags, setPoiTags] = useState({}); // {poiId: ['visited', 'avoid', 'cache']}
+  const [sequenceWaypointCallback, setSequenceWaypointCallback] = useState(null); // Callback for adding sequence waypoints
+  const [sequenceSteps, setSequenceSteps] = useState([]); // Automation sequence waypoints
+  const [showActionMenu, setShowActionMenu] = useState(null); // {x, y, worldX, worldY} for action selection menu
   const terminalRef = useRef(null);
   
   // Ship state manager (singleton)
@@ -94,12 +108,10 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
       shipState.setPosition(edgeAU, angleRad);
       shipState.visitSystem(seedInput);
       
-      // Check if this system was already scanned in the galaxy map
-      if (systemId && shipState.isSystemScanned(systemId)) {
-        setScanned(true);
-        setGamePhase('scanning');
-        setFullscreen(true);
-      }
+      // Don't auto-scan - let player initiate manually
+      setScanned(false);
+      setGamePhase('scanning');
+      setFullscreen(true);
       
       // Calculate zoom so heliosphere fills the viewport (with 92% margin)
       // The heliosphere circle diameter should be: 0.92 * zoom * 2 * 100% = ~95% of viewport
@@ -108,8 +120,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
       setZoom(initialZoom);
       
       setShipStateVersion(v => v + 1);
-      // Center view on ship
-      setTimeout(() => centerOnShip(), 50);
+      // Center view on sun (origin) - pan offset stays at {x: 0, y: 0}
+      setPanOffset({ x: 0, y: 0 });
     }
   }, [system, seedInput]);
   
@@ -154,12 +166,25 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
   
   // Center view on ship at current zoom
   const centerOnShip = () => {
-    if (!system || !shipPosition) return;
+    if (!system) return;
     setPanTransition(true);
-    const r = (shipPosition.distanceAU / system.heliosphere.radiusAU) * 0.92 * zoom;
-    const offsetX = -r * Math.cos(shipPosition.angleRad);
-    const offsetY = -r * Math.sin(shipPosition.angleRad);
+    // Get current ship state directly to avoid closure issues
+    const currentShipState = shipState.getState();
+    const currentPos = currentShipState.position;
+    const r = (currentPos.distanceAU / system.heliosphere.radiusAU) * 0.92 * zoom;
+    const offsetX = -r * Math.cos(currentPos.angleRad);
+    const offsetY = -r * Math.sin(currentPos.angleRad);
     setPanOffset({ x: offsetX, y: offsetY });
+    setTimeout(() => setPanTransition(false), 1000);
+  };
+  
+  // Reset to default view (sun-centered, heliosphere fills viewport)
+  const resetToDefaultView = () => {
+    if (!system) return;
+    setPanTransition(true);
+    const initialZoom = 0.516;
+    setZoom(initialZoom);
+    setPanOffset({ x: 0, y: 0 });
     setTimeout(() => setPanTransition(false), 1000);
   };
   
@@ -229,19 +254,32 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
     setTimeout(() => setPanTransition(false), 1000);
   };
 
-  const moveShipTo = (targetPOI) => {
-    if (!targetPOI || !system || isMoving) return;
+  const moveShipTo = (targetPOIorAU, targetAngle = null, onComplete = null) => {
+    if (!system || isMoving) return;
     
-    // Check if target is a POI or a dropped pin
-    let target = pois.find(p => p.id === targetPOI);
-    if (!target) {
-      target = droppedPins.find(p => p.id === targetPOI);
+    let targetX, targetY, targetName;
+    
+    // Check if we received coordinates (AU, angle) or POI ID
+    if (typeof targetPOIorAU === 'number' && targetAngle !== null) {
+      // Direct coordinates - for automation sequences
+      targetX = targetPOIorAU * Math.cos(targetAngle);
+      targetY = targetPOIorAU * Math.sin(targetAngle);
+      targetName = `Waypoint (${targetPOIorAU.toFixed(2)} AU)`;
+    } else {
+      // POI ID - for manual navigation
+      if (!targetPOIorAU) return;
+      let target = pois.find(p => p.id === targetPOIorAU);
+      if (!target) {
+        target = droppedPins.find(p => p.id === targetPOIorAU);
+      }
+      if (!target) return;
+      
+      targetX = target.distanceAU * Math.cos(target.angleRad);
+      targetY = target.distanceAU * Math.sin(target.angleRad);
+      targetName = target.name;
     }
-    if (!target) return;
 
     const currentPos = shipPosition;
-    const targetX = target.distanceAU * Math.cos(target.angleRad);
-    const targetY = target.distanceAU * Math.sin(target.angleRad);
     const distance = Math.sqrt(
       Math.pow(targetX - currentPos.x, 2) + Math.pow(targetY - currentPos.y, 2)
     );
@@ -261,7 +299,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
     const fuelNeeded = distance * 0.5;
     
     setTerminalLog(prev => [...prev, 
-      `> ARIA: Plotting course to ${target.name}...`,
+      `> ARIA: Plotting course to ${targetName}...`,
       `> Distance: ${distance.toFixed(2)} AU`,
       `> Travel time: ${travelTimeHours.toFixed(1)} hours (${travelTimeSeconds.toFixed(1)}s real-time)`,
       `> Fuel required: ${fuelNeeded.toFixed(1)} units`,
@@ -292,11 +330,15 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
         setIsMoving(false);
         setMovementProgress(0);
         setTerminalLog(prev => [...prev, 
-          `> ARIA: Arrived at ${target.name}`,
-          `> Position: ${target.distanceAU.toFixed(2)} AU from sun`
+          `> ARIA: Arrived at ${targetName}`,
+          `> Position: ${Math.sqrt(targetX * targetX + targetY * targetY).toFixed(2)} AU from sun`
         ]);
-        // Center view on new position
-        setTimeout(() => centerOnShip(), 100);
+        // Don't auto-center during sequence execution - let sequence manage view
+        
+        // Call completion callback if provided
+        if (onComplete) {
+          setTimeout(() => onComplete(), 200);
+        }
       }
     }, 50); // Update every 50ms for smooth animation
   };
@@ -422,14 +464,18 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
   const pois = useMemo(() => {
     if (!system) return [];
     const list = [];
-    list.push({ id: 'SUN', name: 'SUN', type: 'STAR', distanceAU: 0, angleRad: 0 });
+    list.push({ id: 'SUN', name: 'SUN', type: 'STAR', distanceAU: 0, angleRad: 0, x: 0, y: 0 });
     system.orbits.forEach((o) => {
       const p = o.parent;
-      list.push({ id: p.id, name: p.name, type: p.type.toUpperCase(), distanceAU: o.distanceAU, angleRad: o.angleRad });
+      const x = o.distanceAU * Math.cos(o.angleRad);
+      const y = o.distanceAU * Math.sin(o.angleRad);
+      list.push({ id: p.id, name: p.name, type: p.type.toUpperCase(), distanceAU: o.distanceAU, angleRad: o.angleRad, x, y });
     });
     (system.extras || []).forEach((e) => {
       const p = e.parent;
-      list.push({ id: p.id, name: p.name, type: p.type.toUpperCase(), distanceAU: e.distanceAU, angleRad: e.angleRad });
+      const x = e.distanceAU * Math.cos(e.angleRad);
+      const y = e.distanceAU * Math.sin(e.angleRad);
+      list.push({ id: p.id, name: p.name, type: p.type.toUpperCase(), distanceAU: e.distanceAU, angleRad: e.angleRad, x, y });
     });
     return list;
   }, [system]);
@@ -479,6 +525,52 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
       const newValue = Math.max(0, Math.min(100, prev[system] + delta));
       return { ...prev, [system]: newValue };
     });
+  };
+
+  // Handle DRE action execution from ActionsPanel
+  const handleActionExecute = async (actionType, targetPOI) => {
+    try {
+      // Build context for DRE
+      const systemContext = {
+        systemName,
+        star: system.star,
+        planets: system.planets || [],
+        stations: system.stations || [],
+        asteroidBelts: system.asteroidBelts || [],
+        anomalies: system.anomalies || []
+      };
+
+      // Execute DRE action
+      const result = executeDREAction(
+        actionType,
+        targetPOI,
+        currentShipState,
+        systemContext
+      );
+
+      // Format output for terminal modal
+      const formattedContent = [
+        { type: 'prompt', text: `> ${actionType.toUpperCase()} ${targetPOI ? targetPOI.name : ''}` },
+        ...result.narrative.map(line => ({ type: 'normal', text: line })),
+        { type: 'normal', text: '' },
+        ...result.outcome.map(line => {
+          if (line.includes('ERROR') || line.includes('Failed')) return { type: 'error', text: line };
+          if (line.includes('SUCCESS') || line.includes('found')) return { type: 'success', text: line };
+          if (line.includes('WARNING')) return { type: 'warning', text: line };
+          return { type: 'normal', text: line };
+        })
+      ];
+
+      // Show terminal modal with results
+      setTerminalModalContent(formattedContent);
+      setShowTerminalModal(true);
+    } catch (error) {
+      console.error('Action execution error:', error);
+      setTerminalModalContent([
+        { type: 'error', text: `> ERROR: ${error.message}` }
+      ]);
+      setShowTerminalModal(true);
+    }
   };
 
   const renderLeftPanelContent = () => {
@@ -708,241 +800,272 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
   return (
     <div className="terminal-frame">
       <SettingsDropdown />
-      {/* Left Tab Stack */}
-      <div className="tab-stack-left">
-        {leftTabs.map((tab) => (
-          <div
-            key={tab}
-            className={`tab-item ${activeTab === tab ? 'active' : ''}`}
-            onClick={() => toggleTab(tab)}
-          >
-            {tab}
-          </div>
-        ))}
-      </div>
 
-      {/* Left Tab Panel */}
-      <div className={`tab-panel left holo-border ${activeTab ? 'open' : ''}`}>
-        {activeTab && (
-          <div className="tab-panel-content">
-            {renderLeftPanelContent()}
-          </div>
-        )}
-      </div>
-
-      {/* Central Terminal Display - Game Phase Output */}
-      <div className="command-display holo-glow flicker fade-in">
-        <div className="display-header holo-text">
-          SHIP COMMAND CONSOLE // EXPEDITION RUN
-        </div>
-        <div className="display-content">
-          <div className="terminal-output">
-            {gamePhase === 'jumped' && (
-              <>
-                <p className="terminal-prompt">{'> '}FOLD JUMP COMPLETE</p>
-                <p className="terminal-prompt">{'> '}ARRIVING AT SYSTEM: {systemName}</p>
-                <p style={{ marginTop: '20px', opacity: 0.6 }}>
-                  Sublight engines engaged. Sensors initializing...
-                </p>
-                <button className="action-btn" style={{ marginTop: '30px' }} onClick={startDialogue}>
-                  Continue
-                </button>
-              </>
-            )}
-            {gamePhase === 'dialogue' && (
-              <>
-                <p className="terminal-prompt">{'> '}ARIA (Navigation AI):</p>
-                <p className="typewriter" style={{ marginTop: '15px', fontStyle: 'italic', opacity: 0.9, lineHeight: '1.6' }}>
-                  "We've arrived at the edge of the system. Sensors are nominal, but we're running dark. 
-                  You need to scan the area to see what's out there—planets, stations, hazards. 
-                  Would you like me to start a full system scan?"
-                </p>
-                {showScanPrompt && (
-                  <div style={{ marginTop: '25px', display: 'flex', gap: '12px' }}>
-                    <button className="action-btn" onClick={() => handleScanResponse(true)}>Yes</button>
-                    <button className="action-btn" onClick={() => handleScanResponse(false)}>No</button>
-                  </div>
-                )}
-              </>
-            )}
-            {gamePhase === 'scanning' && (
-              <>
-                <p className="terminal-prompt">{'> '}INITIATING FULL SYSTEM SCAN...</p>
-                <p style={{ marginTop: '15px', opacity: 0.7 }}>
-                  Opening tactical display...
-                </p>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Right Info Panel */}
-      <div className="ship-info-panel">
-        {/* Status Bars */}
-        <div className="status-bars">
-          <div className="status-bar-row">
-            <span className="status-bar-label">Shields :</span>
-            <div className="status-bar-blocks">
-              {[...Array(7)].map((_, i) => (
-                <div key={i} className={`status-block ${i < Math.floor(shipVitals.shields / 14.3) ? 'filled shields' : ''}`}></div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="status-bar-row">
-            <span className="status-bar-label">Hull :</span>
-            <div className="status-bar-blocks">
-              {[...Array(7)].map((_, i) => (
-                <div key={i} className={`status-block ${i < Math.floor(shipVitals.hull / 14.3) ? 'filled hull' : ''}`}></div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="status-bar-row">
-            <span className="status-bar-label">Power :</span>
-            <div className="status-bar-blocks">
-              {[...Array(7)].map((_, i) => (
-                <div key={i} className={`status-block ${i < Math.floor(shipVitals.power / 14.3) ? 'filled power' : ''}`}></div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="status-bar-divider">- - - - - - - - - - - - -</div>
-          
-          <div className="status-bar-row">
-            <span className="status-bar-label">Plasma Wake :</span>
-            <div className="status-bar-blocks">
-              {[...Array(7)].map((_, i) => (
-                <div key={i} className={`status-block ${i < Math.floor(shipVitals.static / 14.3) ? 'filled wake' : ''}`}></div>
-              ))}
-            </div>
-            <span className="status-bar-value">{riskData?.wake || 0} AU²</span>
-          </div>
-          
-          <div className="status-bar-row">
-            <span className="status-bar-label">Surge Static :</span>
-            <div className="status-bar-blocks">
-              {[...Array(7)].map((_, i) => (
-                <div key={i} className={`status-block ${i < Math.floor((staticExposure / 100) * 100 / 14.3) ? 'filled radiation' : ''}`}></div>
-              ))}
-            </div>
-            <span className="status-bar-value" style={{ 
-              color: staticExposure < 15 ? '#0f0' : staticExposure < 40 ? '#ff0' : '#f00'
-            }}>
-              {staticExposure.toFixed(1)} mSv/h
-            </span>
-          </div>
-          
-          <div className="status-bar-divider">- - - - - - - - - - - - -</div>
-          
-          <div className="status-bar-row">
-            <span className="status-bar-label">Dist from Sun :</span>
-            <span className="status-bar-value" style={{ color: '#00aaff' }}>
-              {shipPosition?.distanceAU.toFixed(1) || 0} AU
-              <span style={{ 
-                marginLeft: '8px', 
-                fontSize: '8px',
-                color: staticExposure < system?.galactic.surgeRadiation ? '#0f0' : '#f00'
-              }}>
-                {staticExposure < system?.galactic.surgeRadiation 
-                  ? `-${(system?.galactic.surgeRadiation - staticExposure).toFixed(1)} mSv/h`
-                  : `+${(staticExposure - system?.galactic.surgeRadiation).toFixed(1)} mSv/h`
-                }
-              </span>
-            </span>
-          </div>
-        </div>
-
-        {/* System Map */}
-        <div className="system-map">
-          <div className="system-map-header">
-            SYSTEM MAP <button className="small-btn" style={{ float: 'right' }} onClick={() => setFullscreen(true)}>Full</button>
-          </div>
-          <div className="map-container holo-border">
-            <div className="map-grid"></div>
-            {/* Sun */}
-                <div className="map-poi sun" style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
-                  onClick={() => { setSelectedPOI('SUN'); setLockedSelection(true); }}
-                >
-              <div className="poi-tooltip">SUN ({system?.star.class}-TYPE)</div>
-            </div>
-            {/* Parents within small view radius */}
-            {(() => {
-              if (!system) return null;
-              const viewAU = 10; // small map radius (AU)
-              const toXY = (au, angle) => {
-                const centerX = 0.5; const centerY = 0.5; // normalized
-                const scale = Math.min(1, au / viewAU);
-                const r = scale * 0.45; // 45% of container
-                const x = centerX + r * Math.cos(angle);
-                const y = centerY + r * Math.sin(angle);
-                return { left: `${x * 100}%`, top: `${y * 100}%` };
-              };
-              const parents = [
-                ...system.orbits.map(o => ({ ...o.parent, distanceAU: o.distanceAU, angleRad: o.angleRad })),
-                ...(system.extras || []).map(e => ({ ...e.parent, distanceAU: e.distanceAU, angleRad: e.angleRad })),
-              ];
-              return parents.filter(p => p.distanceAU <= viewAU && scanProgress.includes(p.id)).map(p => (
-                <div key={p.id}
-                  className={`map-poi ${p.type} ${shapeForType(p.type)} ${selectedPOI === p.id ? 'selected' : ''}`}
-                  style={toXY(p.distanceAU, p.angleRad)}
-                  onMouseEnter={() => { if (!lockedSelection) setSelectedPOI(p.id); }}
-                  onMouseLeave={() => { if (!lockedSelection) setSelectedPOI(null); }}
-                  onClick={() => { setSelectedPOI(p.id); setLockedSelection(true); }}
-                >
-                  <div className="poi-tooltip">{p.name}</div>
-                </div>
-              ));
-            })()}
-          </div>
-        </div>
-
-        {/* POI Table - Scrollable */}
-        <div className="poi-table-scrollable">
-          <div className="poi-table-header">
-            POINTS OF INTEREST
-            <button className="small-btn" style={{ float: 'right' }} onClick={clearSelection}>Clear</button>
-          </div>
-          <div className="poi-table-grid">
-            <div className="poi-table-header-row">
-              <div className="poi-table-header-cell">POI</div>
-              <div className="poi-table-header-cell">TYPE</div>
-              <div className="poi-table-header-cell">DISTANCE</div>
-            </div>
-            {pois.filter(poi => poi.id === 'SUN' || scanProgress.includes(poi.id)).map((poi) => (
-              <div 
-                key={poi.id}
-                className={`poi-table-row ${selectedPOI === poi.id ? 'selected' : ''}`}
-                onMouseEnter={() => setSelectedPOI(poi.id)}
-                onMouseLeave={() => setSelectedPOI(null)}
-                onClick={() => { setSelectedPOI(poi.id); setLockedSelection(true); }}
-              >
-                <div className="poi-table-cell poi-name">{poi.name}</div>
-                <div className="poi-table-cell poi-type">{poi.type}</div>
-                <div className="poi-table-cell poi-distance">{poi.distanceAU !== undefined ? `${poi.distanceAU.toFixed(2)} AU` : '—'}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Fullscreen Map Overlay */}
-      {fullscreen && system && (
+      {/* Fullscreen Solar System Map - Always visible */}
+      {system && (
         <div className="map-fullscreen-overlay">
           {/* Left 2/3: Map Canvas + Terminal */}
           <div className="map-fullscreen-left">
-            <div className="map-fullscreen-header">
+            <div className="map-fullscreen-header" style={{ marginTop: '25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>SOLAR SYSTEM MAP — {systemName}</span>
+              
+              {/* All Status Cubes in One Row */}
+              <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto', marginRight: '16px', alignItems: 'center' }}>
+                {/* Shields Cube */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    background: 'rgba(0, 20, 40, 0.8)',
+                    border: '1px solid rgba(52, 224, 255, 0.4)',
+                    borderRadius: '4px',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    boxShadow: '0 0 10px rgba(52, 224, 255, 0.3)'
+                  }}>
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: `${currentShipState.currentShields}%`,
+                      background: 'linear-gradient(to top, rgba(52, 224, 255, 0.6), rgba(52, 224, 255, 0.3))',
+                      transition: 'height 0.3s ease',
+                      boxShadow: 'inset 0 0 10px rgba(52, 224, 255, 0.5)'
+                    }} />
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      color: '#34e0ff',
+                      textShadow: '0 0 4px rgba(52, 224, 255, 0.8)',
+                      zIndex: 1
+                    }}>
+                      {Math.round(currentShipState.currentShields)}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '7px', color: '#34e0ff', fontWeight: 'bold', letterSpacing: '0.5px' }}>SHIELDS</div>
+                </div>
+
+                {/* Hull Cube */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    background: 'rgba(0, 20, 40, 0.8)',
+                    border: '1px solid rgba(52, 224, 255, 0.4)',
+                    borderRadius: '4px',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    boxShadow: '0 0 10px rgba(52, 224, 255, 0.3)'
+                  }}>
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: `${currentShipState.currentHull}%`,
+                      background: 'linear-gradient(to top, rgba(52, 224, 255, 0.6), rgba(52, 224, 255, 0.3))',
+                      transition: 'height 0.3s ease',
+                      boxShadow: 'inset 0 0 10px rgba(52, 224, 255, 0.5)'
+                    }} />
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      color: '#34e0ff',
+                      textShadow: '0 0 4px rgba(52, 224, 255, 0.8)',
+                      zIndex: 1
+                    }}>
+                      {Math.round(currentShipState.currentHull)}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '7px', color: '#34e0ff', fontWeight: 'bold', letterSpacing: '0.5px' }}>HULL</div>
+                </div>
+
+                {/* Energy Cube */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    background: 'rgba(0, 20, 40, 0.8)',
+                    border: '1px solid rgba(52, 224, 255, 0.4)',
+                    borderRadius: '4px',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    boxShadow: '0 0 10px rgba(52, 224, 255, 0.3)'
+                  }}>
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: `${currentShipState.fuel}%`,
+                      background: 'linear-gradient(to top, rgba(52, 224, 255, 0.6), rgba(52, 224, 255, 0.3))',
+                      transition: 'height 0.3s ease',
+                      boxShadow: 'inset 0 0 10px rgba(52, 224, 255, 0.5)'
+                    }} />
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      color: '#34e0ff',
+                      textShadow: '0 0 4px rgba(52, 224, 255, 0.8)',
+                      zIndex: 1
+                    }}>
+                      {Math.round(currentShipState.fuel)}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '7px', color: '#34e0ff', fontWeight: 'bold', letterSpacing: '0.5px' }}>ENERGY</div>
+                </div>
+
+                {/* Separator */}
+                <div style={{
+                  width: '1px',
+                  height: '50px',
+                  background: 'linear-gradient(to bottom, transparent, rgba(52, 224, 255, 0.6), transparent)',
+                  boxShadow: '0 0 8px rgba(52, 224, 255, 0.4)',
+                  margin: '0 4px'
+                }} />
+
+                {/* Radiation Cube */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    background: 'rgba(0, 20, 40, 0.9)',
+                    border: '1px solid rgba(52, 224, 255, 0.4)',
+                    borderRadius: '4px',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    boxShadow: '0 0 10px rgba(52, 224, 255, 0.3)'
+                  }}>
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: `${calculateStaticExposure(system, shipPosition.distanceAU)}%`,
+                      background: 'linear-gradient(to top, rgba(52, 224, 255, 0.6), rgba(52, 224, 255, 0.3))',
+                      transition: 'height 0.3s ease',
+                      boxShadow: 'inset 0 0 10px rgba(52, 224, 255, 0.5)'
+                    }} />
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      color: '#34e0ff',
+                      textShadow: '0 0 4px rgba(52, 224, 255, 0.8)',
+                      zIndex: 1
+                    }}>
+                      {Math.round(calculateStaticExposure(system, shipPosition.distanceAU))}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '7px', color: '#34e0ff', fontWeight: 'bold', letterSpacing: '0.5px' }}>RADIATION</div>
+                </div>
+
+                {/* Static Cube */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    background: 'rgba(0, 20, 40, 0.9)',
+                    border: '1px solid rgba(52, 224, 255, 0.4)',
+                    borderRadius: '4px',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    boxShadow: '0 0 10px rgba(52, 224, 255, 0.3)'
+                  }}>
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: `${calculateWakeSignature(shipPosition.distanceAU, 5)}%`,
+                      background: 'linear-gradient(to top, rgba(52, 224, 255, 0.6), rgba(52, 224, 255, 0.3))',
+                      transition: 'height 0.3s ease',
+                      boxShadow: 'inset 0 0 10px rgba(52, 224, 255, 0.5)'
+                    }} />
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      color: '#34e0ff',
+                      textShadow: '0 0 4px rgba(52, 224, 255, 0.8)',
+                      zIndex: 1
+                    }}>
+                      {Math.round(calculateWakeSignature(shipPosition.distanceAU, 5))}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '7px', color: '#34e0ff', fontWeight: 'bold', letterSpacing: '0.5px' }}>STATIC</div>
+                </div>
+              </div>
               
               {/* Navigation Menu */}
               <div style={{ position: 'relative', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {/* Drop Pin Toggle Button */}
+                <button 
+                  className="small-btn" 
+                  onClick={() => setDropPinMode(!dropPinMode)}
+                  style={{ 
+                    fontSize: '9px', 
+                    padding: '1px 6px',
+                    width: '26px',
+                    height: '26px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: dropPinMode ? 'rgba(52, 224, 255, 0.3)' : 'rgba(52, 224, 255, 0.1)'
+                  }}
+                  title={dropPinMode ? 'Drop Pin Mode Active' : 'Activate Drop Pin Mode'}
+                >
+                  <svg width="12" height="14" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {/* Pin head - teardrop shape */}
+                    <path d="M8 2C5.8 2 4 3.8 4 6C4 8.5 8 13 8 13C8 13 12 8.5 12 6C12 3.8 10.2 2 8 2Z" 
+                      stroke="#34e0ff" 
+                      strokeWidth="1.2" 
+                      fill="none"
+                    />
+                    {/* Center dot */}
+                    <circle cx="8" cy="6" r="1.5" fill="#34e0ff" />
+                    {/* Isometric ring at bottom */}
+                    <ellipse cx="8" cy="16" rx="4" ry="1.5" 
+                      stroke="#34e0ff" 
+                      strokeWidth="1" 
+                      fill="none"
+                      opacity="0.6"
+                    />
+                    {/* Connection line from pin to ring */}
+                    <line x1="8" y1="13" x2="8" y2="16" 
+                      stroke="#34e0ff" 
+                      strokeWidth="0.8" 
+                      opacity="0.4"
+                      strokeDasharray="1,1"
+                    />
+                  </svg>
+                </button>
+                
                 <button 
                   className="small-btn" 
                   onClick={() => setShowNavMenu(!showNavMenu)}
                   style={{ fontSize: '9px', padding: '6px 12px' }}
                 >
-                  NAVIGATION ▾
+                  SETTINGS ▾
                 </button>
                 
                 {showNavMenu && (
@@ -960,22 +1083,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                     boxShadow: '0 0 20px rgba(52, 224, 255, 0.3)'
                   }}>
                     <div style={{ fontSize: '10px', color: '#cfd8df', marginBottom: '8px', fontWeight: 'bold' }}>
-                      NAVIGATION OPTIONS
+                      SETTINGS
                     </div>
-                    <button 
-                      className="small-btn" 
-                      onClick={() => { setDropPinMode(!dropPinMode); setShowNavMenu(false); }}
-                      style={{ 
-                        width: '100%', 
-                        fontSize: '9px', 
-                        padding: '6px', 
-                        marginBottom: '4px',
-                        backgroundColor: dropPinMode ? 'rgba(52, 224, 255, 0.3)' : 'rgba(52, 224, 255, 0.1)'
-                      }}
-                    >
-                      {dropPinMode ? '✓ Drop Pin Mode' : 'Drop Pin'}
-                    </button>
-                    <div style={{ borderTop: '1px solid rgba(52, 224, 255, 0.3)', margin: '8px 0' }} />
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '9px', color: '#cfd8df', cursor: 'pointer', marginBottom: '4px' }}>
                       <input 
                         type="checkbox" 
@@ -984,32 +1093,59 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                       />
                       Show POI Names
                     </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '9px', color: '#cfd8df', cursor: 'pointer' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={showScaleRings} 
+                        onChange={(e) => setShowScaleRings(e.target.checked)}
+                      />
+                      Show Scale Rings
+                    </label>
+                    <div style={{ borderTop: '1px solid rgba(52, 224, 255, 0.3)', margin: '8px 0' }} />
+                    <div style={{ fontSize: '9px', color: '#cfd8df', marginBottom: '6px' }}>
+                      Background Opacity
+                    </div>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="100" 
+                      value={backgroundOpacity * 100}
+                      onChange={(e) => setBackgroundOpacity(e.target.value / 100)}
+                      style={{
+                        width: '100%',
+                        accentColor: '#34e0ff',
+                        cursor: 'pointer'
+                      }}
+                    />
                   </div>
                 )}
                 
-                <button className="small-btn" onClick={() => { setFullscreen(false); setGamePhase('jumped'); }}>Close</button>
+                <button className="small-btn" onClick={() => onNavigate && onNavigate('homebase')}>Return to Homebase</button>
               </div>
             </div>
-            <div className="map-fullscreen-canvas" style={{ flex: 1 }}>
-              <div className="map-grid"></div>
-              {!scanned && (
-                <div style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  color: 'var(--faded-cyan)',
-                  fontSize: '14px',
-                  letterSpacing: '2px',
-                  opacity: 0.6,
-                  textAlign: 'center'
-                }}>
-                  SYSTEM NOT SCANNED<br/>
-                  <span style={{ fontSize: '10px', opacity: 0.5 }}>Initiate scan from terminal</span>
-                </div>
-              )}
+            <div className="map-fullscreen-canvas" style={{ 
+              flex: 1,
+              position: 'relative',
+              backgroundImage: 'url(/src/assets/media/solar_system_bg.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat'
+            }}>
+              {/* Background overlay for opacity control */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: `rgba(0, 10, 20, ${1 - backgroundOpacity})`,
+                pointerEvents: 'none',
+                zIndex: 0
+              }} />
               
-              {/* Solar System Map - Always show, but POIs only visible if scanned */}
+              <div className="map-grid"></div>
+              
+              {/* Solar System Map - POIs revealed by scanning */}
               {(() => {
                 // Zoom support (0.6x to 10x)
                 const [minZoom, maxZoom] = [0.2, 10.0];
@@ -1018,13 +1154,26 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                   () => setZoom(z => Math.max(minZoom, z <= 2 ? Math.round((z - 0.2) * 10) / 10 : Math.round((z - 0.5) * 10) / 10))
                 ];
                 const toXY = (au, angle) => {
-                  const centerX = 0.5 + panOffset.x; 
-                  const centerY = 0.5 + panOffset.y;
-                  const r = (au / system.heliosphere.radiusAU) * 0.92 * zoom; // use more of the available space
-                  const x = centerX + r * Math.cos(angle);
-                  const y = centerY + r * Math.sin(angle);
+                  const centerX = 0.5; 
+                  const centerY = 0.5;
+                  const r = (au / system.heliosphere.radiusAU) * 0.92 * zoom;
+                  const x = centerX + panOffset.x + r * Math.cos(angle);
+                  const y = centerY + panOffset.y + r * Math.sin(angle);
                   return { left: `${x * 100}%`, top: `${y * 100}%` };
                 };
+                
+                // Helper to convert world AU coordinates (x, y) to viewport position
+                const worldToViewport = (worldX, worldY) => {
+                  const centerX = 0.5; 
+                  const centerY = 0.5;
+                  const au = Math.sqrt(worldX * worldX + worldY * worldY);
+                  const angle = Math.atan2(worldY, worldX);
+                  const r = (au / system.heliosphere.radiusAU) * 0.92 * zoom;
+                  const x = centerX + panOffset.x + r * Math.cos(angle);
+                  const y = centerY + panOffset.y + r * Math.sin(angle);
+                  return { x: x * 100, y: y * 100 };
+                };
+                
                 
                 // Drag handlers for panning
                 const handleMouseDown = (e) => {
@@ -1056,10 +1205,12 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                 };
                 
                 // Ship marker - holographic circle with rotating ship icon
+                const shipPos = toXY(shipPosition.distanceAU, shipPosition.angleRad);
+                console.log('Ship render position:', shipPos, 'Ship AU:', shipPosition.distanceAU, 'Angle:', shipPosition.angleRad, 'PanOffset:', panOffset, 'Zoom:', zoom);
                 const shipMarker = (
                   <div
                     style={{
-                      ...toXY(shipPosition.distanceAU, shipPosition.angleRad),
+                      ...shipPos,
                       position: 'absolute',
                       transform: 'translate(-50%, -50%)',
                       transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none',
@@ -1072,25 +1223,40 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                       width: '44px',
                       height: '44px',
                       borderRadius: '50%',
-                      border: '2px solid rgba(255, 200, 100, 0.9)',
-                      background: 'radial-gradient(circle at center, rgba(255, 200, 100, 0.15) 0%, rgba(255, 200, 100, 0.05) 50%, transparent 100%)',
-                      boxShadow: '0 0 15px rgba(255, 200, 100, 0.6), inset 0 0 10px rgba(255, 200, 100, 0.3)',
+                      border: '2px solid rgba(52, 224, 255, 0.9)',
+                      background: 'radial-gradient(circle at center, rgba(52, 224, 255, 0.15) 0%, rgba(52, 224, 255, 0.05) 50%, transparent 100%)',
+                      boxShadow: '0 0 15px rgba(52, 224, 255, 0.6), inset 0 0 10px rgba(52, 224, 255, 0.3)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       position: 'relative'
                     }}>
-                      {/* Ship icon (triangle) with rotation */}
+                      {/* Salvage Ship icon with rotation */}
                       <svg 
-                        width="20" 
-                        height="20" 
-                        viewBox="0 0 20 20" 
+                        width="28" 
+                        height="28" 
+                        viewBox="0 0 24 24" 
                         style={{ 
                           transform: `rotate(${shipRotation}deg)`,
                           transition: 'transform 0.5s ease-out'
                         }}
                       >
-                        <polygon points="10,2 18,18 10,15 2,18" fill="rgba(255, 200, 100, 0.9)" stroke="#ffc864" strokeWidth="1.5"/>
+                        {/* Main hull */}
+                        <path d="M12 4 L16 10 L14 16 L10 16 L8 10 Z" fill="none" stroke="#34e0ff" strokeWidth="1.5" strokeLinejoin="round"/>
+                        {/* Cockpit */}
+                        <circle cx="12" cy="7" r="2" fill="rgba(52, 224, 255, 0.3)" stroke="#34e0ff" strokeWidth="1"/>
+                        {/* Left wing */}
+                        <path d="M8 10 L4 12 L6 14 L8 12" fill="none" stroke="#34e0ff" strokeWidth="1.5" strokeLinejoin="round"/>
+                        {/* Right wing */}
+                        <path d="M16 10 L20 12 L18 14 L16 12" fill="none" stroke="#34e0ff" strokeWidth="1.5" strokeLinejoin="round"/>
+                        {/* Engine glow left */}
+                        <circle cx="10" cy="16" r="1.5" fill="#34e0ff" opacity="0.6"/>
+                        {/* Engine glow right */}
+                        <circle cx="14" cy="16" r="1.5" fill="#34e0ff" opacity="0.6"/>
+                        {/* Salvage claw left */}
+                        <path d="M9 14 L7 18 M7 18 L8 19" stroke="#34e0ff" strokeWidth="1" strokeLinecap="round"/>
+                        {/* Salvage claw right */}
+                        <path d="M15 14 L17 18 M17 18 L16 19" stroke="#34e0ff" strokeWidth="1" strokeLinecap="round"/>
                       </svg>
                     </div>
                     {showPOINames && (
@@ -1101,8 +1267,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                         transform: 'translateX(-50%)',
                         whiteSpace: 'nowrap',
                         fontSize: '9px',
-                        color: '#ffc864',
-                        textShadow: '0 0 4px rgba(0, 0, 0, 0.8)',
+                        color: '#34e0ff',
+                        textShadow: '0 0 4px rgba(52, 224, 255, 0.8)',
                         marginTop: '4px',
                         pointerEvents: 'none'
                       }}>
@@ -1115,8 +1281,9 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                 // Ping wave expanding from ship (sensor sweep visualization)
                 const pingWave = isPinging ? (() => {
                   const shipPos = toXY(shipPosition.distanceAU, shipPosition.angleRad);
-                  const r = (scanPingRadius / system.heliosphere.radiusAU) * 0.92 * zoom;
-                  const diameter = r * 2;
+                  // Convert scan radius from AU to viewport percentage using same calculation as toXY
+                  const radiusInViewport = (scanPingRadius / system.heliosphere.radiusAU) * 0.92 * zoom;
+                  const diameter = radiusInViewport * 2;
                   return (
                     <div
                       style={{
@@ -1180,6 +1347,76 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                     }} />
                   );
                 });
+                
+                // Scale rings - dotted circles at regular AU intervals with distance labels
+                const scaleRings = showScaleRings ? (() => {
+                  const scaleInterval = 10; // AU between each ring
+                  const maxAU = system.heliosphere.radiusAU;
+                  const numRings = Math.floor(maxAU / scaleInterval);
+                  
+                  return Array.from({ length: numRings }, (_, idx) => {
+                    const distAU = (idx + 1) * scaleInterval;
+                    const r = (distAU / system.heliosphere.radiusAU) * 0.92 * zoom;
+                    const diameter = r * 2;
+                    const centerX = (0.5 + panOffset.x) * 100;
+                    const centerY = (0.5 + panOffset.y) * 100;
+                    
+                    return (
+                      <div key={`scale-ring-${idx}`}>
+                        {/* Dotted ring */}
+                        <div style={{
+                          position: 'absolute',
+                          left: `${centerX}%`,
+                          top: `${centerY}%`,
+                          transform: 'translate(-50%, -50%)',
+                          width: `${diameter * 100}%`,
+                          height: `${diameter * 100}%`,
+                          border: '1px dotted rgba(52, 224, 255, 0.15)',
+                          borderRadius: '50%',
+                          pointerEvents: 'none',
+                          transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out, width 0.8s ease-in-out, height 0.8s ease-in-out' : 'none',
+                          zIndex: 0
+                        }} />
+                        
+                        {/* Left label */}
+                        <div style={{
+                          position: 'absolute',
+                          left: `${centerX - r * 100}%`,
+                          top: `${centerY}%`,
+                          transform: 'translate(-100%, -50%)',
+                          fontSize: `${8 * zoom}px`,
+                          color: 'rgba(52, 224, 255, 0.4)',
+                          fontWeight: '500',
+                          pointerEvents: 'none',
+                          padding: '2px 4px',
+                          whiteSpace: 'nowrap',
+                          transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none',
+                          zIndex: 0
+                        }}>
+                          {distAU} AU
+                        </div>
+                        
+                        {/* Right label */}
+                        <div style={{
+                          position: 'absolute',
+                          left: `${centerX + r * 100}%`,
+                          top: `${centerY}%`,
+                          transform: 'translate(0%, -50%)',
+                          fontSize: `${8 * zoom}px`,
+                          color: 'rgba(52, 224, 255, 0.4)',
+                          fontWeight: '500',
+                          pointerEvents: 'none',
+                          padding: '2px 4px',
+                          whiteSpace: 'nowrap',
+                          transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none',
+                          zIndex: 0
+                        }}>
+                          {distAU} AU
+                        </div>
+                      </div>
+                    );
+                  });
+                })() : null;
                 
                 // SVG Icons for different POI types
                 const getPOIIcon = (type) => {
@@ -1288,9 +1525,9 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                       width: '40px',
                       height: '40px',
                       borderRadius: '50%',
-                      border: '2px solid rgba(255, 150, 50, 0.9)',
-                      background: 'radial-gradient(circle at center, rgba(255, 150, 50, 0.2) 0%, rgba(255, 150, 50, 0.08) 50%, transparent 100%)',
-                      boxShadow: '0 0 12px rgba(255, 150, 50, 0.6), inset 0 0 8px rgba(255, 150, 50, 0.3)',
+                      border: '2px solid rgba(52, 224, 255, 0.7)',
+                      background: 'radial-gradient(circle at center, rgba(52, 224, 255, 0.2) 0%, rgba(52, 224, 255, 0.08) 50%, transparent 100%)',
+                      boxShadow: '0 0 12px rgba(52, 224, 255, 0.6), inset 0 0 8px rgba(52, 224, 255, 0.3)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -1298,8 +1535,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                     }}>
                       {/* Pin/waypoint icon */}
                       <svg width="20" height="20" viewBox="0 0 24 24">
-                        <path d="M 12 2 L 16 10 L 24 12 L 16 14 L 12 22 L 8 14 L 0 12 L 8 10 Z" fill="none" stroke="rgba(255, 150, 50, 0.9)" strokeWidth="2"/>
-                        <circle cx="12" cy="12" r="3" fill="rgba(255, 150, 50, 0.6)" stroke="#ff9632" strokeWidth="1"/>
+                        <path d="M 12 2 L 16 10 L 24 12 L 16 14 L 12 22 L 8 14 L 0 12 L 8 10 Z" fill="none" stroke="rgba(52, 224, 255, 0.9)" strokeWidth="2"/>
+                        <circle cx="12" cy="12" r="3" fill="rgba(52, 224, 255, 0.6)" stroke="#34e0ff" strokeWidth="1"/>
                       </svg>
                       
                       {/* Delete button on hover */}
@@ -1347,8 +1584,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                         transform: 'translateX(-50%)',
                         whiteSpace: 'nowrap',
                         fontSize: '9px',
-                        color: '#ff9632',
-                        textShadow: '0 0 4px rgba(0, 0, 0, 0.8)',
+                        color: '#34e0ff',
+                        textShadow: '0 0 4px rgba(52, 224, 255, 0.8)',
                         marginTop: '4px',
                         pointerEvents: 'none'
                       }}>
@@ -1357,6 +1594,79 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                     )}
                   </div>
                 ));
+                
+                // Sequence waypoint markers
+                const sequenceWaypoints = sequenceSteps.length > 0 ? (
+                  <>
+                    {/* Waypoint markers */}
+                    {sequenceSteps.map((step, index) => {
+                      const viewportPos = worldToViewport(step.x, step.y);
+                      const circleSize = 80 * zoom;
+                      const iconSize = 36 * zoom;
+                      const numberSize = 16 * zoom;
+                      
+                      const color = step.status === 'executed' ? '#52ffa8' : step.status === 'in-progress' ? '#ffc864' : '#34e0ff';
+                      const colorRgba = step.status === 'executed' ? 'rgba(82, 255, 168' : step.status === 'in-progress' ? 'rgba(255, 200, 100' : 'rgba(52, 224, 255';
+                      
+                      // Get icon based on action
+                      const getIcon = () => {
+                        switch(step.action) {
+                          case 'Move To': return '➤';
+                          case 'Scan': return '◉';
+                          case 'Mine': return '⚏';
+                          case 'Investigate': return '🔍';
+                          default: return '•';
+                        }
+                      };
+                      
+                      return (
+                        <div
+                          key={`waypoint-${index}`}
+                          style={{
+                            left: `${viewportPos.x}%`,
+                            top: `${viewportPos.y}%`,
+                            position: 'absolute',
+                            transform: 'translate(-50%, -50%)',
+                            transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none',
+                            zIndex: 5,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: `${4 * zoom}px`
+                          }}
+                        >
+                          {/* Sequence number on top */}
+                          <div style={{
+                            fontSize: `${numberSize}px`,
+                            fontWeight: 'bold',
+                            color: color,
+                            textShadow: `0 0 8px ${colorRgba}, 0.8)`,
+                            fontFamily: 'monospace'
+                          }}>
+                            {index + 1}
+                          </div>
+                          
+                          {/* Waypoint circle with centered icon */}
+                          <div style={{
+                            width: `${circleSize}px`,
+                            height: `${circleSize}px`,
+                            borderRadius: '50%',
+                            border: `${Math.max(2, 3 * zoom)}px solid ${color}`,
+                            background: `radial-gradient(circle at center, ${colorRgba}, 0.4) 0%, ${colorRgba}, 0.2) 40%, rgba(0, 30, 50, 0.95) 100%)`,
+                            boxShadow: `0 0 20px ${colorRgba}, 0.8), inset 0 0 20px ${colorRgba}, 0.3)`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: `${iconSize}px`,
+                            color: color
+                          }}>
+                            {getIcon()}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                ) : null;
                 
                 const markers_old = parents.map(p => (
                   <div
@@ -1440,8 +1750,23 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                     onMouseLeave={handleMouseLeave}
                     onWheel={handleWheel}
                     onClick={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      
+                      // Handle sequence waypoint creation - show action menu
+                      if (sequenceWaypointCallback) {
+                        const clickX = e.clientX;
+                        const clickY = e.clientY;
+                        setShowActionMenu({
+                          x: clickX,
+                          y: clickY,
+                          worldX: cursorWorldPos.x,
+                          worldY: cursorWorldPos.y
+                        });
+                        return;
+                      }
+                      
+                      // Handle drop pin mode
                       if (dropPinMode) {
-                        const rect = e.currentTarget.getBoundingClientRect();
                         handleDropPin(e, rect);
                       }
                     }}
@@ -1451,33 +1776,39 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                       left: 0, 
                       right: 0, 
                       bottom: 0,
-                      cursor: dropPinMode 
+                      cursor: sequenceWaypointCallback
+                        ? 'crosshair'
+                        : dropPinMode 
                         ? (isOutsideHeliosphere ? 'not-allowed' : 'crosshair')
                         : (isDragging ? 'grabbing' : 'grab')
                     }}
                   >
                     {/* Cursor position and warning indicator */}
-                    {dropPinMode && (
+                    {(dropPinMode || sequenceWaypointCallback) && (
                       <div style={{
                         position: 'absolute',
                         left: 10,
                         bottom: 10,
                         padding: '8px 12px',
-                        background: isOutsideHeliosphere ? 'rgba(255, 50, 50, 0.9)' : 'rgba(0, 20, 40, 0.9)',
-                        border: `1px solid ${isOutsideHeliosphere ? '#ff0000' : '#34e0ff'}`,
+                        background: sequenceWaypointCallback 
+                          ? 'rgba(52, 224, 255, 0.9)'
+                          : isOutsideHeliosphere ? 'rgba(255, 50, 50, 0.9)' : 'rgba(0, 20, 40, 0.9)',
+                        border: `1px solid ${sequenceWaypointCallback ? '#34e0ff' : isOutsideHeliosphere ? '#ff0000' : '#34e0ff'}`,
                         borderRadius: '4px',
                         fontSize: '10px',
                         color: '#fff',
                         zIndex: 10
                       }}>
-                        {isOutsideHeliosphere 
+                        {sequenceWaypointCallback
+                          ? `🎯 SEQUENCE MODE - Click to add waypoint: (${cursorWorldPos.x.toFixed(2)}, ${cursorWorldPos.y.toFixed(2)}) AU`
+                          : isOutsideHeliosphere 
                           ? '⚠ OUTSIDE HELIOSPHERE - CANNOT NAVIGATE'
                           : `Position: (${cursorWorldPos.x.toFixed(2)}, ${cursorWorldPos.y.toFixed(2)}) AU`
                         }
                       </div>
                     )}
                     
-                    <div style={{ position: 'absolute', right: 10, top: 10, display: 'flex', gap: 6, zIndex: 2 }}>
+                    <div style={{ position: 'absolute', right: 10, top: 35, display: 'flex', gap: 6, zIndex: 2 }}>
                       <button className="small-btn" onClick={zoomOut}>-</button>
                       <span className="ui-small text-muted">{(zoom*100).toFixed(0)}%</span>
                       <button className="small-btn" onClick={zoomIn}>+</button>
@@ -1499,142 +1830,257 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                       transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out, width 0.8s ease-in-out, height 0.8s ease-in-out' : 'none',
                       zIndex: 0
                     }} />
+                    {scaleRings}
                     {rings}
                     {pingWave}
                     {shipMarker}
                     {sunMarker}
                     {markers}
                     {pinMarkers}
+                    {sequenceWaypoints}
                     {highlightCircle}
                     {offScreenIndicator}
                   </div>
                 </>);
               })()}
             </div>
-            
-            {/* Terminal Output under the map - can expand as overlay */}
-            <div 
-              style={{ 
-                position: terminalExpanded ? 'absolute' : 'relative',
-                bottom: terminalExpanded ? 0 : 'auto',
-                left: terminalExpanded ? 0 : 'auto',
-                right: terminalExpanded ? 0 : 'auto',
-                width: '100%',
-                marginTop: terminalExpanded ? 0 : '12px',
-                height: terminalExpanded ? '50vh' : 'auto',
-                zIndex: terminalExpanded ? 10 : 1,
-                background: terminalExpanded ? 'rgba(0, 0, 0, 0.95)' : 'transparent',
-                padding: terminalExpanded ? '16px' : '0',
-                borderTop: terminalExpanded ? '1px solid rgba(52, 224, 255, 0.5)' : 'none'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                <div className="ui-small text-muted">TERMINAL OUTPUT</div>
-                <button 
-                  className="small-btn" 
-                  onClick={() => setTerminalExpanded(!terminalExpanded)}
-                  style={{ fontSize: '10px', padding: '2px 8px' }}
-                >
-                  {terminalExpanded ? '▼ Collapse' : '▲ Expand'}
-                </button>
-              </div>
-              <div 
-                ref={terminalRef}
-                className="map-terminal-output" 
-                style={{ height: terminalExpanded ? 'calc(50vh - 60px)' : '10vh' }}
-              >
-                {terminalLog.map((line, idx) => (
-                  <div key={idx} style={{ marginBottom: '2px' }}>{line}</div>
-                ))}
-              </div>
-            </div>
           </div>
 
-          {/* Right 1/3: Commands + POI Sidebar */}
-          <div className="map-fullscreen-right">
-            <div className="system-map-header">TACTICAL DISPLAY</div>
-            
-            {/* Commands Section */}
-            <div className="map-commands-section">
-              <div className="ui-small text-muted" style={{ marginBottom: '8px' }}>COMMANDS</div>
-              <button 
-                className="action-btn" 
-                onClick={startSystemScan}
-                disabled={scanningActive}
-                style={{ width: '100%', opacity: scanningActive ? 0.5 : 1, marginBottom: '8px' }}
-              >
-                {scanningActive ? 'Scanning...' : 'Scan System'}
-              </button>
-              <button 
-                className="action-btn" 
-                onClick={() => moveShipTo(selectedPOI)}
-                disabled={!selectedPOI || selectedPOI === 'SUN' || isMoving}
-                style={{ 
-                  width: '100%', 
-                  opacity: (!selectedPOI || selectedPOI === 'SUN' || isMoving) ? 0.3 : 1,
-                  background: (!selectedPOI || selectedPOI === 'SUN' || isMoving) ? 'rgba(100, 100, 100, 0.2)' : 'rgba(52, 224, 255, 0.15)'
-                }}
-                title={!selectedPOI ? 'Select a destination first' : isMoving ? 'Ship is currently moving' : 'Move ship to selected location'}
-              >
-                {isMoving ? `Moving... ${(movementProgress * 100).toFixed(0)}%` : `Move Ship to ${selectedPOI && selectedPOI !== 'SUN' ? pois.find(p => p.id === selectedPOI)?.type : 'Target'}`}
-              </button>
-            </div>
-
-            {/* POI List */}
-            <div className="ui-small text-muted" style={{ marginBottom: '4px' }}>POINTS OF INTEREST</div>
-            <div className="map-poi-sidebar">
-              {/* SHIP */}
-              <div
-                className="map-poi-sidebar-item"
-                style={{ background: 'rgba(255, 200, 100, 0.15)', borderColor: 'rgba(255, 200, 100, 0.6)', cursor: 'pointer' }}
-                onClick={() => centerOnPOI({ distanceAU: shipPosition.distanceAU, angleRad: shipPosition.angleRad })}
-              >
-                <div className="map-poi-sidebar-name" style={{ color: 'rgba(255, 200, 100, 1)' }}>SHIP (SS-ARKOSE)</div>
-                <div className="map-poi-sidebar-meta">Type: SURVEY FRIGATE • Distance: 0.00 AU</div>
-                <div className="map-poi-sidebar-meta">
-                  Coordinates: ({shipPosition.x.toFixed(2)}, {shipPosition.y.toFixed(2)})
-                </div>
-              </div>
-              
-              {/* SUN */}
-              <div
-                className={`map-poi-sidebar-item ${selectedPOI === 'SUN' ? 'active' : ''}`}
-                onClick={() => { setSelectedPOI('SUN'); setLockedSelection(true); centerOnPOI({ distanceAU: 0, angleRad: 0 }); }}
-              >
-                <div className="map-poi-sidebar-name">SUN</div>
-                <div className="map-poi-sidebar-meta">Type: {system.star.class}-CLASS STAR • Distance: {shipPosition.distanceAU.toFixed(2)} AU</div>
-                <div className="map-poi-sidebar-meta">Coordinates: (0.00, 0.00)</div>
-              </div>
-              
-              {/* Scanned POIs sorted by distance from ship */}
-              {pois.filter(p => p.id !== 'SUN' && scanProgress.includes(p.id)).sort((a, b) => {
-                const distA = Math.sqrt(Math.pow(a.distanceAU * Math.cos(a.angleRad) - shipPosition.x, 2) + Math.pow(a.distanceAU * Math.sin(a.angleRad) - shipPosition.y, 2));
-                const distB = Math.sqrt(Math.pow(b.distanceAU * Math.cos(b.angleRad) - shipPosition.x, 2) + Math.pow(b.distanceAU * Math.sin(b.angleRad) - shipPosition.y, 2));
-                return distA - distB;
-              }).map(poi => {
-                const x = poi.distanceAU * Math.cos(poi.angleRad);
-                const y = poi.distanceAU * Math.sin(poi.angleRad);
-                const distFromShip = Math.sqrt(Math.pow(x - shipPosition.x, 2) + Math.pow(y - shipPosition.y, 2));
-                return (
-                  <div
-                    key={poi.id}
-                    className={`map-poi-sidebar-item ${selectedPOI === poi.id ? 'active' : ''}`}
-                    onClick={() => { setSelectedPOI(poi.id); setLockedSelection(true); centerOnPOI(poi); }}
-                  >
-                    <div className="map-poi-sidebar-name">{poi.name}</div>
-                    <div className="map-poi-sidebar-meta">
-                      Type: {poi.type} • Distance: {distFromShip.toFixed(2)} AU from ship
-                    </div>
-                    <div className="map-poi-sidebar-meta">
-                      Coordinates: ({x.toFixed(2)}, {y.toFixed(2)})
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          {/* Right 1/3: Tabbed Interface */}
+          <div style={{ flex: 1, marginTop: '25px' }}>
+            <RightPanelTabs
+              system={system}
+              shipPosition={shipPosition}
+              pois={pois}
+              droppedPins={droppedPins}
+              scanProgress={scanProgress}
+              selectedPOI={selectedPOI}
+              setSelectedPOI={setSelectedPOI}
+              setLockedSelection={setLockedSelection}
+              centerOnPOI={centerOnPOI}
+              moveShipTo={moveShipTo}
+              isMoving={isMoving}
+              movementProgress={movementProgress}
+              scanningActive={scanningActive}
+              startSystemScan={startSystemScan}
+              shipState={shipState}
+              onSequenceWaypointAdd={(callback) => setSequenceWaypointCallback(() => callback)}
+              sequenceSteps={sequenceSteps}
+              setSequenceSteps={setSequenceSteps}
+              resetToDefaultView={resetToDefaultView}
+            />
           </div>
         </div>
-      )}
+      )}        {/* Actions Panel - shows when near POIs */}
+        <ActionsPanel
+          system={system}
+          shipPosition={shipPosition}
+          pois={pois}
+          onActionExecute={handleActionExecute}
+        />
+
+        {/* Terminal Modal for action results */}
+        {showTerminalModal && (
+          <TerminalModal
+            content={terminalModalContent}
+            onClose={() => setShowTerminalModal(false)}
+          />
+        )}
+
+        {/* Action Selection Menu for Sequence Waypoints */}
+        {showActionMenu && (
+          <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 999
+            }}
+            onClick={() => setShowActionMenu(null)}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: 'absolute',
+                left: showActionMenu.x,
+                top: showActionMenu.y,
+                background: 'rgba(0, 20, 40, 0.98)',
+                border: '2px solid #34e0ff',
+                borderRadius: '6px',
+                padding: '12px',
+                minWidth: '200px',
+                boxShadow: '0 0 30px rgba(52, 224, 255, 0.6)',
+                transform: 'translate(-50%, -100%) translateY(-10px)'
+              }}
+            >
+              <div style={{
+                fontSize: '10px',
+                fontWeight: 'bold',
+                color: '#34e0ff',
+                marginBottom: '8px',
+                paddingBottom: '8px',
+                borderBottom: '1px solid rgba(52, 224, 255, 0.3)',
+                textAlign: 'center'
+              }}>
+                SELECT ACTION
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <button
+                  onClick={() => {
+                    if (sequenceWaypointCallback) {
+                      sequenceWaypointCallback(showActionMenu.worldX, showActionMenu.worldY, 'Move To');
+                    }
+                    setShowActionMenu(null);
+                  }}
+                  style={{
+                    padding: '8px 12px',
+                    background: 'rgba(52, 224, 255, 0.1)',
+                    border: '1px solid rgba(52, 224, 255, 0.4)',
+                    borderRadius: '4px',
+                    color: '#34e0ff',
+                    fontSize: '9px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(52, 224, 255, 0.3)';
+                    e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.8)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(52, 224, 255, 0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.4)';
+                  }}
+                >
+                  🚀 Move To
+                </button>
+                
+                <button
+                  onClick={() => {
+                    if (sequenceWaypointCallback) {
+                      sequenceWaypointCallback(showActionMenu.worldX, showActionMenu.worldY, 'Scan');
+                    }
+                    setShowActionMenu(null);
+                  }}
+                  style={{
+                    padding: '8px 12px',
+                    background: 'rgba(52, 224, 255, 0.1)',
+                    border: '1px solid rgba(52, 224, 255, 0.4)',
+                    borderRadius: '4px',
+                    color: '#34e0ff',
+                    fontSize: '9px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(52, 224, 255, 0.3)';
+                    e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.8)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(52, 224, 255, 0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.4)';
+                  }}
+                >
+                  🔍 Scan System
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (sequenceWaypointCallback) {
+                      sequenceWaypointCallback(showActionMenu.worldX, showActionMenu.worldY, 'Mine');
+                    }
+                    setShowActionMenu(null);
+                  }}
+                  style={{
+                    padding: '8px 12px',
+                    background: 'rgba(52, 224, 255, 0.1)',
+                    border: '1px solid rgba(52, 224, 255, 0.4)',
+                    borderRadius: '4px',
+                    color: '#34e0ff',
+                    fontSize: '9px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(52, 224, 255, 0.3)';
+                    e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.8)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(52, 224, 255, 0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.4)';
+                  }}
+                >
+                  ⛏ Mine Resources
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (sequenceWaypointCallback) {
+                      sequenceWaypointCallback(showActionMenu.worldX, showActionMenu.worldY, 'Investigate');
+                    }
+                    setShowActionMenu(null);
+                  }}
+                  style={{
+                    padding: '8px 12px',
+                    background: 'rgba(52, 224, 255, 0.1)',
+                    border: '1px solid rgba(52, 224, 255, 0.4)',
+                    borderRadius: '4px',
+                    color: '#34e0ff',
+                    fontSize: '9px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(52, 224, 255, 0.3)';
+                    e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.8)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(52, 224, 255, 0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.4)';
+                  }}
+                >
+                  ❓ Investigate
+                </button>
+                
+                <div style={{
+                  borderTop: '1px solid rgba(52, 224, 255, 0.3)',
+                  margin: '8px 0 4px 0'
+                }} />
+                
+                <button
+                  onClick={() => setShowActionMenu(null)}
+                  style={{
+                    padding: '6px 12px',
+                    background: 'rgba(255, 80, 80, 0.1)',
+                    border: '1px solid rgba(255, 80, 80, 0.4)',
+                    borderRadius: '4px',
+                    color: '#ff5050',
+                    fontSize: '9px',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 80, 80, 0.2)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 80, 80, 0.8)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 80, 80, 0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 80, 80, 0.4)';
+                  }}
+                >
+                  Back
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   );
 };

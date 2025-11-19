@@ -485,3 +485,53 @@ function resolveMissionCompletion(context, rng) {
     }
   };
 }
+
+/**
+ * Execute DRE action from UI action panel
+ * Simplified wrapper for direct UI integration
+ */
+export function executeDREAction({ actionType, targetType, targetName, distance, shipState, systemContext }) {
+  const seed = `${targetName}-${Date.now()}`;
+  
+  // Map UI action types to DRE action types
+  const dreActionMap = {
+    'scan': 'scavenging',
+    'mine': 'mining',
+    'investigate': 'derelict',
+    'hail': 'dialogue',
+    'dock': 'dialogue',
+    'respond': 'awayTeam',
+    'orbit': 'dialogue',
+    'approach': 'dialogue'
+  };
+  
+  const dreAction = dreActionMap[actionType] || 'scavenging';
+  
+  // Build context from available data
+  const context = {
+    location: {
+      type: targetType.toLowerCase(),
+      name: targetName,
+      distance: distance,
+      system: systemContext?.name || 'Unknown'
+    },
+    ship: {
+      sensors: shipState?.power || 50,
+      hull: shipState?.hull || 100,
+      shields: shipState?.shields || 100
+    },
+    difficulty: distance > 3 ? 'Hard' : distance > 1 ? 'Medium' : 'Easy'
+  };
+  
+  // Execute DRE action
+  const result = resolveAction(dreAction, context, seed);
+  
+  // Format for terminal display
+  return {
+    narrative: result.narrative || [`Executed ${actionType} on ${targetName}`],
+    outcome: result.outcome ? [
+      `Result: ${result.success ? 'Success' : 'Failed'}`,
+      result.outcome
+    ] : ['Action completed']
+  };
+}

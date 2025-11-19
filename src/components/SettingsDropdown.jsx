@@ -22,11 +22,11 @@ const SettingsDropdown = ({ onCreateGalaxy, showAdmin = false, onAdmin }) => {
   return (
     <div style={{ 
       position: 'fixed',
-      top: isOpen ? '0px' : '-130px', // Slide down to show, slide up to hide (only 20px visible)
+      top: isOpen ? '0px' : '-65px', // Slide down to show, slide up to hide
       left: '50%',
       transform: 'translateX(-50%)',
       width: '500px',
-      height: '150px',
+      height: '75px',
       zIndex: 10000,
       transition: 'top 0.4s ease-in-out'
     }}>
@@ -36,8 +36,9 @@ const SettingsDropdown = ({ onCreateGalaxy, showAdmin = false, onAdmin }) => {
         height: '100%',
         background: 'rgba(0, 12, 18, 0.95)',
         border: '1px solid rgba(52, 224, 255, 0.6)',
-        borderRadius: '15px',
-        boxShadow: '0 0 20px rgba(52, 224, 255, 0.4), inset 0 2px 0 rgba(52, 224, 255, 0.3)',
+        borderTop: 'none',
+        borderRadius: '0 0 15px 15px',
+        boxShadow: '0 0 20px rgba(52, 224, 255, 0.4)',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative'
@@ -48,15 +49,15 @@ const SettingsDropdown = ({ onCreateGalaxy, showAdmin = false, onAdmin }) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-evenly',
-          padding: '20px',
-          paddingBottom: '40px' // Space for chevron
+          padding: '10px',
+          paddingBottom: '20px' // Space for chevron
         }}>
           {/* Box 1: Full Screen */}
           <button
             onClick={toggleFullscreen}
             style={{
-              width: '100px',
-              height: '80px',
+              width: '40px',
+              height: '40px',
               border: '1px solid rgba(52, 224, 255, 0.4)',
               background: 'rgba(0, 12, 18, 0.6)',
               borderRadius: '8px',
@@ -65,8 +66,7 @@ const SettingsDropdown = ({ onCreateGalaxy, showAdmin = false, onAdmin }) => {
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              gap: '8px'
+              transition: 'all 0.2s ease'
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = 'rgba(52, 224, 255, 0.15)';
@@ -88,9 +88,6 @@ const SettingsDropdown = ({ onCreateGalaxy, showAdmin = false, onAdmin }) => {
                 strokeLinejoin="round"
               />
             </svg>
-            <span style={{ color: '#34e0ff', fontSize: '9px', fontWeight: '600', letterSpacing: '0.5px' }}>
-              FULL SCREEN
-            </span>
           </button>
 
           {/* Box 2: Galaxy Creator */}
@@ -98,8 +95,8 @@ const SettingsDropdown = ({ onCreateGalaxy, showAdmin = false, onAdmin }) => {
             <button
               onClick={onCreateGalaxy}
               style={{
-                width: '100px',
-                height: '80px',
+                width: '40px',
+                height: '40px',
                 border: '1px solid rgba(52, 224, 255, 0.4)',
                 background: 'rgba(0, 12, 18, 0.6)',
                 borderRadius: '8px',
@@ -108,8 +105,7 @@ const SettingsDropdown = ({ onCreateGalaxy, showAdmin = false, onAdmin }) => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                gap: '8px'
+                transition: 'all 0.2s ease'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = 'rgba(52, 224, 255, 0.15)';
@@ -134,17 +130,14 @@ const SettingsDropdown = ({ onCreateGalaxy, showAdmin = false, onAdmin }) => {
                 <circle cx="20" cy="20" r="16" fill="none" stroke="#34e0ff" strokeWidth="0.8" opacity="0.4" />
                 <circle cx="20" cy="4" r="2" fill="#34e0ff" />
               </svg>
-              <span style={{ color: '#34e0ff', fontSize: '9px', fontWeight: '600', letterSpacing: '0.5px' }}>
-                GALAXY
-              </span>
             </button>
           )}
 
           {/* Box 3: Empty placeholder */}
           <div
             style={{
-              width: '100px',
-              height: '80px',
+              width: '40px',
+              height: '40px',
               border: '1px solid rgba(52, 224, 255, 0.2)',
               background: 'rgba(0, 12, 18, 0.3)',
               borderRadius: '8px',
@@ -162,8 +155,8 @@ const SettingsDropdown = ({ onCreateGalaxy, showAdmin = false, onAdmin }) => {
             <button
               onClick={onAdmin}
               style={{
-                width: '100px',
-                height: '80px',
+                width: '40px',
+                height: '40px',
                 border: '1px solid rgba(52, 224, 255, 0.4)',
                 background: 'rgba(0, 12, 18, 0.6)',
                 borderRadius: '8px',
@@ -172,8 +165,7 @@ const SettingsDropdown = ({ onCreateGalaxy, showAdmin = false, onAdmin }) => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                gap: '8px'
+                transition: 'all 0.2s ease'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = 'rgba(52, 224, 255, 0.15)';
@@ -192,15 +184,12 @@ const SettingsDropdown = ({ onCreateGalaxy, showAdmin = false, onAdmin }) => {
                 <rect x="12" y="13" width="8" height="6" rx="1" stroke="#34e0ff" strokeWidth="1.4" />
                 <path d="M20 13V10C20 8.343 18.657 7 17 7H15C13.343 7 12 8.343 12 10V13" stroke="#34e0ff" strokeWidth="1.4" />
               </svg>
-              <span style={{ color: '#34e0ff', fontSize: '9px', fontWeight: '600', letterSpacing: '0.5px' }}>
-                ADMIN
-              </span>
             </button>
           ) : (
             <div
               style={{
-                width: '100px',
-                height: '80px',
+                width: '40px',
+                height: '40px',
                 border: '1px solid rgba(52, 224, 255, 0.2)',
                 background: 'rgba(0, 12, 18, 0.3)',
                 borderRadius: '8px',
