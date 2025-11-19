@@ -233,8 +233,8 @@ body {
   color: var(--faded-cyan);
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  min-width: 25px;
-  max-width: 25px;
+  min-width: 50px; /* doubled horizontal width */
+  max-width: 50px; /* doubled horizontal width */
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -261,6 +261,15 @@ body {
   background: rgba(52, 224, 255, 0.1);
   border-color: var(--faded-cyan);
   box-shadow: 0 0 15px rgba(52, 224, 255, 0.3);
+}
+
+/* Pop-out toward center on hover */
+.tab-stack-left .tab-item:hover {
+  transform: translateX(10px);
+}
+
+.tab-stack-right .tab-item:hover {
+  transform: translateX(-10px);
 }
 
 .tab-item.active {
@@ -298,7 +307,7 @@ body {
 }
 
 .tab-panel.open {
-  width: 380px;
+  width: 760px;
   box-shadow: 
     0 0 40px rgba(52, 224, 255, 0.3),
     inset 0 0 30px rgba(52, 224, 255, 0.08);
@@ -413,6 +422,77 @@ body {
 
 /* Custom scrollbar */
 .display-content::-webkit-scrollbar {
+/* ========================================
+   FULLSCREEN MODAL OVERLAY (INVENTORY/HANGAR)
+   - Renders above the central display
+   - Below the side tab stacks so tabs stay clickable
+   ======================================== */
+.terminal-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1001; /* above scanline layers (999/1000), below tabs */
+  background: radial-gradient(ellipse at top, rgba(0, 20, 30, 0.65), rgba(0, 10, 20, 0.55));
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0; /* full coverage; tabs sit above via higher z-index */
+}
+
+.terminal-modal {
+  position: relative;
+  z-index: 99; /* ensure modal chrome sits above the overlay */
+}
+
+/* Ensure side tab stacks sit on top of overlays for access */
+.tab-stack-left,
+.tab-stack-right {
+  z-index: 1002; /* ensure tabs are clickable above overlays */
+}
+
+/* ========================================
+   MODAL ANIMATIONS (ENTER FLICKER, EXIT FADE)
+   ======================================== */
+@keyframes modalBoot {
+  0%   { opacity: 0; filter: none; }
+  10%  { opacity: 0.6; }
+  14%  { opacity: 0.2; }
+  18%  { opacity: 0.85; }
+  22%  { opacity: 0.35; }
+  26%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+@keyframes modalPanelIn {
+  0%   { opacity: 0; transform: scale(0.985); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes modalFadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes modalPanelOut {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.985); }
+}
+
+.terminal-modal-overlay.modal-anim-enter {
+  animation: modalBoot 280ms ease-out both;
+}
+
+.terminal-modal-overlay.modal-anim-exit {
+  animation: modalFadeOut 220ms ease-in forwards;
+}
+
+.modal-anim-enter .terminal-modal {
+  animation: modalPanelIn 260ms ease-out both;
+}
+
+.modal-anim-exit .terminal-modal {
+  animation: modalPanelOut 200ms ease-in forwards;
+}
   width: 8px;
 }
 
@@ -1165,6 +1245,11 @@ body {
 }
 
 /* Custom scrollbar for map panels (Universe/Galaxy/Solar System views) */
+.holo-scroll {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(52, 224, 255, 0.4) rgba(0, 0, 0, 0.3);
+}
+
 .holo-scroll::-webkit-scrollbar {
   width: 6px;
 }

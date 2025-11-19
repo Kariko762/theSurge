@@ -1,0 +1,496 @@
+{
+  "components": {
+    "beam_laser_mk1": {
+      "id": "beam_laser_mk1",
+      "name": "Beam Laser Mk I",
+      "category": "weapon",
+      "slotType": "weapon",
+      "tier": 1,
+      "size_m3": 12,
+      "weight_kg": 450,
+      "maxStack": 1,
+      "scrapOutputs": [
+        { "id": "titanium_alloy", "name": "Titanium Alloy", "min": 10, "max": 35, "chance": 0.65, "value": 3 },
+        { "id": "scrap_metal", "name": "Scrap Metal", "min": 80, "max": 220, "chance": 1.0, "value": 1 }
+      ],
+      "attributes": {
+        "damage": "1d8",
+        "type": "laser",
+        "powerDraw": 15,
+        "heatGeneration": 10
+      },
+      "modifiers": {
+        "combatAttack": 1
+      },
+      "description": "Standard beam laser array for close-range combat."
+    },
+    "beam_laser_mk2": {
+      "id": "beam_laser_mk2",
+      "name": "Beam Laser Mk II",
+      "category": "weapon",
+      "slotType": "weapon",
+      "tier": 2,
+      "size_m3": 15,
+      "weight_kg": 580,
+      "maxStack": 1,
+      "scrapOutputs": [
+        { "id": "titanium_alloy", "name": "Titanium Alloy", "min": 20, "max": 60, "chance": 0.75, "value": 3 },
+        { "id": "rare_ore", "name": "Rare Ore", "min": 5, "max": 15, "chance": 0.35, "value": 8 },
+        { "id": "crystal_matrix", "name": "Crystal Matrix", "min": 1, "max": 3, "chance": 0.10, "value": 20 },
+        { "id": "scrap_metal", "name": "Scrap Metal", "min": 100, "max": 300, "chance": 1.0, "value": 1 }
+      ],
+      "attributes": {
+        "damage": "2d8",
+        "type": "laser",
+        "powerDraw": 22,
+        "heatGeneration": 15
+      },
+      "modifiers": {
+        "combatAttack": 2
+      },
+      "description": "Enhanced dual-beam laser with improved targeting."
+    },
+    "missile_rack_mk1": {
+      "id": "missile_rack_mk1",
+      "name": "Missile Rack Mk I",
+      "category": "weapon",
+      "slotType": "weapon",
+      "tier": 1,
+      "size_m3": 18,
+      "weight_kg": 720,
+      "maxStack": 1,
+      "attributes": {
+        "damage": "1d10+2",
+        "type": "missile",
+        "ammoCapacity": 12,
+        "powerDraw": 8
+      },
+      "modifiers": {
+        "combatAttack": 1
+      },
+      "description": "Guided missile system with lock-on capability."
+    },
+    "scatter_gun_mk1": {
+      "id": "scatter_gun_mk1",
+      "name": "Scatter Gun Mk I",
+      "category": "weapon",
+      "slotType": "weapon",
+      "tier": 1,
+      "size_m3": 10,
+      "weight_kg": 380,
+      "maxStack": 1,
+      "attributes": {
+        "damage": "2d6",
+        "type": "ballistic",
+        "spread": "wide",
+        "powerDraw": 12
+      },
+      "modifiers": {
+        "combatAttack": 0
+      },
+      "description": "Close-range fragmentation weapon."
+    },
+    "mag_thruster_mk1": {
+      "id": "mag_thruster_mk1",
+      "name": "Mag Thruster Mk I",
+      "category": "engine",
+      "slotType": "thruster",
+      "tier": 1,
+      "size_m3": 25,
+      "weight_kg": 1200,
+      "maxStack": 1,
+      "attributes": {
+        "thrust": 2500,
+        "fuelEfficiency": 0.8,
+        "powerDraw": 35
+      },
+      "modifiers": {
+        "combatFlee": 1,
+        "evasion": 1
+      },
+      "description": "Magnetic plasma thruster for rapid acceleration."
+    },
+    "mag_thruster_mk2": {
+      "id": "mag_thruster_mk2",
+      "name": "Mag Thruster Mk II",
+      "category": "engine",
+      "slotType": "thruster",
+      "tier": 2,
+      "size_m3": 30,
+      "weight_kg": 1450,
+      "maxStack": 1,
+      "attributes": {
+        "thrust": 4000,
+        "fuelEfficiency": 0.9,
+        "powerDraw": 45
+      },
+      "modifiers": {
+        "combatFlee": 2,
+        "evasion": 2
+      },
+      "description": "Enhanced thruster with improved fuel efficiency."
+    },
+    "power_core_mk1": {
+      "id": "power_core_mk1",
+      "name": "Power Core Mk I",
+      "category": "reactor",
+      "slotType": "internal",
+      "tier": 1,
+      "size_m3": 40,
+      "weight_kg": 2200,
+      "maxStack": 1,
+      "attributes": {
+        "powerOutput": 150,
+        "efficiency": 0.75,
+        "heatOutput": 20
+      },
+      "modifiers": {},
+      "description": "Fusion reactor core providing ship power."
+    },
+    "power_core_mk2": {
+      "id": "power_core_mk2",
+      "name": "Power Core Mk II",
+      "category": "reactor",
+      "slotType": "internal",
+      "tier": 2,
+      "size_m3": 45,
+      "weight_kg": 2600,
+      "maxStack": 1,
+      "attributes": {
+        "powerOutput": 250,
+        "efficiency": 0.85,
+        "heatOutput": 25
+      },
+      "modifiers": {},
+      "description": "Advanced reactor with higher output."
+    },
+    "cargo_hold_mk1": {
+      "id": "cargo_hold_mk1",
+      "name": "Cargo Hold Mk I",
+      "category": "storage",
+      "slotType": "internal",
+      "tier": 1,
+      "size_m3": 50,
+      "weight_kg": 800,
+      "maxStack": 1,
+      "attributes": {
+        "capacityBonus_m3": 200,
+        "shielded": false
+      },
+      "modifiers": {},
+      "description": "Expanded cargo storage module."
+    },
+    "signal_booster_mk1": {
+      "id": "signal_booster_mk1",
+      "name": "Signal Booster Mk I",
+      "category": "sensor",
+      "slotType": "sensor",
+      "tier": 1,
+      "size_m3": 8,
+      "weight_kg": 150,
+      "maxStack": 1,
+      "attributes": {
+        "scanRange": 5000,
+        "resolution": "standard",
+        "powerDraw": 10
+      },
+      "modifiers": {
+        "scavenging": 1,
+        "derelict": 1
+      },
+      "description": "Long-range scanning array."
+    },
+    "scanner_mk1": {
+      "id": "scanner_mk1",
+      "name": "Scanner Array Mk I",
+      "category": "sensor",
+      "slotType": "sensor",
+      "tier": 1,
+      "size_m3": 12,
+      "weight_kg": 280,
+      "maxStack": 1,
+      "attributes": {
+        "scanRange": 3000,
+        "resolution": "high",
+        "powerDraw": 15
+      },
+      "modifiers": {
+        "scavenging": 2,
+        "mining": 1
+      },
+      "description": "High-resolution sensor array."
+    },
+    "mining_laser_mk1": {
+      "id": "mining_laser_mk1",
+      "name": "Mining Laser Mk I",
+      "category": "tool",
+      "slotType": "internal",
+      "tier": 1,
+      "size_m3": 15,
+      "weight_kg": 620,
+      "maxStack": 1,
+      "attributes": {
+        "yieldBonus": 0.1,
+        "range": 500,
+        "powerDraw": 25
+      },
+      "modifiers": {
+        "mining": 2
+      },
+      "description": "Industrial mining laser for asteroid extraction."
+    },
+    "mining_laser_mk2": {
+      "id": "mining_laser_mk2",
+      "name": "Mining Laser Mk II",
+      "category": "tool",
+      "slotType": "internal",
+      "tier": 2,
+      "size_m3": 18,
+      "weight_kg": 750,
+      "maxStack": 1,
+      "attributes": {
+        "yieldBonus": 0.25,
+        "range": 750,
+        "powerDraw": 30
+      },
+      "modifiers": {
+        "mining": 3
+      },
+      "description": "Advanced mining laser with improved yield."
+    },
+    "hull_plating_mk1": {
+      "id": "hull_plating_mk1",
+      "name": "Hull Plating Mk I",
+      "category": "armor",
+      "slotType": "hull",
+      "tier": 1,
+      "size_m3": 35,
+      "weight_kg": 1800,
+      "maxStack": 1,
+      "attributes": {
+        "armorBonus": 20,
+        "damageReduction": 0.1
+      },
+      "modifiers": {
+        "maxHull": 20
+      },
+      "description": "Reinforced armor plating."
+    },
+    "shield_generator_mk1": {
+      "id": "shield_generator_mk1",
+      "name": "Shield Generator Mk I",
+      "category": "defense",
+      "slotType": "internal",
+      "tier": 1,
+      "size_m3": 22,
+      "weight_kg": 950,
+      "maxStack": 1,
+      "attributes": {
+        "shieldCapacity": 50,
+        "rechargeRate": 2,
+        "powerDraw": 20
+      },
+      "modifiers": {
+        "shields": 50
+      },
+      "description": "Energy shield generator."
+    },
+    "targeting_computer_mk1": {
+      "id": "targeting_computer_mk1",
+      "name": "Targeting Computer Mk I",
+      "category": "computer",
+      "slotType": "internal",
+      "tier": 1,
+      "size_m3": 5,
+      "weight_kg": 120,
+      "maxStack": 1,
+      "attributes": {
+        "accuracy": 0.15,
+        "trackingSpeed": "standard"
+      },
+      "modifiers": {
+        "combatAttack": 1
+      },
+      "description": "Fire control computer system."
+    }
+  },
+  "aiCores": {
+    "ai_core_engineer_mk1": {
+      "id": "ai_core_engineer_mk1",
+      "name": "Engineer AI Core Mk I",
+      "category": "aiCore",
+      "slotType": "mainframe",
+      "tier": 1,
+      "size_m3": 3,
+      "weight_kg": 15,
+      "maxStack": 1,
+      "attributes": {
+        "role": "engineer",
+        "personality": "logical",
+        "processingPower": 100
+      },
+      "modifiers": {
+        "mining": 1,
+        "combatRepair": 2
+      },
+      "description": "AI specialized in engineering and repairs."
+    },
+    "ai_core_tactical_mk1": {
+      "id": "ai_core_tactical_mk1",
+      "name": "Tactical AI Core Mk I",
+      "category": "aiCore",
+      "slotType": "mainframe",
+      "tier": 1,
+      "size_m3": 3,
+      "weight_kg": 15,
+      "maxStack": 1,
+      "attributes": {
+        "role": "tactical",
+        "personality": "aggressive",
+        "processingPower": 100
+      },
+      "modifiers": {
+        "combatAttack": 3,
+        "combatInitiate": 1
+      },
+      "description": "Combat-focused AI with tactical analysis."
+    },
+    "ai_core_researcher_mk1": {
+      "id": "ai_core_researcher_mk1",
+      "name": "Researcher AI Core Mk I",
+      "category": "aiCore",
+      "slotType": "mainframe",
+      "tier": 1,
+      "size_m3": 3,
+      "weight_kg": 15,
+      "maxStack": 1,
+      "attributes": {
+        "role": "researcher",
+        "personality": "cautious",
+        "processingPower": 100
+      },
+      "modifiers": {
+        "scavenging": 2,
+        "derelict": 1
+      },
+      "description": "Research AI for analysis and investigation."
+    },
+    "ai_core_navigator_mk1": {
+      "id": "ai_core_navigator_mk1",
+      "name": "Navigator AI Core Mk I",
+      "category": "aiCore",
+      "slotType": "mainframe",
+      "tier": 1,
+      "size_m3": 3,
+      "weight_kg": 15,
+      "maxStack": 1,
+      "attributes": {
+        "role": "navigator",
+        "personality": "logical",
+        "processingPower": 100
+      },
+      "modifiers": {
+        "combatInitiate": 2,
+        "combatFlee": 3
+      },
+      "description": "Navigation AI for jump calculations."
+    }
+  },
+  "materials": {
+    "scrap_metal": {
+      "id": "scrap_metal",
+      "name": "Scrap Metal",
+      "category": "crafting",
+      "slotType": null,
+      "tier": 0,
+      "size_m3": 0.5,
+      "weight_kg": 25,
+      "maxStack": 100,
+      "attributes": {},
+      "modifiers": {},
+      "description": "Raw scrap metal for fabrication."
+    },
+    "titanium_alloy": {
+      "id": "titanium_alloy",
+      "name": "Titanium Alloy",
+      "category": "crafting",
+      "slotType": null,
+      "tier": 1,
+      "size_m3": 0.3,
+      "weight_kg": 18,
+      "maxStack": 50,
+      "attributes": {},
+      "modifiers": {},
+      "description": "High-strength titanium for advanced fabrication."
+    },
+    "rare_ore": {
+      "id": "rare_ore",
+      "name": "Rare Ore",
+      "category": "crafting",
+      "slotType": null,
+      "tier": 2,
+      "size_m3": 0.2,
+      "weight_kg": 12,
+      "maxStack": 25,
+      "attributes": {},
+      "modifiers": {},
+      "description": "Rare mineral compounds for high-tech components."
+    },
+    "crystal_matrix": {
+      "id": "crystal_matrix",
+      "name": "Crystal Matrix",
+      "category": "crafting",
+      "slotType": null,
+      "tier": 3,
+      "size_m3": 0.1,
+      "weight_kg": 5,
+      "maxStack": 10,
+      "attributes": {},
+      "modifiers": {},
+      "description": "Crystalline structure for quantum computing."
+    },
+    "fuel_cell": {
+      "id": "fuel_cell",
+      "name": "Fuel Cell",
+      "category": "consumable",
+      "slotType": null,
+      "tier": 0,
+      "size_m3": 1.0,
+      "weight_kg": 45,
+      "maxStack": 20,
+      "attributes": {
+        "fuelValue": 100
+      },
+      "modifiers": {},
+      "description": "Fusion fuel cell."
+    },
+    "repair_kit": {
+      "id": "repair_kit",
+      "name": "Repair Kit",
+      "category": "consumable",
+      "slotType": null,
+      "tier": 0,
+      "size_m3": 2.0,
+      "weight_kg": 80,
+      "maxStack": 10,
+      "attributes": {
+        "repairValue": 50
+      },
+      "modifiers": {},
+      "description": "Emergency hull repair nanobots."
+    },
+    "research_data": {
+      "id": "research_data",
+      "name": "Research Data",
+      "category": "crafting",
+      "slotType": null,
+      "tier": 2,
+      "size_m3": 0.01,
+      "weight_kg": 0.1,
+      "maxStack": 100,
+      "attributes": {},
+      "modifiers": {},
+      "description": "Encrypted research data cores."
+    }
+  }
+}

@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect, useRef } from 'react'
 import { generateSystem, exampleSeeds, calculateTotalRisk, calculateStaticExposure, calculateWakeSignature } from '../lib/systemGenerator.js'
 import { calculateShipAttributes, DEFAULT_SHIP_LOADOUT, DEFAULT_POWER_ALLOCATION, COMPONENTS } from '../lib/shipComponents.js'
 import { getShipState } from '../lib/shipState.js'
+import { loadGalaxy } from '../lib/galaxyLoader.js'
 
 /**
  * FRAME 3: Ship Command Console - Ship Run View
@@ -47,6 +48,16 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
 
   const leftTabs = ['SETTINGS', 'ACTIONS', 'SYSTEMS', 'INVENTORY', 'ATTRIBUTES'];
 
+  // Load galaxy to find system name
+  const galaxy = useMemo(() => loadGalaxy('helix_nebula'), []);
+  const currentGalaxySystem = useMemo(() => {
+    if (!galaxy || !initialSeed) return null;
+    return galaxy.systems.find(s => s.seed === initialSeed);
+  }, [galaxy, initialSeed]);
+  
+  const systemName = currentGalaxySystem?.name || 'Unknown System';
+  const systemId = currentGalaxySystem?.id || null;
+
   // Seed + generated system
   const [seedInput, setSeedInput] = useState(initialSeed || exampleSeeds()[0]);
   const system = useMemo(() => {
@@ -71,6 +82,14 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
       const angleRad = Math.PI * 0.25;
       shipState.setPosition(edgeAU, angleRad);
       shipState.visitSystem(seedInput);
+      
+      // Check if this system was already scanned in the galaxy map
+      if (systemId && shipState.isSystemScanned(systemId)) {
+        setScanned(true);
+        setGamePhase('scanning');
+        setFullscreen(true);
+      }
+      
       setShipStateVersion(v => v + 1);
       // Center view on ship at 20% zoom
       setTimeout(() => centerOnShip(), 50);
@@ -602,7 +621,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
             {gamePhase === 'jumped' && (
               <>
                 <p className="terminal-prompt">{'> '}FOLD JUMP COMPLETE</p>
-                <p className="terminal-prompt">{'> '}ARRIVING AT SYSTEM: {seedInput}</p>
+                <p className="terminal-prompt">{'> '}ARRIVING AT SYSTEM: {systemName}</p>
                 <p style={{ marginTop: '20px', opacity: 0.6 }}>
                   Sublight engines engaged. Sensors initializing...
                 </p>
@@ -795,7 +814,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
           {/* Left 2/3: Map Canvas + Terminal */}
           <div className="map-fullscreen-left">
             <div className="map-fullscreen-header">
-              <span>SOLAR SYSTEM MAP — {seedInput}</span>
+              <span>SOLAR SYSTEM MAP — {systemName}</span>
               <div className="map-legend">
                 {[
                   ['planet','Planet'], ['belt','Belt'], ['orbital','Orbital'], ['habitat','Habitat'],

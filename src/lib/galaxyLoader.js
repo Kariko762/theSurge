@@ -4,11 +4,7 @@
  * Handles scanned attributes and dynamic POI generation
  */
 
-import helixArm1 from '../data/helix_systems/helix_arm_1.json';
-import helixArm2 from '../data/helix_systems/helix_arm_2.json';
-import helixArm3 from '../data/helix_systems/helix_arm_3.json';
-import helixArm4 from '../data/helix_systems/helix_arm_4.json';
-import helixArm5 from '../data/helix_systems/helix_arm_5.json';
+import tempBranch from '../data/helix_systems/Temp_Branch.json';
 import { generateSystem } from './systemGenerator.js';
 
 // Galaxy metadata
@@ -24,7 +20,7 @@ const GALAXY_METADATA = {
 
 // Spiral arm files for multi-arm galaxies
 const GALAXY_SYSTEM_ARMS = {
-  'helix_nebula': [helixArm1, helixArm2, helixArm3, helixArm4, helixArm5]
+  'helix_nebula': [tempBranch]
 };
 
 /**
@@ -41,6 +37,7 @@ export function loadGalaxy(galaxyId, shipState = null) {
 
   // Merge systems from all arm files
   let allSystems = [];
+  let backgroundImage = null;
   if (GALAXY_SYSTEM_ARMS[galaxyId]) {
     GALAXY_SYSTEM_ARMS[galaxyId].forEach(armData => {
       if (Array.isArray(armData)) {
@@ -49,6 +46,10 @@ export function loadGalaxy(galaxyId, shipState = null) {
       } else if (armData.systems) {
         // If arm file has a systems property
         allSystems = allSystems.concat(armData.systems);
+        // Extract backgroundImage from first arm file if present
+        if (!backgroundImage && armData.backgroundImage) {
+          backgroundImage = armData.backgroundImage;
+        }
       }
     });
   }
@@ -58,6 +59,7 @@ export function loadGalaxy(galaxyId, shipState = null) {
     id: metadata.galaxyId,
     name: metadata.galaxyName,
     type: metadata.type,
+    backgroundImage: backgroundImage,
     systems: allSystems.map(sys => {
       // If system has been scanned, populate scannedAttributes
       if (shipState && shipState.visitedSystems.includes(sys.id)) {

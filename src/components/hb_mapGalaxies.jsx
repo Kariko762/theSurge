@@ -8,16 +8,17 @@ import { generateUniverse } from '../lib/galaxyGenerator.js'
  * Handles Universe and Galaxy viewers
  */
 
-const MapGalaxies = () => {
+const MapGalaxies = ({ onLaunch }) => {
   const [selectedGalaxy, setSelectedGalaxy] = useState(null);
 
   // Generate universe (memoized)
   const universe = useMemo(() => generateUniverse(5), []);
 
   const handleSelectSystem = (system) => {
-    // TODO: Set selected system for launch, update ship state
-    console.log('Selected system for jump:', system);
-    setSelectedGalaxy(null);
+    // Jump to ship at this system
+    if (onLaunch) {
+      onLaunch(system.seed);
+    }
   };
 
   const handleSelectGalaxy = (galaxy) => {
@@ -33,6 +34,7 @@ const MapGalaxies = () => {
           currentSystemId="HOMEBASE"
           onClose={() => setSelectedGalaxy(null)}
           onSelectSystem={handleSelectSystem}
+          onLaunch={onLaunch}
         />
       </div>
     );

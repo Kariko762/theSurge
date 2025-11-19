@@ -11,7 +11,7 @@ import SolarSystemViewer from './SolarSystemViewer'
  * v1.0.1 - Text size increased, scanlines removed
  */
 
-const GalaxyViewer = ({ galaxy, currentSystemId = 'HOMEBASE', onClose, onSelectSystem, externalSelectedSystemId }) => {
+const GalaxyViewer = ({ galaxy, currentSystemId = 'HOMEBASE', onClose, onSelectSystem, onLaunch, externalSelectedSystemId }) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
@@ -32,6 +32,13 @@ const GalaxyViewer = ({ galaxy, currentSystemId = 'HOMEBASE', onClose, onSelectS
   const [scanQueue, setScanQueue] = useState([]); // Queue of systems to scan
   const [galaxyBgImage, setGalaxyBgImage] = useState(null); // Background galaxy image
   const [cursorGridPos, setCursorGridPos] = useState({ x: 0, y: 0 }); // Current cursor grid position
+  
+  // Smooth camera transition
+  const [targetPan, setTargetPan] = useState({ x: 0, y: 0 });
+  const [targetZoom, setTargetZoom] = useState(0.5);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const transitionStartRef = useRef(null);
+  const transitionDurationRef = useRef(800); // 800ms smooth transition
 
   // Canvas dimensions from container
   const width = canvasSize.width;
@@ -45,9 +52,13 @@ const GalaxyViewer = ({ galaxy, currentSystemId = 'HOMEBASE', onClose, onSelectS
   // Load galaxy background image
   useEffect(() => {
     const img = new Image();
-    img.src = '/src/assets/media/galaxy2_bg.jpg';
+    // Use backgroundImage from galaxy JSON if available, otherwise fallback
+    const bgPath = galaxy.backgroundImage 
+      ? `/src/assets/media/${galaxy.backgroundImage}`
+      : '/src/assets/media/galaxy2_bg.jpg';
+    img.src = bgPath;
     img.onload = () => setGalaxyBgImage(img);
-  }, []);
+  }, [galaxy.backgroundImage]);
 
   // Update canvas size on container resize
   useEffect(() => {
@@ -104,23 +115,56 @@ const GalaxyViewer = ({ galaxy, currentSystemId = 'HOMEBASE', onClose, onSelectS
     return () => cancelAnimationFrame(rafId);
   }, []);
 
+  // Smooth camera transition animation
+  useEffect(() => {
+    if (!isTransitioning) return;
+    
+    const startPan = { ...panOffset };
+    const startZoom = zoom;
+    const startTime = transitionStartRef.current || Date.now();
+    transitionStartRef.current = startTime;
+    const duration = transitionDurationRef.current;
+    
+    let rafId;
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Ease-in-out function for smooth animation
+      const eased = progress < 0.5 
+        ? 2 * progress * progress 
+        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+      
+      // Interpolate pan and zoom
+      const newPan = {
+        x: startPan.x + (targetPan.x - startPan.x) * eased,
+        y: startPan.y + (targetPan.y - startPan.y) * eased
+      };
+      const newZoom = startZoom + (targetZoom - startZoom) * eased;
+      
+      setPanOffset(newPan);
+      setZoom(newZoom);
+      
+      if (progress < 1) {
+        rafId = requestAnimationFrame(animate);
+      } else {
+        setIsTransitioning(false);
+        transitionStartRef.current = null;
+      }
+    };
+    
+    rafId = requestAnimationFrame(animate);
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [isTransitioning, targetPan, targetZoom]);
+
   // Scan progress ticker - increments scan progress over time
   useEffect(() => {
     const shipState = getShipState();
     const activeScan = shipState.state.activeScan;
     
     if (!activeScan) return;
-
-    // Auto-navigate to system being scanned
-    const scanningSystem = galaxy.systems.find(s => s.id === activeScan.systemId);
-    if (scanningSystem && activeScan.progress === 0) {
-      // Zoom in a bit and center on system
-      const targetZoom = Math.max(zoom, 1.2);
-      setZoom(targetZoom);
-      const px = -(scanningSystem.position.x - 1000) * targetZoom;
-      const py = -(scanningSystem.position.y - 1000) * targetZoom;
-      setPanOffset({ x: px, y: py });
-    }
 
     const interval = setInterval(() => {
       const currentProgress = shipState.state.activeScan?.progress || 0;
@@ -130,10 +174,8 @@ const GalaxyViewer = ({ galaxy, currentSystemId = 'HOMEBASE', onClose, onSelectS
         const completedSystem = galaxy.systems.find(s => s.id === completedSystemId);
         
         if (completedSystem) {
-          // Get canvas position for speech bubble
-          const screenX = (completedSystem.position.x - 1000) * zoom + width / 2 + panOffset.x;
-          const screenY = (completedSystem.position.y - 1000) * zoom + height / 2 + panOffset.y;
-          setSystemInfoModal({ system: completedSystem, canvasX: screenX, canvasY: screenY });
+          // Show scan complete modal
+          setScanCompleteModal({ system: completedSystem });
         }
         
         clearInterval(interval);
@@ -143,7 +185,7 @@ const GalaxyViewer = ({ galaxy, currentSystemId = 'HOMEBASE', onClose, onSelectS
     }, 100); // Update every 100ms
 
     return () => clearInterval(interval);
-  }, [getShipState().state.activeScan, galaxy.systems, zoom, panOffset, width, height]);
+  }, [getShipState().state.activeScan, galaxy.systems]);
 
   // If an external selection is provided (e.g., from a Tree View), sync it and focus
   useEffect(() => {
@@ -585,11 +627,9 @@ const GalaxyViewer = ({ galaxy, currentSystemId = 'HOMEBASE', onClose, onSelectS
     const clickedItem = getItemAtPoint(x, y);
     if (clickedItem) {
       setSelectedItem(clickedItem);
-      // Show info modal at clicked position
+      // Show info modal for clicked system
       setSystemInfoModal({
-        system: clickedItem,
-        canvasX: x,
-        canvasY: y
+        system: clickedItem
       });
     } else {
       setIsDragging(true);
@@ -657,7 +697,6 @@ const GalaxyViewer = ({ galaxy, currentSystemId = 'HOMEBASE', onClose, onSelectS
 
   // SCROLL ZOOM
   const handleWheel = (e) => {
-    e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
     setZoom(prev => Math.max(0.3, Math.min(5.0, prev * delta)));
   };
@@ -846,7 +885,7 @@ const GalaxyViewer = ({ galaxy, currentSystemId = 'HOMEBASE', onClose, onSelectS
 
           {/* System Info Modal - Speech Bubble */}
           {systemInfoModal && (() => {
-            const { system, canvasX, canvasY } = systemInfoModal;
+            const { system } = systemInfoModal;
             if (!system || !system.position) return null;
             
             const shipState = getShipState();
@@ -856,16 +895,18 @@ const GalaxyViewer = ({ galaxy, currentSystemId = 'HOMEBASE', onClose, onSelectS
             let distance = 0;
             try {
               if (currentSystem?.position && system?.position) {
-                distance = calculateDistance(currentSystem.position, system.position);
+                distance = calculateDistance(currentSystem, system);
               }
             } catch (e) {
               console.error('Distance calculation error:', e);
               distance = 0;
             }
             
-            // Position modal above the system
-            const modalX = canvasX;
-            const modalY = canvasY - 120; // Position above system
+            // Recalculate modal position dynamically based on current zoom and pan
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const modalX = centerX + (system.position.x - 1000) * zoom + panOffset.x;
+            const modalY = centerY + (system.position.y - 1000) * zoom + panOffset.y - 120; // Position above system
             
             return (
               <div style={{
@@ -979,7 +1020,7 @@ const GalaxyViewer = ({ galaxy, currentSystemId = 'HOMEBASE', onClose, onSelectS
                       className="small-btn"
                       onClick={() => {
                         // Calculate route from HOMEBASE to target system
-                        const route = findSystemPathBFS(galaxy.systems, 'HOMEBASE', system.id);
+                        const route = findSystemPathBFS(galaxy, 'HOMEBASE', system.id);
                         
                         if (route && route.length > 0) {
                           // Find all unscanned systems in route
@@ -987,8 +1028,21 @@ const GalaxyViewer = ({ galaxy, currentSystemId = 'HOMEBASE', onClose, onSelectS
                           const unscannedInRoute = route.filter(sysId => !shipState.isSystemScanned(sysId));
                           
                           if (unscannedInRoute.length > 0) {
+                            // Find first unscanned system
+                            const firstUnscannedId = unscannedInRoute[0];
+                            const firstUnscannedSys = galaxy.systems.find(s => s.id === firstUnscannedId);
+                            
+                            if (firstUnscannedSys) {
+                              // Pan camera to center on first unscanned system with smooth transition
+                              const targetX = -(firstUnscannedSys.position.x - 1000) * 2.6;
+                              const targetY = -(firstUnscannedSys.position.y - 1000) * 2.6;
+                              setTargetPan({ x: targetX, y: targetY });
+                              setTargetZoom(2.6);
+                              setIsTransitioning(true);
+                            }
+                            
                             // Start scanning first system
-                            shipState.startScan(unscannedInRoute[0]);
+                            shipState.startScan(firstUnscannedId);
                             // Queue remaining systems
                             setScanQueue(unscannedInRoute.slice(1));
                             // Close info modal
@@ -1048,39 +1102,66 @@ const GalaxyViewer = ({ galaxy, currentSystemId = 'HOMEBASE', onClose, onSelectS
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {shipState.state.activeScan && (
-                    <button 
-                      className="small-btn"
-                      onClick={() => {
-                        shipState.cancelScan();
-                        setScanQueue([]);
-                        setScanCompleteModal(null);
-                      }}
-                      style={{ flex: 1, fontSize: '9px', padding: '8px', backgroundColor: 'rgba(255, 80, 80, 0.2)' }}
-                    >
-                      STOP SCAN
-                    </button>
-                  )}
-                  
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {scanQueue.length > 0 && (
                     <button 
                       className="small-btn"
                       onClick={() => {
+                        // Close modal first, then pan and scan the next system
                         setScanCompleteModal(null);
+                        
+                        const nextSystemId = scanQueue[0];
+                        const nextSystem = galaxy.systems.find(s => s.id === nextSystemId);
+                        
+                        if (nextSystem) {
+                          // Pan and zoom to the next system with smooth transition (2.6x zoom)
+                          const targetX = -(nextSystem.position.x - 1000) * 2.6;
+                          const targetY = -(nextSystem.position.y - 1000) * 2.6;
+                          setTargetPan({ x: targetX, y: targetY });
+                          setTargetZoom(2.6);
+                          setIsTransitioning(true);
+                          
+                          // Start scan after transition completes
+                          setTimeout(() => {
+                            setScanQueue(prev => prev.slice(1));
+                            shipState.startScan(nextSystemId);
+                          }, 800); // Match transition duration
+                        } else {
+                          // Fallback if system not found
+                          setScanQueue(prev => prev.slice(1));
+                          shipState.startScan(nextSystemId);
+                        }
                       }}
                       style={{ flex: 1, fontSize: '9px', padding: '8px' }}
                     >
-                      SCAN NEXT ({scanQueue.length})
+                      CONTINUE ({scanQueue.length})
                     </button>
                   )}
                   
                   <button 
                     className="small-btn"
                     onClick={() => {
+                      // JUMP to the scanned system - launch ShipCommandConsole at this system
+                      shipState.cancelScan();
+                      setScanQueue([]);
+                      shipState.visitSystem(system.seed);
+                      setScanCompleteModal(null);
+                      if (onLaunch) {
+                        onLaunch(system.seed);
+                      }
+                    }}
+                    style={{ flex: 1, fontSize: '9px', padding: '8px', backgroundColor: 'rgba(52, 224, 255, 0.2)' }}
+                  >
+                    ENTER SYSTEM
+                  </button>
+                  
+                  <button 
+                    className="small-btn"
+                    onClick={() => {
+                      // Close and keep queue if exists
                       setScanCompleteModal(null);
                     }}
-                    style={{ flex: 1, fontSize: '9px', padding: '8px' }}
+                    style={{ flex: 1, fontSize: '9px', padding: '8px', backgroundColor: 'rgba(100, 100, 100, 0.2)' }}
                   >
                     CLOSE
                   </button>

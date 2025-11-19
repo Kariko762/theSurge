@@ -445,6 +445,7 @@ const GalaxyCreator = ({ onClose }) => {
         radiation: 'Low',
         size: 3,
         seed: `SYS-${systemCounter}`,
+        isHomebase: false,
         connections: {
           forward: [],
           backward: [],
@@ -687,12 +688,51 @@ const GalaxyCreator = ({ onClose }) => {
   };
 
   const handleSave = () => {
+    // Process systems for export
+    const exportSystems = systems.map(s => {
+      const exported = { ...s };
+      
+      // If this is the homebase, override ID and seed
+      if (s.isHomebase) {
+        exported.id = 'HOMEBASE';
+        exported.name = s.name || 'Homebase';
+        exported.seed = 'SSG1-G:HOMEBASE:ALPHA7';
+      }
+      
+      // Remove the isHomebase flag from export (internal only)
+      delete exported.isHomebase;
+      
+      return exported;
+    });
+
+    // Update connections to reference HOMEBASE if applicable
+    const homebaseOriginalId = systems.find(s => s.isHomebase)?.id;
+    if (homebaseOriginalId) {
+      exportSystems.forEach(s => {
+        if (s.connections.forward.includes(homebaseOriginalId)) {
+          s.connections.forward = s.connections.forward.map(id => 
+            id === homebaseOriginalId ? 'HOMEBASE' : id
+          );
+        }
+        if (s.connections.backward.includes(homebaseOriginalId)) {
+          s.connections.backward = s.connections.backward.map(id => 
+            id === homebaseOriginalId ? 'HOMEBASE' : id
+          );
+        }
+        if (s.connections.cross.includes(homebaseOriginalId)) {
+          s.connections.cross = s.connections.cross.map(id => 
+            id === homebaseOriginalId ? 'HOMEBASE' : id
+          );
+        }
+      });
+    }
+
     const galaxyData = {
       galaxyId: galaxyName.toLowerCase().replace(/\s+/g, '_'),
       galaxyName: galaxyName,
       type: 'custom',
       backgroundImage: selectedBg,
-      systems: systems
+      systems: exportSystems
     };
 
     const dataStr = JSON.stringify(galaxyData, null, 2);
@@ -1625,6 +1665,45 @@ const GalaxyCreator = ({ onClose }) => {
                   fontFamily: 'Roobert, monospace'
                 }}
               />
+            </div>
+
+            {/* Homebase Flag */}
+            <div style={{ borderTop: '1px solid rgba(52, 224, 255, 0.2)', paddingTop: '12px' }}>
+              <label style={{ 
+                fontSize: '8px', 
+                color: selectedSystem.isHomebase ? '#00ff88' : '#34e0ff', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px',
+                cursor: 'pointer',
+                marginBottom: '4px'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={selectedSystem.isHomebase || false}
+                  onChange={(e) => {
+                    const newValue = e.target.checked;
+                    if (newValue) {
+                      // Unmark all other systems as homebase
+                      setSystems(prev => prev.map(s => ({
+                        ...s,
+                        isHomebase: s.id === selectedSystem.id
+                      })));
+                      // Update selected system to reflect change
+                      setSelectedSystem({ ...selectedSystem, isHomebase: true });
+                    } else {
+                      handlePropertyChange('isHomebase', false);
+                    }
+                  }}
+                  style={{ accentColor: '#00ff88', cursor: 'pointer' }}
+                />
+                HOMEBASE
+              </label>
+              <div style={{ fontSize: '7px', color: '#666', lineHeight: '1.4', marginLeft: '20px' }}>
+                {selectedSystem.isHomebase 
+                  ? 'This system is the starting homebase. ID will be set to HOMEBASE on export.'
+                  : 'Mark this system as the player starting point'}
+              </div>
             </div>
 
             {/* Connections - Read Only */}

@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import MapGalaxies from './hb_mapGalaxies.jsx'
 import MapSystems from './hb_mapSystems.jsx'
+import InventoryModal from './inventory/InventoryModal.jsx'
+import HangarView from './hangar/HangarView.jsx'
+import { createDefaultInventory, addItem } from '../lib/inventory/inventoryManagerBrowser.js'
+import AdminSecurityModal from './admin/AdminSecurityModal.jsx'
 
 /**
  * FRAME 2: Homebase Terminal - Main Base UI
@@ -12,6 +16,26 @@ const HomebaseTerminal = ({ onLaunch }) => {
   const [rightActiveTab, setRightActiveTab] = useState(null);
   const [activeCoreAI, setActiveCoreAI] = useState(['ARIA', 'FORGE']); // 2 active AI
   const [powerUsage, setPowerUsage] = useState(80); // 40 each for 2 AI
+  const [activeOverlay, setActiveOverlay] = useState(null); // 'inventory' | 'hangar' | null
+  const [adminOpen, setAdminOpen] = useState(false);
+  
+  // Initialize inventory with starting items
+  const [inventory, setInventory] = useState(() => {
+    const inv = createDefaultInventory();
+    addItem(inv, 'homebase', 'beam_laser_mk1', 1);
+    addItem(inv, 'homebase', 'beam_laser_mk2', 1);
+    addItem(inv, 'homebase', 'mining_laser_mk1', 1);
+    addItem(inv, 'homebase', 'mag_thruster_mk1', 1);
+    addItem(inv, 'homebase', 'scanner_mk1', 1);
+    addItem(inv, 'homebase', 'power_core_mk1', 1);
+    addItem(inv, 'homebase', 'ai_core_engineer_mk1', 1);
+    addItem(inv, 'homebase', 'ai_core_tactical_mk1', 1);
+    addItem(inv, 'homebase', 'scrap_metal', 100);
+    addItem(inv, 'homebase', 'titanium_alloy', 50);
+    addItem(inv, 'homebase', 'fuel_cell', 20);
+    addItem(inv, 'homebase', 'repair_kit', 10);
+    return inv;
+  });
 
   const leftTabs = ['AI', 'POWER', 'RESEARCH', 'BUILD', 'HANGAR'];
   const rightTabs = ['LOGS', 'ALERTS', 'MAP', 'INVENTORY'];
@@ -24,10 +48,20 @@ const HomebaseTerminal = ({ onLaunch }) => {
   ];
 
   const toggleLeftTab = (tab) => {
+    if (tab === 'HANGAR') {
+      setActiveOverlay('hangar');
+      setLeftActiveTab(null);
+      return;
+    }
     setLeftActiveTab(leftActiveTab === tab ? null : tab);
   };
 
   const toggleRightTab = (tab) => {
+    if (tab === 'INVENTORY') {
+      setActiveOverlay('inventory');
+      setRightActiveTab(null);
+      return;
+    }
     setRightActiveTab(rightActiveTab === tab ? null : tab);
   };
 
@@ -35,7 +69,7 @@ const HomebaseTerminal = ({ onLaunch }) => {
   if (rightActiveTab === 'MAP') {
     return (
       <div className="no-scanlines" style={{ position: 'relative', width: '100%', height: '100%' }}>
-        <MapGalaxies />
+        <MapGalaxies onLaunch={onLaunch} />
         {/* Close button overlay */}
         <button 
           className="small-btn" 
@@ -59,31 +93,11 @@ const HomebaseTerminal = ({ onLaunch }) => {
     switch(leftActiveTab) {
       case 'HANGAR':
         return (
-          <div className="holo-border" style={{ position: 'relative', padding: '16px', minHeight: '220px' }}>
+          <div className="holo-border" style={{ position: 'relative', padding: '16px', minHeight: '120px' }}>
             <div className="tab-panel-header holo-text">HANGAR BAY</div>
-            <div className="text-muted" style={{ fontSize: '10px', marginBottom: '12px' }}>
-              {'> '}ORBITAL SLIPWAY STATUS: GREEN // DOCK 2 READY
+            <div className="text-muted" style={{ fontSize: '10px' }}>
+              {'> '}Use the left HANGAR tab to open the full Hangar overlay.
             </div>
-            <div className="data-grid">
-              <div className="data-cell">
-                <div className="data-cell-label">Vessel</div>
-                <div className="data-cell-value">SS-ARKOSE</div>
-                <div className="ui-small">Class: Survey Frigate</div>
-              </div>
-              <div className="data-cell">
-                <div className="data-cell-label">Fuel</div>
-                <div className="data-cell-value">84%</div>
-                <div className="progress-bar"><div className="progress-bar-fill" style={{ width: '84%' }}></div></div>
-              </div>
-              <div className="data-cell">
-                <div className="data-cell-label">Cargo</div>
-                <div className="data-cell-value">12/40</div>
-                <div className="ui-small">Mass: 7.2t</div>
-              </div>
-            </div>
-            <button className="action-btn" style={{ position: 'absolute', right: '16px', bottom: '16px' }} onClick={() => onLaunch && onLaunch()}>
-              Launch
-            </button>
           </div>
         );
       case 'AI':
@@ -165,6 +179,16 @@ const HomebaseTerminal = ({ onLaunch }) => {
 
   const renderRightPanelContent = () => {
     switch(rightActiveTab) {
+      case 'INVENTORY':
+        return (
+          <div className="holo-border" style={{ position: 'relative', padding: '16px', minHeight: '120px' }}>
+            <div className="tab-panel-header holo-text">INVENTORY</div>
+            <div className="text-muted" style={{ fontSize: '10px' }}>
+              {'> '}Use the right INVENTORY tab to open the full Inventory overlay.
+            </div>
+          </div>
+        );
+      
       case 'LOGS':
         return (
           <div>
@@ -252,8 +276,32 @@ const HomebaseTerminal = ({ onLaunch }) => {
 
       {/* Central Terminal Display */}
       <div className="central-display holo-glow flicker fade-in">
-        <div className="display-header holo-text">
-          HOMEBASE TERMINAL // ASTEROID SHELTER ALPHA-7
+        <div className="display-header holo-text" style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>HOMEBASE TERMINAL // ASTEROID SHELTER ALPHA-7</span>
+          <button
+            title="Admin"
+            aria-label="Open admin panel"
+            onClick={() => setAdminOpen(true)}
+            style={{
+              width: 28,
+              height: 28,
+              border: '1px solid rgba(0,255,255,0.6)',
+              background: 'rgba(0,255,255,0.06)',
+              color: '#00ffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 0 10px rgba(0,255,255,0.4)'
+            }}
+          >
+            {/* shield/lock glyph */}
+            <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 4L26 8V16C26 21 21 25 16 28C11 25 6 21 6 16V8L16 4Z" stroke="#00ffff" strokeWidth="1.6" />
+              <rect x="12" y="13" width="8" height="6" rx="1" stroke="#00ffff" strokeWidth="1.4" />
+              <path d="M20 13V10C20 8.343 18.657 7 17 7H15C13.343 7 12 8.343 12 10V13" stroke="#00ffff" strokeWidth="1.4" />
+            </svg>
+          </button>
         </div>
         <div className="display-content">
           {/* Split Status Display: Ship (Left) | Homebase (Right) */}
@@ -415,6 +463,28 @@ const HomebaseTerminal = ({ onLaunch }) => {
           </div>
         </div>
       </div>
+      
+      {/* Fullscreen overlays (like Galaxy view), tabs remain accessible */}
+      {activeOverlay === 'inventory' && (
+        <InventoryModal
+          inventory={inventory}
+          setInventory={setInventory}
+          location="homebase"
+          onClose={() => setActiveOverlay(null)}
+          fullscreen
+        />
+      )}
+      {activeOverlay === 'hangar' && (
+        <HangarView
+          inventory={inventory}
+          setInventory={setInventory}
+          onClose={() => setActiveOverlay(null)}
+          fullscreen
+        />
+      )}
+      {adminOpen && (
+        <AdminSecurityModal onClose={() => setAdminOpen(false)} />
+      )}
     </div>
   );
 };

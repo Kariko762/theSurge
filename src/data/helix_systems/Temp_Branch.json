@@ -1,0 +1,1131 @@
+{
+  "galaxyId": "GAL_001",
+  "galaxyName": "Helix Nebula",
+  "type": "custom",
+  "backgroundImage": "spiral_galaxy.jpg",
+  "systems": [
+    {
+      "id": "HOMEBASE",
+      "name": "Epsilon Minoris",
+      "type": "Pulsar",
+      "zone": "Quiet",
+      "position": {
+        "x": 990,
+        "y": 908
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 4,
+      "seed": "SSG1-G:HOMEBASE:ALPHA7",
+      "connections": {
+        "forward": [
+          "SYS_002"
+        ],
+        "backward": [],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_002",
+      "name": "Castor-9218",
+      "type": "Dwarf",
+      "zone": "Quiet",
+      "position": {
+        "x": 971,
+        "y": 885
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 5,
+      "seed": "SYS-1763505673844-1-1775",
+      "connections": {
+        "forward": [
+          "SYS_003"
+        ],
+        "backward": [
+          "HOMEBASE"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_003",
+      "name": "Spica-264 J",
+      "type": "Pulsar",
+      "zone": "Quiet",
+      "position": {
+        "x": 980,
+        "y": 867
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 2,
+      "seed": "SYS-1763505673844-2-9295",
+      "connections": {
+        "forward": [
+          "SYS_004"
+        ],
+        "backward": [
+          "SYS_002"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_004",
+      "name": "Castor 524 k",
+      "type": "Neutron Star",
+      "zone": "Quiet",
+      "position": {
+        "x": 987,
+        "y": 843
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 5,
+      "seed": "SYS-1763505673844-3-6163",
+      "connections": {
+        "forward": [
+          "SYS_005"
+        ],
+        "backward": [
+          "SYS_003"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_005",
+      "name": "Aldebaran-2875",
+      "type": "Pulsar",
+      "zone": "Quiet",
+      "position": {
+        "x": 948,
+        "y": 827
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 5,
+      "seed": "SYS-1763505673844-4-9896",
+      "connections": {
+        "forward": [
+          "SYS_006"
+        ],
+        "backward": [
+          "SYS_004"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_006",
+      "name": "Sirius-933 C",
+      "type": "Dwarf",
+      "zone": "Quiet",
+      "position": {
+        "x": 913,
+        "y": 819
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 4,
+      "seed": "SYS-1763505673844-5-321",
+      "connections": {
+        "forward": [
+          "SYS_007"
+        ],
+        "backward": [
+          "SYS_005"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_007",
+      "name": "Castor 757 d",
+      "type": "Red Giant",
+      "zone": "Quiet",
+      "position": {
+        "x": 907,
+        "y": 834
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 3,
+      "seed": "SYS-1763505673844-6-4785",
+      "connections": {
+        "forward": [
+          "SYS_008"
+        ],
+        "backward": [
+          "SYS_006"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_008",
+      "name": "Spica-6439",
+      "type": "Red Giant",
+      "zone": "Quiet",
+      "position": {
+        "x": 884,
+        "y": 792
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 2,
+      "seed": "SYS-1763505673844-7-5454",
+      "connections": {
+        "forward": [
+          "SYS_009"
+        ],
+        "backward": [
+          "SYS_007"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_009",
+      "name": "Procyon-777 K",
+      "type": "Main Sequence",
+      "zone": "Quiet",
+      "position": {
+        "x": 853,
+        "y": 772
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 5,
+      "seed": "SYS-1763505673844-8-6753",
+      "connections": {
+        "forward": [
+          "SYS_010"
+        ],
+        "backward": [
+          "SYS_008"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_010",
+      "name": "Kepler Virginis",
+      "type": "Main Sequence",
+      "zone": "Quiet",
+      "position": {
+        "x": 813,
+        "y": 784
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 2,
+      "seed": "SYS-1763505673844-9-7849",
+      "connections": {
+        "forward": [
+          "SYS_011"
+        ],
+        "backward": [
+          "SYS_009"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_011",
+      "name": "Tau 165 v",
+      "type": "Red Giant",
+      "zone": "Quiet",
+      "position": {
+        "x": 816,
+        "y": 816
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 2,
+      "seed": "SYS-1763505673844-10-3169",
+      "connections": {
+        "forward": [
+          "SYS_012"
+        ],
+        "backward": [
+          "SYS_010"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_012",
+      "name": "Rigel Centauri",
+      "type": "Red Giant",
+      "zone": "Quiet",
+      "position": {
+        "x": 750,
+        "y": 820
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 3,
+      "seed": "SYS-1763505673844-11-723",
+      "connections": {
+        "forward": [
+          "SYS_013"
+        ],
+        "backward": [
+          "SYS_011"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_013",
+      "name": "Ross-999 G",
+      "type": "Binary System",
+      "zone": "Quiet",
+      "position": {
+        "x": 713,
+        "y": 827
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 4,
+      "seed": "SYS-1763505673844-12-3814",
+      "connections": {
+        "forward": [
+          "SYS_014"
+        ],
+        "backward": [
+          "SYS_012"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_014",
+      "name": "Luyten-509 T",
+      "type": "Main Sequence",
+      "zone": "Quiet",
+      "position": {
+        "x": 659,
+        "y": 847
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 2,
+      "seed": "SYS-1763505673844-13-3891",
+      "connections": {
+        "forward": [
+          "SYS_015"
+        ],
+        "backward": [
+          "SYS_013"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_015",
+      "name": "Sirius-432 W",
+      "type": "Binary System",
+      "zone": "Quiet",
+      "position": {
+        "x": 644,
+        "y": 863
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 3,
+      "seed": "SYS-1763505673844-14-6418",
+      "connections": {
+        "forward": [
+          "SYS_016"
+        ],
+        "backward": [
+          "SYS_014"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_016",
+      "name": "Gliese 529 x",
+      "type": "Main Sequence",
+      "zone": "Quiet",
+      "position": {
+        "x": 628,
+        "y": 893
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 4,
+      "seed": "SYS-1763505673844-15-8183",
+      "connections": {
+        "forward": [
+          "SYS_017"
+        ],
+        "backward": [
+          "SYS_015"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_017",
+      "name": "Betelgeuse Virginis",
+      "type": "Neutron Star",
+      "zone": "Quiet",
+      "position": {
+        "x": 595,
+        "y": 929
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 5,
+      "seed": "SYS-1763505673844-16-7649",
+      "connections": {
+        "forward": [
+          "SYS_018"
+        ],
+        "backward": [
+          "SYS_016"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_018",
+      "name": "Wolf-637 E",
+      "type": "Dwarf",
+      "zone": "Quiet",
+      "position": {
+        "x": 574,
+        "y": 941
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 4,
+      "seed": "SYS-1763505673844-17-8740",
+      "connections": {
+        "forward": [
+          "SYS_019"
+        ],
+        "backward": [
+          "SYS_017"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_019",
+      "name": "Epsilon 358 x",
+      "type": "Main Sequence",
+      "zone": "Quiet",
+      "position": {
+        "x": 548,
+        "y": 954
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 2,
+      "seed": "SYS-1763505673844-18-5621",
+      "connections": {
+        "forward": [
+          "SYS_020"
+        ],
+        "backward": [
+          "SYS_018"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_020",
+      "name": "Wolf-456 J",
+      "type": "Binary System",
+      "zone": "Quiet",
+      "position": {
+        "x": 514,
+        "y": 984
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 2,
+      "seed": "SYS-1763505673844-19-5635",
+      "connections": {
+        "forward": [
+          "SYS_021"
+        ],
+        "backward": [
+          "SYS_019"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_021",
+      "name": "Deneb-202 Y",
+      "type": "Main Sequence",
+      "zone": "Quiet",
+      "position": {
+        "x": 510,
+        "y": 1027
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 4,
+      "seed": "SYS-1763505673844-20-7051",
+      "connections": {
+        "forward": [
+          "SYS_022"
+        ],
+        "backward": [
+          "SYS_020"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_022",
+      "name": "Gliese 713 f",
+      "type": "Red Giant",
+      "zone": "Quiet",
+      "position": {
+        "x": 502,
+        "y": 1052
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 3,
+      "seed": "SYS-1763505673844-21-4486",
+      "connections": {
+        "forward": [
+          "SYS_023"
+        ],
+        "backward": [
+          "SYS_021"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_023",
+      "name": "Aldebaran 153 c",
+      "type": "Dwarf",
+      "zone": "Quiet",
+      "position": {
+        "x": 489,
+        "y": 1071
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 3,
+      "seed": "SYS-1763505673844-22-6156",
+      "connections": {
+        "forward": [
+          "SYS_024"
+        ],
+        "backward": [
+          "SYS_022"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_024",
+      "name": "Gliese-3457",
+      "type": "Binary System",
+      "zone": "Quiet",
+      "position": {
+        "x": 475,
+        "y": 1118
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 2,
+      "seed": "SYS-1763505673844-23-647",
+      "connections": {
+        "forward": [
+          "SYS_025"
+        ],
+        "backward": [
+          "SYS_023"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_025",
+      "name": "Antares Lyrae",
+      "type": "Main Sequence",
+      "zone": "Quiet",
+      "position": {
+        "x": 494,
+        "y": 1158
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 5,
+      "seed": "SYS-1763505673844-24-385",
+      "connections": {
+        "forward": [
+          "SYS_026"
+        ],
+        "backward": [
+          "SYS_024"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_026",
+      "name": "Procyon-7889",
+      "type": "Neutron Star",
+      "zone": "Quiet",
+      "position": {
+        "x": 477,
+        "y": 1190
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 2,
+      "seed": "SYS-1763505673844-25-9913",
+      "connections": {
+        "forward": [
+          "SYS_027"
+        ],
+        "backward": [
+          "SYS_025"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_027",
+      "name": "Antares-162 H",
+      "type": "Pulsar",
+      "zone": "Quiet",
+      "position": {
+        "x": 512,
+        "y": 1243
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 2,
+      "seed": "SYS-1763505673844-26-1417",
+      "connections": {
+        "forward": [
+          "SYS_028"
+        ],
+        "backward": [
+          "SYS_026"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_028",
+      "name": "Tau-541 Z",
+      "type": "Binary System",
+      "zone": "Quiet",
+      "position": {
+        "x": 518,
+        "y": 1288
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 4,
+      "seed": "SYS-1763505673844-27-5461",
+      "connections": {
+        "forward": [
+          "SYS_029"
+        ],
+        "backward": [
+          "SYS_027"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_029",
+      "name": "Tau-2269",
+      "type": "Main Sequence",
+      "zone": "Quiet",
+      "position": {
+        "x": 564,
+        "y": 1330
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 5,
+      "seed": "SYS-1763505673844-28-8923",
+      "connections": {
+        "forward": [
+          "SYS_030"
+        ],
+        "backward": [
+          "SYS_028"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_030",
+      "name": "Kepler 814 c",
+      "type": "Binary System",
+      "zone": "Quiet",
+      "position": {
+        "x": 617,
+        "y": 1436
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 3,
+      "seed": "SYS-1763505673844-29-7599",
+      "connections": {
+        "forward": [
+          "SYS_031"
+        ],
+        "backward": [
+          "SYS_029"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_031",
+      "name": "Lacaille-395 A",
+      "type": "Red Giant",
+      "zone": "Quiet",
+      "position": {
+        "x": 672,
+        "y": 1471
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 5,
+      "seed": "SYS-1763505673844-30-3043",
+      "connections": {
+        "forward": [
+          "SYS_032"
+        ],
+        "backward": [
+          "SYS_030"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_032",
+      "name": "Spica Orionis",
+      "type": "Dwarf",
+      "zone": "Quiet",
+      "position": {
+        "x": 720,
+        "y": 1472
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 4,
+      "seed": "SYS-1763505673844-31-3791",
+      "connections": {
+        "forward": [
+          "SYS_033"
+        ],
+        "backward": [
+          "SYS_031"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_033",
+      "name": "Gliese 132 l",
+      "type": "Main Sequence",
+      "zone": "Quiet",
+      "position": {
+        "x": 787,
+        "y": 1533
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 5,
+      "seed": "SYS-1763505673844-32-2699",
+      "connections": {
+        "forward": [
+          "SYS_034"
+        ],
+        "backward": [
+          "SYS_032"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_034",
+      "name": "Deneb 852 t",
+      "type": "Binary System",
+      "zone": "Quiet",
+      "position": {
+        "x": 818,
+        "y": 1622
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 3,
+      "seed": "SYS-1763505673844-33-1467",
+      "connections": {
+        "forward": [
+          "SYS_035"
+        ],
+        "backward": [
+          "SYS_033"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_035",
+      "name": "Deneb Ceti",
+      "type": "Pulsar",
+      "zone": "Quiet",
+      "position": {
+        "x": 918,
+        "y": 1654
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 4,
+      "seed": "SYS-1763505673844-34-7588",
+      "connections": {
+        "forward": [
+          "SYS_036"
+        ],
+        "backward": [
+          "SYS_034"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_036",
+      "name": "Zeta-482 D",
+      "type": "Pulsar",
+      "zone": "Quiet",
+      "position": {
+        "x": 989,
+        "y": 1637
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 5,
+      "seed": "SYS-1763505673844-35-3278",
+      "connections": {
+        "forward": [
+          "SYS_037"
+        ],
+        "backward": [
+          "SYS_035"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_037",
+      "name": "Capella 217 d",
+      "type": "Main Sequence",
+      "zone": "Quiet",
+      "position": {
+        "x": 1133,
+        "y": 1657
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 5,
+      "seed": "SYS-1763505673844-36-986",
+      "connections": {
+        "forward": [
+          "SYS_038"
+        ],
+        "backward": [
+          "SYS_036"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_038",
+      "name": "Proxima-5168",
+      "type": "Main Sequence",
+      "zone": "Quiet",
+      "position": {
+        "x": 1249,
+        "y": 1639
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 5,
+      "seed": "SYS-1763505673844-37-973",
+      "connections": {
+        "forward": [
+          "SYS_039"
+        ],
+        "backward": [
+          "SYS_037"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_039",
+      "name": "Arcturus 258 w",
+      "type": "Main Sequence",
+      "zone": "Quiet",
+      "position": {
+        "x": 1358,
+        "y": 1620
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 5,
+      "seed": "SYS-1763505673844-38-7323",
+      "connections": {
+        "forward": [
+          "SYS_040"
+        ],
+        "backward": [
+          "SYS_038"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_040",
+      "name": "Proxima-8719",
+      "type": "Neutron Star",
+      "zone": "Quiet",
+      "position": {
+        "x": 1448,
+        "y": 1586
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 2,
+      "seed": "SYS-1763505673844-39-5779",
+      "connections": {
+        "forward": [
+          "SYS_041"
+        ],
+        "backward": [
+          "SYS_039"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_041",
+      "name": "Vega-7264",
+      "type": "Dwarf",
+      "zone": "Quiet",
+      "position": {
+        "x": 1566,
+        "y": 1498
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 2,
+      "seed": "SYS-1763505673844-40-7304",
+      "connections": {
+        "forward": [
+          "SYS_042"
+        ],
+        "backward": [
+          "SYS_040"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_042",
+      "name": "Antares-7441",
+      "type": "Dwarf",
+      "zone": "Quiet",
+      "position": {
+        "x": 1624,
+        "y": 1532
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 4,
+      "seed": "SYS-1763505673844-41-5582",
+      "connections": {
+        "forward": [
+          "SYS_043"
+        ],
+        "backward": [
+          "SYS_041"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_043",
+      "name": "Epsilon-772 G",
+      "type": "Pulsar",
+      "zone": "Quiet",
+      "position": {
+        "x": 1644,
+        "y": 1455
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 3,
+      "seed": "SYS-1763505673844-42-9420",
+      "connections": {
+        "forward": [
+          "SYS_044"
+        ],
+        "backward": [
+          "SYS_042"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_044",
+      "name": "Altair-2328",
+      "type": "Dwarf",
+      "zone": "Quiet",
+      "position": {
+        "x": 1674,
+        "y": 1410
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 4,
+      "seed": "SYS-1763505673844-43-561",
+      "connections": {
+        "forward": [
+          "SYS_045"
+        ],
+        "backward": [
+          "SYS_043"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_045",
+      "name": "Sigma Aquarii",
+      "type": "Dwarf",
+      "zone": "Quiet",
+      "position": {
+        "x": 1770,
+        "y": 1326
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 4,
+      "seed": "SYS-1763505673844-44-4645",
+      "connections": {
+        "forward": [
+          "SYS_046"
+        ],
+        "backward": [
+          "SYS_044"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_046",
+      "name": "Sirius-168 F",
+      "type": "Pulsar",
+      "zone": "Quiet",
+      "position": {
+        "x": 1884,
+        "y": 1260
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 5,
+      "seed": "SYS-1763505673844-45-9591",
+      "connections": {
+        "forward": [
+          "SYS_047"
+        ],
+        "backward": [
+          "SYS_045"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_047",
+      "name": "Altair-388 F",
+      "type": "Neutron Star",
+      "zone": "Quiet",
+      "position": {
+        "x": 1946,
+        "y": 1144
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 5,
+      "seed": "SYS-1763505673844-46-9324",
+      "connections": {
+        "forward": [
+          "SYS_048"
+        ],
+        "backward": [
+          "SYS_046"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_048",
+      "name": "Altair 928 c",
+      "type": "Red Giant",
+      "zone": "Quiet",
+      "position": {
+        "x": 1927,
+        "y": 1045
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 2,
+      "seed": "SYS-1763505673844-47-5229",
+      "connections": {
+        "forward": [
+          "SYS_049"
+        ],
+        "backward": [
+          "SYS_047"
+        ],
+        "cross": []
+      }
+    },
+    {
+      "id": "SYS_049",
+      "name": "Spica-8265",
+      "type": "Dwarf",
+      "zone": "Quiet",
+      "position": {
+        "x": 1888,
+        "y": 1064
+      },
+      "tier": 0.1,
+      "radiation": "Low",
+      "size": 5,
+      "seed": "SYS-1763505673844-48-1024",
+      "connections": {
+        "forward": [],
+        "backward": [
+          "SYS_048"
+        ],
+        "cross": []
+      }
+    }
+  ]
+}
