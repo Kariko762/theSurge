@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
 import { generateSystem, exampleSeeds, calculateTotalRisk, calculateStaticExposure, calculateWakeSignature } from '../lib/systemGenerator.js'
+import { generateSystemV2, flattenPOIs } from '../lib/systemGeneratorV2.js'
 import { getGameTime } from '../lib/timeAdapter.js'
 import { calculateShipAttributes, DEFAULT_SHIP_LOADOUT, DEFAULT_POWER_ALLOCATION, COMPONENTS } from '../lib/shipComponents.js'
 import { getShipState } from '../lib/shipState.js'
@@ -209,7 +210,11 @@ function TimeControlBar() {
 const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode, onDevModeToggle, onCreateGalaxy }) => {
   const [activeTab, setActiveTab] = useState(null);
   const [selectedPOI, setSelectedPOI] = useState(null);
+  const [selectedChildPOI, setSelectedChildPOI] = useState(null); // Track selected child POI separately
+  const [hoveredPOI, setHoveredPOI] = useState(null); // Track hover separately from selection
+  const [hoveredChildPOI, setHoveredChildPOI] = useState(null); // Track hovered child in the orbital menu
   const [lockedSelection, setLockedSelection] = useState(false);
+  const [expandedPOIs, setExpandedPOIs] = useState(new Set()); // Track which POIs show their children
   const [sectionsOpen, setSectionsOpen] = useState({ power: true, ship: false });
   const [fullscreen, setFullscreen] = useState(true);
   const [zoom, setZoom] = useState(1.0); // Will be recalculated based on heliosphere
@@ -273,6 +278,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
   const [scanningInProgress, setScanningInProgress] = useState(null); // {poiId, progress: 0-100, startTime}
   const [scanFailureNotification, setScanFailureNotification] = useState(null); // {poiId, message, roll}
   const [contextualMenu, setContextualMenu] = useState(null); // {targetId, targetType: 'poi'|'ship'|'sun'}
+  const [childContextualMenu, setChildContextualMenu] = useState(null); // {targetId, targetType: 'poi'} for child POIs
   const [hoveredAction, setHoveredAction] = useState(null); // Hovered action in contextual menu
   const mapRef = useRef(null); // ref for map canvas to compute accurate pixel anchoring
   const terminalRef = useRef(null);
@@ -306,19 +312,17 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
   // Seed + generated system
   const [seedInput, setSeedInput] = useState(initialSeed || exampleSeeds()[0]);
   const system = useMemo(() => {
-    const generated = generateSystem(seedInput, { 
-      sensorsPower: shipAttributes.sensorRange, 
-      wake: shipAttributes.staticSignature 
-    });
-    console.log(`[SEED: ${seedInput}] Generated system:`, {
+    // Use V2 generator
+    const generated = generateSystemV2(seedInput);
+    console.log(`[SEED: ${seedInput}] Generated system V2:`, {
       star: generated.star.class,
       heliosphere: generated.heliosphere.radiusAU.toFixed(2),
-      orbitCount: generated.orbits.length,
-      extraCount: generated.extras.length,
-      firstPlanet: generated.orbits.find(o => o.parent.type === 'planet')?.parent.name || 'none'
+      poiCount: generated.pois.length,
+      orbitalCount: generated.metadata.orbitalCount,
+      radius: generated.radius.toFixed(2)
     });
     return generated;
-  }, [seedInput, shipAttributes.sensorRange, shipAttributes.staticSignature]);
+  }, [seedInput]);
   
   // Sync ship position on mount and center view
   useEffect(() => {
@@ -385,7 +389,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
   }, []);
 
   // Simple travel state
-  const [activeTravel, setActiveTravel] = useState(null); // {startTime, targetX, targetY, targetName, distance, startPosition, onComplete}
+  const [activeTravel, setActiveTravel] = useState(null); // {startTime, targetX, targetY, targetName, distance, startPosition, onComplete, accelerationTime: 2.0}
   const [travelAnimationTick, setTravelAnimationTick] = useState(0); // Force re-render during travel
 
   // Travel completion scheduled event (PULL model - UI reads progress on render)
@@ -394,8 +398,15 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
     
     const scheduler = getScheduler();
     const { distance, targetX, targetY, startPosition, targetName } = activeTravel;
-    const speedAUPerSec = 2; // Base speed: 2 AU/s in universe time
-    const travelDuration = distance / speedAUPerSec; // Duration in universe seconds
+    const maxSpeedAUPerSec = 2; // Max speed: 2 AU/s in universe time
+    const accelerationTime = activeTravel.accelerationTime || 2.0; // Time to reach max speed (universe seconds)
+    const decelerationDistance = maxSpeedAUPerSec * accelerationTime * 0.5; // Distance needed to decelerate
+    
+    // Calculate total travel duration with acceleration/deceleration
+    const accelerationDistance = maxSpeedAUPerSec * accelerationTime * 0.5; // area under triangle (0.5 * base * height)
+    const cruiseDistance = Math.max(0, distance - accelerationDistance - decelerationDistance);
+    const cruiseDuration = cruiseDistance / maxSpeedAUPerSec;
+    const travelDuration = accelerationTime + cruiseDuration + accelerationTime; // accel + cruise + decel
     
     // Smooth animation using requestAnimationFrame (60 FPS)
     let animationFrameId;
@@ -459,13 +470,45 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
     
     // If actively traveling, interpolate position between start and target
     if (activeTravel) {
-      const speedAUPerSec = 2;
+      const maxSpeedAUPerSec = 2;
+      const accelerationTime = activeTravel.accelerationTime || 2.0;
       const now = getUniverseTime().getTime();
       const elapsed = now - activeTravel.startTime;
-      const totalTime = activeTravel.distance / speedAUPerSec;
-      const progress = Math.min(elapsed / totalTime, 1);
       
-      // Lerp between start and target
+      // Calculate distance traveled using velocity curve
+      // Phase 1: Acceleration (0 to accelerationTime) - linearly increase from 0 to maxSpeed
+      // Phase 2: Cruise (accelerationTime to totalTime - accelerationTime) - constant maxSpeed
+      // Phase 3: Deceleration (totalTime - accelerationTime to totalTime) - linearly decrease to 0
+      
+      const accelerationDistance = maxSpeedAUPerSec * accelerationTime * 0.5; // area under triangle
+      const decelerationDistance = accelerationDistance;
+      const cruiseDistance = Math.max(0, activeTravel.distance - accelerationDistance - decelerationDistance);
+      const cruiseDuration = cruiseDistance / maxSpeedAUPerSec;
+      const totalTime = accelerationTime + cruiseDuration + accelerationTime;
+      
+      let distanceTraveled = 0;
+      
+      if (elapsed < accelerationTime) {
+        // Acceleration phase: v(t) = (maxSpeed / accelTime) * t
+        // distance = 0.5 * a * t^2 = 0.5 * (maxSpeed / accelTime) * t^2
+        distanceTraveled = 0.5 * (maxSpeedAUPerSec / accelerationTime) * elapsed * elapsed;
+      } else if (elapsed < accelerationTime + cruiseDuration) {
+        // Cruise phase: constant maxSpeed
+        const cruiseElapsed = elapsed - accelerationTime;
+        distanceTraveled = accelerationDistance + maxSpeedAUPerSec * cruiseElapsed;
+      } else if (elapsed < totalTime) {
+        // Deceleration phase: mirror of acceleration
+        const decelElapsed = elapsed - accelerationTime - cruiseDuration;
+        const decelRemaining = accelerationTime - decelElapsed;
+        const decelDistanceTraveled = decelerationDistance - (0.5 * (maxSpeedAUPerSec / accelerationTime) * decelRemaining * decelRemaining);
+        distanceTraveled = accelerationDistance + cruiseDistance + decelDistanceTraveled;
+      } else {
+        // Travel complete
+        distanceTraveled = activeTravel.distance;
+      }
+      
+      // Lerp between start and target based on distance traveled
+      const progress = Math.min(distanceTraveled / activeTravel.distance, 1);
       const currentX = activeTravel.startPosition.x + (activeTravel.targetX - activeTravel.startPosition.x) * progress;
       const currentY = activeTravel.startPosition.y + (activeTravel.targetY - activeTravel.startPosition.y) * progress;
       const distanceAU = Math.sqrt(currentX * currentX + currentY * currentY);
@@ -563,7 +606,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
     
     // Also calculate world coordinates for pin dropping
     // Reverse the toXY transformation: distanceAU = (r / (0.92 * zoom)) * heliosphereRadiusAU
-    const heliosphereRadiusAU = system?.heliosphere_radius || 50;
+    const heliosphereRadiusAU = system?.heliosphere?.radiusAU || 50;
     const distanceFromCenterAU = (r_normalized / (0.92 * zoom)) * heliosphereRadiusAU;
     const angle = Math.atan2(normalizedY, normalizedX);
     const worldX = distanceFromCenterAU * Math.cos(angle);
@@ -776,8 +819,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
     conversational.push(`> Initiating Sensor Sweep, current range is ${shipAttributes.sensorRange} AU`);
     stream.push('> Initializing Sensor Sweep');
     stream.push(`> Sensor Range: ${shipAttributes.sensorRange} AU`);
-    stream.push(`> Zone: ${system.galactic.zone} | Surge Radiation: ${system.galactic.surgeRadiation.toFixed(1)} mSv/h`);
-    stream.push(`> Star Class ${system.star.class} | Luminosity ${system.star.lum.toFixed(2)} | Stellar Protection ${system.galactic.stellarProtection.toFixed(2)}`);
+    stream.push(`> Zone: ${system.galactic.zone} | Surge Radiation: ${system.galactic.surgeBase.toFixed(1)} mSv/h`);
+    stream.push(`> Star Class ${system.star.class} | Luminosity ${system.star.luminosity.toFixed(2)} | Stellar Protection ${system.star.stellarProtection.toFixed(2)}`);
     setTerminalLog(prev => [...prev, '> ARIA: Initiating sensor sweep...']);
     
     // Animate ping expanding from ship to sensor range
@@ -1282,11 +1325,19 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
 
   // Contextual Menu Handlers
   const openContextualMenu = (targetId, targetType) => {
+    setSelectedPOI(targetId);
     setContextualMenu({ targetId, targetType });
   };
   
   const closeContextualMenu = () => {
     setContextualMenu(null);
+    setChildContextualMenu(null);
+    setLockedSelection(false);
+    // Clear both parent and child POI selections
+    setSelectedPOI(null);
+    setSelectedChildPOI(null);
+    // Close expanded POI menus
+    setExpandedPOIs(new Set());
   };
   
   const handleContextualAction = (action) => {
@@ -1402,23 +1453,26 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
     }
   };
 
-  // POIs derived from system (parents + extras) + SUN
+  // POIs derived from system (all POIs including orbitals)
   const pois = useMemo(() => {
     if (!system) return [];
     const list = [];
     list.push({ id: 'SUN', name: 'SUN', type: 'STAR', distanceAU: 0, angleRad: 0, x: 0, y: 0 });
-    system.orbits.forEach((o) => {
-      const p = o.parent;
-      const x = o.distanceAU * Math.cos(o.angleRad);
-      const y = o.distanceAU * Math.sin(o.angleRad);
-      list.push({ id: p.id, name: p.name, type: p.type.toUpperCase(), distanceAU: o.distanceAU, angleRad: o.angleRad, x, y });
+    
+    const allPOIs = flattenPOIs(system);
+    allPOIs.forEach((p) => {
+      list.push({ 
+        id: p.id, 
+        name: p.name, 
+        type: p.type.toUpperCase(), 
+        distanceAU: p.distanceAU, 
+        angleRad: p.angleRad, 
+        x: p.x, 
+        y: p.y,
+        parentId: p.parentId 
+      });
     });
-    (system.extras || []).forEach((e) => {
-      const p = e.parent;
-      const x = e.distanceAU * Math.cos(e.angleRad);
-      const y = e.distanceAU * Math.sin(e.angleRad);
-      list.push({ id: p.id, name: p.name, type: p.type.toUpperCase(), distanceAU: e.distanceAU, angleRad: e.angleRad, x, y });
-    });
+    
     return list;
   }, [system]);
 
@@ -1741,9 +1795,9 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
 
   // Calculate zoom-responsive POI size with min/max constraints
   const getResponsivePOISize = (zoom) => {
-    const minSize = 40; // Minimum size in pixels (increased from 30)
-    const maxSize = 100; // Maximum size in pixels (increased from 60)
-    const baseSize = 50; // Base size at 1x zoom (increased from 40)
+    const minSize = 60; // Minimum size in pixels - BIGGER ICONS
+    const maxSize = 140; // Maximum size in pixels - BIGGER ICONS
+    const baseSize = 75; // Base size at 1x zoom - BIGGER ICONS
     const responsiveSize = baseSize * zoom;
     return Math.max(minSize, Math.min(maxSize, responsiveSize));
   };
@@ -2284,7 +2338,14 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat'
-            }}>
+            }}
+            onClick={(e) => {
+              // Deselect POI if clicking directly on the map background (not on a POI)
+              if (e.target === e.currentTarget || e.target.classList.contains('map-grid')) {
+                setSelectedPOI(null);
+              }
+            }}
+            >
               {/* Background overlay for opacity control */}
               <div style={{
                 position: 'absolute',
@@ -2424,10 +2485,37 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                 // Ship marker - holographic circle with rotating ship icon
                 const shipPos = toXY(shipPosition.distanceAU, shipPosition.angleRad);
                 
-                // Calculate velocity percentage (0-100% of max speed)
-                const maxSpeed = shipAttributes.speed || 1.0;
-                const currentVelocity = currentShipState.currentVelocity || 0;
-                const velocityPercent = Math.min((currentVelocity / maxSpeed) * 100, 100);
+                // Calculate current velocity based on travel phase
+                const maxSpeedAUPerSec = 2;
+                let currentVelocity = 0;
+                
+                if (activeTravel) {
+                  const accelerationTime = activeTravel.accelerationTime || 2.0;
+                  const now = getUniverseTime().getTime();
+                  const elapsed = now - activeTravel.startTime;
+                  
+                  const accelerationDistance = maxSpeedAUPerSec * accelerationTime * 0.5;
+                  const decelerationDistance = accelerationDistance;
+                  const cruiseDistance = Math.max(0, activeTravel.distance - accelerationDistance - decelerationDistance);
+                  const cruiseDuration = cruiseDistance / maxSpeedAUPerSec;
+                  const totalTime = accelerationTime + cruiseDuration + accelerationTime;
+                  
+                  if (elapsed < accelerationTime) {
+                    // Accelerating: v(t) = (maxSpeed / accelTime) * t
+                    currentVelocity = (maxSpeedAUPerSec / accelerationTime) * elapsed;
+                  } else if (elapsed < accelerationTime + cruiseDuration) {
+                    // Cruising at max speed
+                    currentVelocity = maxSpeedAUPerSec;
+                  } else if (elapsed < totalTime) {
+                    // Decelerating: v(t) = maxSpeed - (maxSpeed / accelTime) * (t - cruiseEndTime)
+                    const decelElapsed = elapsed - accelerationTime - cruiseDuration;
+                    currentVelocity = maxSpeedAUPerSec - (maxSpeedAUPerSec / accelerationTime) * decelElapsed;
+                  } else {
+                    currentVelocity = 0;
+                  }
+                }
+                
+                const velocityPercent = Math.min((currentVelocity / maxSpeedAUPerSec) * 100, 100);
                 
                 // Determine if ship is actively traveling
                 const isTraveling = !!activeTravel;
@@ -2452,7 +2540,10 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                 const shipRadius = shipSize / 2;
                 
                 // Engine flicker animation (only when traveling) - use universe time
-                const enginePulse = isTraveling ? Math.sin(getUniverseTime().getTime() * 20) * 0.3 + 0.7 : 0;
+                // Base pulse (0.7-1.0) scaled by velocity percentage
+                const basePulse = Math.sin(getUniverseTime().getTime() * 20) * 0.3 + 0.7;
+                const velocityScale = velocityPercent / 100; // 0 to 1
+                const enginePulse = isTraveling ? basePulse * velocityScale : 0;
                 
                 const shipMarker = showShip ? (
                   <div
@@ -2798,32 +2889,52 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                       height: `${sunSize}px`,
                       transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out, width 0.3s ease-out, height 0.3s ease-out' : 'width 0.3s ease-out, height 0.3s ease-out'
                     }}
-                    onClick={() => { setSelectedPOI('SUN'); setLockedSelection(true); }}
+                    onClick={() => { setSelectedPOI('SUN'); }}
                   >
                     <div className="poi-tooltip">SUN ({system.star.class}-TYPE)</div>
                   </div>
                 );
-                // Get scanned parents first, filtered by visibility settings
-                const parents = [
-                  ...system.orbits.map(o => ({ ...o.parent, distanceAU: o.distanceAU, angleRad: o.angleRad, orbitIndex: o.index })),
-                  ...(system.extras || []).map(e => ({ ...e.parent, distanceAU: e.distanceAU, angleRad: e.angleRad, orbitIndex: -1 })),
-                ].filter(p => {
+                // Get all POIs (flattened from parent + orbitals structure)
+                const allPOIs = flattenPOIs(system);
+                
+                // Separate parent POIs from orbital children
+                const parentPOIs = allPOIs.filter(p => {
                   if (!scanProgress.includes(p.id)) return false;
+                  // Only show parent POIs (no parentId) initially
+                  if (p.parentId) return false;
                   // Apply visibility filters
                   if (p.type === 'planet' && !showPlanets) return false;
-                  if (p.type === 'moon' && !showMoons) return false;
                   if (p.type === 'belt' && !showAsteroidClusters) return false;
-                  if (p.type === 'orbital' && !showOrbitals) return false;
                   if (p.type === 'anomaly' && !showAnomalies) return false;
                   if (p.type === 'habitat' && !showHabitats) return false;
                   if (p.type === 'conflict' && !showConflicts) return false;
                   return true;
                 });
                 
+                // Build parent-child groups
+                const parents = parentPOIs.map(p => {
+                  // Find scanned children for this parent
+                  // Children can be: moon, station, distress, or any POI with parentId matching this parent
+                  const scannedChildren = allPOIs.filter(child => 
+                    child.parentId === p.id && 
+                    scanProgress.includes(child.id)
+                  );
+                  return { parent: p, children: scannedChildren };
+                });
+                
+                // Create flat list of all visible POIs for lookups (used by markers_old and highlights)
+                const allVisiblePOIs = parents.flatMap(g => {
+                  const pois = [g.parent];
+                  if (expandedPOIs.has(g.parent.id)) {
+                    pois.push(...g.children);
+                  }
+                  return pois;
+                });
+                
                 // Orbits as rings - show only if planets are visible and scanned
-                const planetDistances = showPlanets ? system.orbits
-                  .filter(o => o.parent.type === 'planet' && scanProgress.includes(o.parent.id))
-                  .map(o => o.distanceAU) : [];
+                const planetDistances = showPlanets ? system.pois
+                  .filter(p => p.type === 'planet' && scanProgress.includes(p.id))
+                  .map(p => p.distanceAU) : [];
                 const rings = planetDistances.map((distAU, idx) => {
                   const r = (distAU / system.heliosphere.radiusAU) * 0.92 * zoom; // radius in viewport units (0-1)
                   const diameterPx = r * 2 * canvasDimensions.minDim; // convert to pixels using min dimension
@@ -2920,42 +3031,63 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                   switch(type.toLowerCase()) {
                     case 'planet':
                       return <svg width={size} height={size} viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.6"/></svg>;
+                    
+                    case 'moon':
+                      return <svg width={size} height={size} viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2"/><circle cx="8" cy="8" r="2" fill="currentColor" opacity="0.4"/><circle cx="15" cy="10" r="1.5" fill="currentColor" opacity="0.3"/><circle cx="10" cy="14" r="1.2" fill="currentColor" opacity="0.35"/></svg>;
+                    
                     case 'belt':
                       return <svg width={size} height={size} viewBox="0 0 24 24"><circle cx="8" cy="8" r="2" fill="currentColor"/><circle cx="16" cy="10" r="1.5" fill="currentColor"/><circle cx="12" cy="16" r="2.5" fill="currentColor"/><circle cx="18" cy="16" r="1" fill="currentColor"/></svg>;
+                    
                     case 'orbital':
-                      return <svg width={size} height={size} viewBox="0 0 24 24"><rect x="8" y="4" width="8" height="16" fill="none" stroke="currentColor" strokeWidth="2"/><line x1="6" y1="12" x2="18" y2="12" stroke="currentColor" strokeWidth="2"/></svg>;
+                    case 'station':
+                      return <svg width={size} height={size} viewBox="0 0 24 24"><rect x="7" y="6" width="10" height="12" rx="1" fill="none" stroke="currentColor" strokeWidth="2"/><line x1="7" y1="10" x2="17" y2="10" stroke="currentColor" strokeWidth="1.5"/><line x1="7" y1="14" x2="17" y2="14" stroke="currentColor" strokeWidth="1.5"/><circle cx="4" cy="12" r="1.5" fill="currentColor"/><circle cx="20" cy="12" r="1.5" fill="currentColor"/></svg>;
+                    
                     case 'habitat':
-                      return <svg width={size} height={size} viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2"/><path d="M 12 4 L 12 20 M 4 12 L 20 12" stroke="currentColor" strokeWidth="1"/></svg>;
+                      return <svg width={size} height={size} viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="6" rx="3" fill="none" stroke="currentColor" strokeWidth="2"/><line x1="8" y1="9" x2="8" y2="15" stroke="currentColor" strokeWidth="1" opacity="0.6"/><line x1="12" y1="9" x2="12" y2="15" stroke="currentColor" strokeWidth="1" opacity="0.6"/><line x1="16" y1="9" x2="16" y2="15" stroke="currentColor" strokeWidth="1" opacity="0.6"/></svg>;
+                    
                     case 'anomaly':
-                      return <svg width={size} height={size} viewBox="0 0 24 24"><path d="M 12 2 L 16 10 L 24 12 L 16 14 L 12 22 L 8 14 L 0 12 L 8 10 Z" fill="none" stroke="currentColor" strokeWidth="2"/></svg>;
+                      return <svg width={size} height={size} viewBox="0 0 24 24"><path d="M 12 3 L 15 9 L 21 10 L 16 15 L 17 21 L 12 18 L 7 21 L 8 15 L 3 10 L 9 9 Z" fill="none" stroke="currentColor" strokeWidth="1.5"/><circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.3"/></svg>;
+                    
+                    case 'facility':
+                      return <svg width={size} height={size} viewBox="0 0 24 24"><path d="M 6 20 L 6 10 L 12 6 L 18 10 L 18 20 Z" fill="none" stroke="currentColor" strokeWidth="2"/><rect x="10" y="14" width="4" height="6" fill="currentColor" opacity="0.3"/><line x1="9" y1="11" x2="15" y2="11" stroke="currentColor" strokeWidth="1"/></svg>;
+                    
+                    case 'nebula':
+                      return <svg width={size} height={size} viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="6" fill="currentColor" opacity="0.15"/><path d="M 6 12 Q 9 8 12 12 T 18 12" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.6"/><path d="M 7 10 Q 10 14 13 10 T 17 14" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.4"/></svg>;
+                    
+                    case 'conflict':
+                      return <svg width={size} height={size} viewBox="0 0 24 24"><path d="M 4 12 L 8 8 L 8 11 L 16 11 L 16 8 L 20 12 L 16 16 L 16 13 L 8 13 L 8 16 Z" fill="currentColor" opacity="0.6"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>;
+                    
+                    case 'wake':
+                      return <svg width={size} height={size} viewBox="0 0 24 24"><path d="M 4 12 L 10 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M 8 8 L 14 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/><path d="M 8 16 L 14 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/><path d="M 12 5 L 18 5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.5"/><path d="M 12 19 L 18 19" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.5"/></svg>;
+                    
+                    case 'distress':
+                      return <svg width={size} height={size} viewBox="0 0 24 24"><path d="M 12 4 L 13 13 L 12 13 L 11 13 Z" fill="currentColor"/><circle cx="12" cy="17" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="2,2"/></svg>;
+                    
                     default:
                       return <svg width={size} height={size} viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg>;
                   }
                 };
                 
                 const poiSize = getResponsivePOISize(zoom);
-                const iconSize = poiSize * 0.5; // Icon always 50% of POI size (no separate limits)
+                const iconSize = poiSize * 0.5; // Icon always 50% of POI size
+                const orbitalSize = poiSize * 0.75; // Orbitals are 75% of parent size
+                const orbitalIconSize = orbitalSize * 0.5;
                 
-                // Separate parent and child POIs
-                const parentPOIs = parents.filter(p => 
-                  p.type !== 'orbital' && p.type !== 'moon'
-                );
-                const childPOIs = parents.filter(p => 
-                  p.type === 'orbital' || p.type === 'moon'
-                );
+                // Use the parent-children groups from filtering above
+                const poiGroups = parents;
                 
-                // Apply collision prevention to parent POIs
-                const applyCollisionPrevention = (pois) => {
-                  const minSeparation = poiSize * 2; // Minimum separation in pixels
+                // Apply collision prevention to POI groups (position based on parent)
+                const applyCollisionPrevention = (groups) => {
+                  const minSeparation = poiSize * 2.5; // Minimum separation in pixels
                   const positioned = [];
                   
-                  pois.forEach((poi, idx) => {
-                    let xy = toXY(poi.distanceAU, poi.angleRad);
+                  groups.forEach((group, idx) => {
+                    let xy = toXY(group.parent.distanceAU, group.parent.angleRad);
                     let adjusted = { ...xy };
                     let attempts = 0;
                     const maxAttempts = 50;
                     
-                    // Check collision with already positioned POIs
+                    // Check collision with already positioned groups
                     while (attempts < maxAttempts) {
                       const collision = positioned.some(other => {
                         const dx = parseFloat(adjusted.left) - parseFloat(other.xy.left);
@@ -2976,40 +3108,18 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                       attempts++;
                     }
                     
-                    positioned.push({ poi, xy: adjusted });
+                    positioned.push({ group, xy: adjusted });
                   });
                   
                   return positioned;
                 };
                 
-                const positionedParents = applyCollisionPrevention(parentPOIs);
-                
-                // Position child POIs next to their parents
-                const positionedChildren = childPOIs.map(child => {
-                  const parentPOI = positionedParents.find(p => p.poi.id === child.anchorId);
-                  
-                  if (!parentPOI) {
-                    // No parent found, use original position
-                    return { poi: child, xy: toXY(child.distanceAU, child.angleRad) };
-                  }
-                  
-                  // Position child beside parent (offset to the right)
-                  const parentLeft = parseFloat(parentPOI.xy.left);
-                  const parentTop = parseFloat(parentPOI.xy.top);
-                  const offsetX = (poiSize * 1.2) / window.innerWidth * 100; // 120% of POI size in percentage
-                  
-                  return {
-                    poi: child,
-                    xy: {
-                      left: `${parentLeft + offsetX}%`,
-                      top: `${parentTop}%`
-                    }
-                  };
-                });
-                
-                const allPositionedPOIs = [...positionedParents, ...positionedChildren];
+                const positionedGroups = applyCollisionPrevention(poiGroups);
 
-                const markers = allPositionedPOIs.map(({ poi: p, xy }) => {
+                const markers = positionedGroups.flatMap(({ group, xy }) => {
+                  const p = group.parent;
+                  const groupMarkers = [];
+                  
                   // Overlap handling: offset POI slightly if overlapping ship position
                   const shipDist = Math.sqrt(Math.pow(p.distanceAU * Math.cos(p.angleRad) - shipPosition.x, 2) + Math.pow(p.distanceAU * Math.sin(p.angleRad) - shipPosition.y, 2));
                   let overlapTransform = '';
@@ -3017,62 +3127,57 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                     const offsetPx = 14; // outward offset in px
                     overlapTransform = `translate(${Math.cos(p.angleRad)*offsetPx}px, ${Math.sin(p.angleRad)*offsetPx}px)`;
                   }
-                  return (
-                  <div
-                    key={p.id}
-                    style={{
-                      ...xy,
-                      position: 'absolute',
-                      transform: `translate(-50%, -50%) ${overlapTransform}`,
-                      transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none',
-                      cursor: 'pointer'
-                    }}
-                    onMouseEnter={() => { if (!lockedSelection && !contextualMenu) setSelectedPOI(p.id); }}
-                    onMouseLeave={() => { if (!lockedSelection && !contextualMenu) setSelectedPOI(null); }}
-                    onClick={(e) => { 
-                      e.stopPropagation();
-                      openContextualMenu(p.id, 'poi');
-                    }}
-                  >
-                    {/* Holographic circle */}
+                  
+                  // Render parent POI and orbitals in a container
+                  const renderPOICircle = (poi, size, iconSz, xOffset = 0) => (
                     <div style={{
-                      width: `${poiSize}px`,
-                      height: `${poiSize}px`,
-                      borderRadius: '50%',
-                      border: `2px solid ${selectedPOI === p.id ? '#34e0ff' : shipState.getState().visitedPOIs?.includes(p.id) ? 'rgba(52, 224, 255, 0.9)' : 'rgba(26, 95, 127, 0.7)'}`,
-                      background: selectedPOI === p.id 
-                        ? 'radial-gradient(circle, rgba(52, 224, 255, 0.3) 0%, rgba(52, 224, 255, 0.1) 50%, transparent 100%)'
-                        : shipState.getState().visitedPOIs?.includes(p.id)
-                          ? 'radial-gradient(circle, rgba(52, 224, 255, 0.15) 0%, rgba(52, 224, 255, 0.05) 50%, transparent 100%)'
-                          : 'radial-gradient(circle, rgba(26, 95, 127, 0.08) 0%, rgba(26, 95, 127, 0.03) 50%, transparent 100%)',
-                      boxShadow: selectedPOI === p.id 
-                        ? '0 0 20px rgba(52, 224, 255, 0.8), inset 0 0 10px rgba(52, 224, 255, 0.3)'
-                        : shipState.getState().visitedPOIs?.includes(p.id)
-                          ? '0 0 10px rgba(52, 224, 255, 0.4)'
-                          : '0 0 5px rgba(26, 95, 127, 0.3)',
+                      position: 'relative',
+                      width: `${size}px`,
+                      height: `${size}px`,
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      color: shipState.getState().visitedPOIs?.includes(p.id) ? '#34e0ff' : 'rgba(26, 95, 127, 0.8)',
-                      position: 'relative',
-                      transition: 'all 0.3s ease',
-                      opacity: shipState.getState().visitedPOIs?.includes(p.id) ? 1 : 0.6,
-                      overflow: 'visible'
+                      justifyContent: 'center'
                     }}>
-                      {/* Scanning progress pie chart fill on main POI circle */}
+                      {/* Static holographic circle - always visible (hidden when names show at zoom >= 1.5) */}
+                      {!(showPOINames && zoom >= 1.5) && (
+                      <div style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        width: `${size}px`,
+                        height: `${size}px`,
+                        borderRadius: '50%',
+                        border: `2px solid ${shipState.getState().visitedPOIs?.includes(poi.id) ? 'rgba(52, 224, 255, 0.9)' : 'rgba(26, 95, 127, 0.7)'}`,
+                        background: selectedPOI === poi.id
+                          ? 'radial-gradient(circle, rgba(52, 224, 255, 0.25) 0%, rgba(52, 224, 255, 0.15) 50%, rgba(52, 224, 255, 0.05) 100%)'
+                          : shipState.getState().visitedPOIs?.includes(poi.id)
+                          ? 'radial-gradient(circle, rgba(52, 224, 255, 0.15) 0%, rgba(52, 224, 255, 0.05) 50%, transparent 100%)'
+                          : 'radial-gradient(circle, rgba(26, 95, 127, 0.08) 0%, rgba(26, 95, 127, 0.03) 50%, transparent 100%)',
+                        boxShadow: shipState.getState().visitedPOIs?.includes(poi.id)
+                          ? '0 0 10px rgba(52, 224, 255, 0.4)'
+                          : '0 0 5px rgba(26, 95, 127, 0.3)',
+                        zIndex: 8,
+                        pointerEvents: 'none'
+                      }} />
+                      )}
+                      
+                      {/* Scanning/Mining progress indicators */}
                       {(() => {
-                        const isScanning = scanningInProgress?.poiId === p.id;
+                        const isScanning = scanningInProgress?.poiId === poi.id;
                         if (!isScanning) return null;
                         
-                        // PULL progress: calculate from elapsed universe time
                         const now = getUniverseTime().getTime();
                         const elapsed = now - scanningInProgress.startTime;
-                        const progress = Math.min((elapsed / 3.0) * 100, 100); // 3 second scan duration
+                        const progress = Math.min((elapsed / 3.0) * 100, 100);
                         
                         return (
                           <div style={{
                             position: 'absolute',
-                            inset: 0,
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: `${size}px`,
+                            height: `${size}px`,
                             borderRadius: '50%',
                             background: `conic-gradient(
                               rgba(52, 224, 255, 0.6) 0deg,
@@ -3080,17 +3185,15 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                               transparent ${progress * 3.6}deg,
                               transparent 360deg
                             )`,
-                            zIndex: 0
+                            zIndex: 9
                           }} />
                         );
                       })()}
                       
-                      {/* Mining progress pie chart fill on main POI circle */}
                       {(() => {
-                        const isMining = miningInProgress?.poiId === p.id;
+                        const isMining = miningInProgress?.poiId === poi.id;
                         if (!isMining) return null;
                         
-                        // PULL progress: calculate from elapsed universe time
                         const now = getUniverseTime().getTime();
                         const elapsed = now - miningInProgress.startTime;
                         const progress = Math.min((elapsed / miningInProgress.duration) * 100, 100);
@@ -3098,7 +3201,11 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                         return (
                           <div style={{
                             position: 'absolute',
-                            inset: 0,
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: `${size}px`,
+                            height: `${size}px`,
                             borderRadius: '50%',
                             background: `conic-gradient(
                               rgba(255, 200, 100, 0.6) 0deg,
@@ -3106,14 +3213,291 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                               transparent ${progress * 3.6}deg,
                               transparent 360deg
                             )`,
-                            zIndex: 0
+                            zIndex: 9
                           }} />
                         );
                       })()}
                       
-                      <span style={{ position: 'relative', zIndex: 1, fontSize: `${iconSize}px`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {getPOIIcon(p.type)}
+                      {/* POI Icon */}
+                      <span style={{ 
+                        position: 'relative', 
+                        zIndex: 10, 
+                        fontSize: `${iconSz}px`, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        color: shipState.getState().visitedPOIs?.includes(poi.id) ? '#34e0ff' : 'rgba(52, 224, 255, 0.7)'
+                      }}>
+                        {getPOIIcon(poi.type)}
                       </span>
+                    </div>
+                  );
+                  
+                  const isExpanded = expandedPOIs.has(p.id);
+                  const hasChildren = group.children.length > 0;
+                  
+                  // Main container for parent + children (children positioned absolutely below parent)
+                  groupMarkers.push(
+                    <div
+                      key={p.id}
+                      style={{
+                        ...xy,
+                        position: 'absolute',
+                        transform: `translate(-50%, -50%) ${overlapTransform}`,
+                        transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none',
+                        cursor: 'pointer'
+                      }}
+                      onMouseEnter={() => { setHoveredPOI(p.id); }}
+                      onMouseLeave={() => { setHoveredPOI(null); }}
+                      onClick={(e) => { 
+                        e.stopPropagation();
+                        
+                        // If clicking same parent again
+                        if (selectedPOI === p.id) {
+                          // Close child menu and deselect child
+                          setSelectedChildPOI(null);
+                          setChildContextualMenu(null);
+                          
+                          // Toggle expansion if has children
+                          if (hasChildren) {
+                            setExpandedPOIs(prev => {
+                              const next = new Set(prev);
+                              if (next.has(p.id)) {
+                                next.delete(p.id);
+                              } else {
+                                next.add(p.id);
+                              }
+                              return next;
+                            });
+                          }
+                        } else {
+                          // New parent selected - clear all previous states
+                          setSelectedPOI(p.id);
+                          setSelectedChildPOI(null);
+                          setChildContextualMenu(null);
+                          setExpandedPOIs(new Set()); // Close all expanded POIs
+                          openContextualMenu(p.id, 'poi');
+                          
+                          // If this POI has children, expand it
+                          if (hasChildren) {
+                            setExpandedPOIs(new Set([p.id]));
+                          }
+                        }
+                      }}
+                      onContextMenu={(e) => {
+                        // Right-click always opens menu, even if has children
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openContextualMenu(p.id, 'poi');
+                      }}
+                    >
+                      {/* Parent POI - anchored at exact position */}
+                      <div style={{ position: 'relative' }}>
+                        {renderPOICircle(p, poiSize, iconSize, 0)}
+                        
+                        {/* POI Name - below the icon (only visible at 150% zoom or higher) */}
+                        {showPOINames && zoom >= 1.5 && (
+                          <div style={{
+                            position: 'absolute',
+                            top: `${poiSize / 2 + 16}px`,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            whiteSpace: 'nowrap',
+                            fontSize: `${Math.max(9, Math.min(12, poiSize * 0.13))}px`,
+                            color: '#34e0ff',
+                            textShadow: '0 0 4px rgba(52, 224, 255, 0.8)',
+                            pointerEvents: 'none',
+                            zIndex: 100
+                          }}>
+                            {p.name}
+                          </div>
+                        )}
+                        
+                        {/* Child indicator dots (shown when NOT expanded and has children) */}
+                        {!isExpanded && hasChildren && (
+                          <div style={{
+                            position: 'absolute',
+                            bottom: `${-8}px`,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            display: 'flex',
+                            gap: '4px',
+                            pointerEvents: 'none'
+                          }}>
+                            {(() => {
+                              // Get unique child types
+                              const uniqueTypes = [...new Set(group.children.map(child => child.type))];
+                              const dotColor = 'rgba(52, 224, 255, 0.9)'; // Holographic cyan for all
+                              
+                              return uniqueTypes.map((type, idx) => (
+                                <div key={idx} style={{
+                                  width: '6px',
+                                  height: '6px',
+                                  borderRadius: '50%',
+                                  background: dotColor,
+                                  boxShadow: `0 0 4px ${dotColor}`
+                                }} />
+                              ));
+                            })()}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Orbital POIs Menu - contextual menu style sliding from under parent */}
+                      {isExpanded && group.children.length > 0 && (() => {
+                        const menuWidth = poiSize * 1.2; // Match highlightSelectedCircle width (poiSize * 1.2)
+                        const itemHeight = Math.max(36, poiSize * 0.7); // Smaller item height
+                        const notchRadius = poiSize / 2; // Match parent circle radius exactly
+                        const contentStartY = notchRadius + itemHeight; // Start content 1 button height below the top
+                        const menuHeight = contentStartY + (group.children.length * itemHeight) + (group.children.length - 1) * 6 + 10; // Total height including curve space + items + 10px extra
+                        const startY = poiSize / 2 - (itemHeight * 0.75); // Drop down by removing the -8 offset
+                        
+                        return (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: `${startY}px`,
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              width: `${menuWidth}px`,
+                              height: `${menuHeight + 12}px`, // Total container height
+                              pointerEvents: 'auto',
+                              zIndex: 20000
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {/* SVG with concave top cutout */}
+                            <svg
+                              style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                pointerEvents: 'none'
+                              }}
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <defs>
+                                <filter id="glow">
+                                  <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                  <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                  </feMerge>
+                                </filter>
+                              </defs>
+                              <path
+                                d={`
+                                  M 0,${notchRadius}
+                                  A ${notchRadius},${notchRadius} 0 0 0 ${menuWidth},${notchRadius}
+                                  L ${menuWidth},${menuHeight}
+                                  Q ${menuWidth},${menuHeight + 6} ${menuWidth - 6},${menuHeight + 6}
+                                  L 6,${menuHeight + 6}
+                                  Q 0,${menuHeight + 6} 0,${menuHeight}
+                                  Z
+                                `}
+                                fill="rgba(0, 15, 25, 0.9)"
+                                stroke="rgba(52, 224, 255, 0.6)"
+                                strokeWidth="2"
+                                filter="url(#glow)"
+                              />
+                            </svg>
+                            
+                            {/* Menu content container */}
+                            <div style={{
+                              position: 'absolute',
+                              top: `${contentStartY}px`,
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              width: '100%',
+                              padding: '8px 6px',
+                              opacity: 0,
+                              animation: 'slideDown 0.2s ease-out forwards'
+                            }}>
+                              {/* Child POI Items */}
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                {group.children.map((orbital, idx) => {
+                                const isHovered = hoveredChildPOI === orbital.id;
+                                const isSelected = selectedChildPOI === orbital.id;
+                                const childIconSize = Math.max(20, poiSize * 0.35); // Smaller icon size
+                                
+                                return (
+                                  <div
+                                    key={orbital.id}
+                                    title={`${orbital.type.toUpperCase()} • ${orbital.name}`}
+                                    style={{
+                                      height: `${itemHeight}px`,
+                                      padding: '4px',
+                                      background: isSelected
+                                        ? 'rgba(52, 224, 255, 0.35)'
+                                        : isHovered 
+                                        ? 'rgba(52, 224, 255, 0.25)' 
+                                        : 'rgba(52, 224, 255, 0.08)',
+                                      border: `1px solid ${isSelected || isHovered
+                                        ? 'rgba(52, 224, 255, 0.9)' 
+                                        : 'rgba(52, 224, 255, 0.3)'}`,
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.15s',
+                                      boxShadow: isSelected
+                                        ? '0 0 16px rgba(52, 224, 255, 0.8), inset 0 0 10px rgba(52, 224, 255, 0.3)'
+                                        : isHovered 
+                                        ? '0 0 12px rgba(52, 224, 255, 0.6)' 
+                                        : 'none',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      gap: '2px',
+                                      position: 'relative'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.stopPropagation();
+                                      setHoveredChildPOI(orbital.id);
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.stopPropagation();
+                                      setHoveredChildPOI(null);
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedChildPOI(orbital.id);
+                                      setChildContextualMenu({ targetId: orbital.id, targetType: 'poi' });
+                                      // Parent stays selected and expanded
+                                    }}
+                                  >
+                                    {/* Icon only - no circle */}
+                                    <div style={{
+                                      color: '#34e0ff',
+                                      filter: isHovered ? 'drop-shadow(0 0 8px rgba(52, 224, 255, 0.8))' : 'none',
+                                      transform: `scale(${childIconSize / 24})`,
+                                      transformOrigin: 'center'
+                                    }}>
+                                      {getPOIIcon(orbital.type)}
+                                    </div>
+                                    
+                                    {/* Orbital Name */}
+                                    <div style={{
+                                      fontSize: `${Math.max(7, poiSize * 0.11)}px`,
+                                      color: '#34e0ff',
+                                      textAlign: 'center',
+                                      whiteSpace: 'nowrap',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      width: '90%',
+                                      textShadow: isHovered ? '0 0 6px rgba(52, 224, 255, 0.8)' : 'none'
+                                    }}>
+                                      {orbital.name}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
                       
                       {/* Belt cluster asteroid count - text only at 12 o'clock */}
                       {p.type === 'belt' && (() => {
@@ -3171,105 +3555,91 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                           </svg>
                         );
                       })()}
-                    </div>
-                    {showPOINames && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '100%',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        whiteSpace: 'nowrap',
-                        fontSize: '9px',
-                        color: '#34e0ff',
-                        textShadow: '0 0 4px rgba(52, 224, 255, 0.8)',
-                        marginTop: '4px',
-                        pointerEvents: 'none'
-                      }}>
-                        {p.name}
-                      </div>
-                    )}
-                    
-                    {/* Scan failure notification bubble */}
-                    {scanFailureNotification?.poiId === p.id && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '-120px',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        width: '280px',
-                        padding: '12px 16px',
-                        background: 'linear-gradient(135deg, rgba(20, 0, 0, 0.95), rgba(40, 10, 0, 0.95))',
-                        border: '2px solid rgba(255, 80, 80, 0.8)',
-                        borderRadius: '8px',
-                        boxShadow: '0 0 20px rgba(255, 80, 80, 0.6), inset 0 0 10px rgba(255, 80, 80, 0.2)',
-                        animation: 'slideDown 0.3s ease-out',
-                        zIndex: 1000
-                      }}>
-                        {/* Speech bubble arrow */}
+                      
+                      {/* Scan failure notification bubble */}
+                      {scanFailureNotification?.poiId === p.id && (
                         <div style={{
                           position: 'absolute',
-                          bottom: '-10px',
+                          top: '-120px',
                           left: '50%',
                           transform: 'translateX(-50%)',
-                          width: 0,
-                          height: 0,
-                          borderLeft: '10px solid transparent',
-                          borderRight: '10px solid transparent',
-                          borderTop: '10px solid rgba(255, 80, 80, 0.8)'
-                        }} />
-                        
-                        <div style={{
-                          fontSize: '11px',
-                          color: '#ff9999',
-                          fontWeight: '600',
-                          marginBottom: '8px',
-                          letterSpacing: '0.5px'
+                          width: '280px',
+                          padding: '12px 16px',
+                          background: 'linear-gradient(135deg, rgba(20, 0, 0, 0.95), rgba(40, 10, 0, 0.95))',
+                          border: '2px solid rgba(255, 80, 80, 0.8)',
+                          borderRadius: '8px',
+                          boxShadow: '0 0 20px rgba(255, 80, 80, 0.6), inset 0 0 10px rgba(255, 80, 80, 0.2)',
+                          animation: 'slideDown 0.3s ease-out',
+                          zIndex: 1000
                         }}>
-                          [ROLL {scanFailureNotification.roll}] SCAN FAILED
-                        </div>
-                        
-                        <div style={{
-                          fontSize: '10px',
-                          color: '#ffcccc',
-                          lineHeight: '1.5',
-                          marginBottom: '10px'
-                        }}>
-                          {scanFailureNotification.message}
-                        </div>
-                        
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setScanFailureNotification(null);
-                          }}
-                          style={{
-                            width: '100%',
-                            padding: '6px',
-                            background: 'rgba(255, 80, 80, 0.3)',
-                            border: '1px solid rgba(255, 80, 80, 0.6)',
-                            borderRadius: '4px',
+                          {/* Speech bubble arrow */}
+                          <div style={{
+                            position: 'absolute',
+                            bottom: '-10px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            width: 0,
+                            height: 0,
+                            borderLeft: '10px solid transparent',
+                            borderRight: '10px solid transparent',
+                            borderTop: '10px solid rgba(255, 80, 80, 0.8)'
+                          }} />
+                          
+                          <div style={{
+                            fontSize: '11px',
                             color: '#ff9999',
-                            fontSize: '9px',
                             fontWeight: '600',
-                            cursor: 'pointer',
-                            letterSpacing: '1px',
-                            transition: 'all 0.2s'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.background = 'rgba(255, 80, 80, 0.5)';
-                            e.target.style.borderColor = 'rgba(255, 80, 80, 0.9)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.background = 'rgba(255, 80, 80, 0.3)';
-                            e.target.style.borderColor = 'rgba(255, 80, 80, 0.6)';
-                          }}
-                        >
-                          OK
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );});
+                            marginBottom: '8px',
+                            letterSpacing: '0.5px'
+                          }}>
+                            [ROLL {scanFailureNotification.roll}] SCAN FAILED
+                          </div>
+                          
+                          <div style={{
+                            fontSize: '10px',
+                            color: '#ffcccc',
+                            lineHeight: '1.5',
+                            marginBottom: '10px'
+                          }}>
+                            {scanFailureNotification.message}
+                          </div>
+                          
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setScanFailureNotification(null);
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '6px',
+                              background: 'rgba(255, 80, 80, 0.3)',
+                              border: '1px solid rgba(255, 80, 80, 0.6)',
+                              borderRadius: '4px',
+                              color: '#ff9999',
+                              fontSize: '9px',
+                              fontWeight: '600',
+                              cursor: 'pointer',
+                              letterSpacing: '1px',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.background = 'rgba(255, 80, 80, 0.5)';
+                              e.target.style.borderColor = 'rgba(255, 80, 80, 0.9)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.background = 'rgba(255, 80, 80, 0.3)';
+                              e.target.style.borderColor = 'rgba(255, 80, 80, 0.6)';
+                            }}
+                          >
+                            OK
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                  
+                  return groupMarkers;
+                });
                 
                 // Dropped navigation pins - holographic circle design
                 const pinMarkers = droppedPins.map(pin => (
@@ -3283,17 +3653,16 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                       cursor: 'pointer'
                     }}
                     onMouseEnter={() => { 
-                      if (!lockedSelection) setSelectedPOI(pin.id);
+                      setHoveredPOI(pin.id);
                       setHoveredPin(pin.id);
                     }}
                     onMouseLeave={() => { 
-                      if (!lockedSelection) setSelectedPOI(null);
+                      setHoveredPOI(null);
                       setHoveredPin(null);
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedPOI(pin.id);
-                      setLockedSelection(true);
                     }}
                   >
                     {/* Holographic circle */}
@@ -3444,7 +3813,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                   </>
                 ) : null;
                 
-                const markers_old = parents.map(p => (
+                const markers_old = allVisiblePOIs.map(p => (
                   <div
                     key={p.id}
                     className={`map-poi ${p.type} ${shapeForType(p.type)} ${selectedPOI === p.id ? 'selected' : ''}`}
@@ -3452,26 +3821,49 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                       ...toXY(p.distanceAU, p.angleRad),
                       transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none'
                     }}
-                    onMouseEnter={() => { if (!lockedSelection) setSelectedPOI(p.id); }}
-                    onMouseLeave={() => { if (!lockedSelection) setSelectedPOI(null); }}
-                    onClick={() => { setSelectedPOI(p.id); setLockedSelection(true); }}
+                    onMouseEnter={() => { setHoveredPOI(p.id); }}
+                    onMouseLeave={() => { setHoveredPOI(null); }}
+                    onClick={() => { setSelectedPOI(p.id); }}
                   >
                     <div className="poi-tooltip">{p.name} — {p.distanceAU.toFixed(2)} AU</div>
                   </div>
                 ));
-                // Highlight circle for selected POI or pin
-                const highlightCircle = selectedPOI && selectedPOI !== 'SUN' ? (() => {
-                  let poi = parents.find(p => p.id === selectedPOI);
-                  if (!poi) poi = droppedPins.find(p => p.id === selectedPOI);
+                // Highlight circle for hovered POI (only if not selected)
+                const highlightHoverCircle = hoveredPOI && hoveredPOI !== 'SUN' && hoveredPOI !== selectedPOI ? (() => {
+                  let poi = allVisiblePOIs.find(p => p.id === hoveredPOI);
+                  if (!poi) poi = droppedPins.find(p => p.id === hoveredPOI);
                   if (!poi) return null;
                   const pos = toXY(poi.distanceAU, poi.angleRad);
+                  const highlightSize = poiSize * 1.5;
                   return (
                     <div
                       className="poi-highlight-circle"
                       style={{
                         left: pos.left,
                         top: pos.top,
-                        transform: 'translate(-50%, -50%)',
+                        width: `${highlightSize}px`,
+                        height: `${highlightSize}px`,
+                        transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none'
+                      }}
+                    />
+                  );
+                })() : null;
+                
+                // Highlight circle for selected POI or pin (static, bright)
+                const highlightSelectedCircle = selectedPOI && selectedPOI !== 'SUN' ? (() => {
+                  let poi = allVisiblePOIs.find(p => p.id === selectedPOI);
+                  if (!poi) poi = droppedPins.find(p => p.id === selectedPOI);
+                  if (!poi) return null;
+                  const pos = toXY(poi.distanceAU, poi.angleRad);
+                  const highlightSize = poiSize * 1.2;
+                  return (
+                    <div
+                      className="poi-highlight-circle-selected"
+                      style={{
+                        left: pos.left,
+                        top: pos.top,
+                        width: `${highlightSize}px`,
+                        height: `${highlightSize}px`,
                         transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none'
                       }}
                     />
@@ -3480,7 +3872,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                 
                 // Off-screen indicator for selected POI or pin
                 const offScreenIndicator = selectedPOI && selectedPOI !== 'SUN' ? (() => {
-                  let poi = parents.find(p => p.id === selectedPOI);
+                  let poi = allVisiblePOIs.find(p => p.id === selectedPOI);
                   if (!poi) poi = droppedPins.find(p => p.id === selectedPOI);
                   if (!poi) return null;
                   const pos = toXY(poi.distanceAU, poi.angleRad);
@@ -3514,6 +3906,17 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                     />
                   );
                 })() : null;
+                
+                // Highlight circle for selected child POI (smaller, positioned at child in menu)
+                const highlightSelectedChildCircle = selectedChildPOI ? (() => {
+                  const childPOI = allVisiblePOIs.find(p => p.id === selectedChildPOI);
+                  if (!childPOI) return null;
+                  
+                  // Child POIs don't appear on map independently, only in menu
+                  // So we don't render a circle on the map for them
+                  return null;
+                })() : null;
+                
                 return (<>
                   <style>{`
                     @keyframes slideDown {
@@ -3647,6 +4050,29 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                         </svg>
                       </button>
                     </div>
+                    
+                    {/* Debug: Mouse Coordinates - Bottom Right */}
+                    <div style={{
+                      position: 'absolute',
+                      right: '10px',
+                      bottom: '10px',
+                      padding: '8px 12px',
+                      background: 'rgba(0, 12, 18, 0.9)',
+                      border: '1px solid rgba(52, 224, 255, 0.3)',
+                      borderRadius: '4px',
+                      fontSize: '9px',
+                      color: '#34e0ff',
+                      fontFamily: 'monospace',
+                      lineHeight: '1.4',
+                      zIndex: 100,
+                      pointerEvents: 'none'
+                    }}>
+                      <div>Mouse X: {cursorWorldPos.x.toFixed(3)} AU</div>
+                      <div>Mouse Y: {cursorWorldPos.y.toFixed(3)} AU</div>
+                      <div>Distance: {Math.sqrt(cursorWorldPos.x * cursorWorldPos.x + cursorWorldPos.y * cursorWorldPos.y).toFixed(3)} AU</div>
+                      <div>Angle: {(Math.atan2(cursorWorldPos.y, cursorWorldPos.x) * 180 / Math.PI).toFixed(1)}°</div>
+                    </div>
+                    
                     {/* Heliosphere background - faint glow distinguishing solar system from deep space */}
                     {/* Calculate actual max POI distance to size heliosphere correctly */}
                     {(() => {
@@ -3683,7 +4109,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                     {markers}
                     {pinMarkers}
                     {sequenceWaypoints}
-                    {highlightCircle}
+                    {highlightHoverCircle}
+                    {highlightSelectedCircle}
                     {offScreenIndicator}
                   </div>
                 </>);
@@ -3816,42 +4243,41 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
         const actions = getActions();
         
         return (
-          <div
-            style={{
-              position: 'fixed',
-              left: '24px',
-              top: '125px',
-              width: '60px',
-              background: 'rgba(0, 15, 25, 0.85)',
-              border: '2px solid rgba(52, 224, 255, 0.6)',
-              borderRadius: '6px',
-              padding: '8px 6px',
-              boxShadow: '0 0 25px rgba(52, 224, 255, 0.5)',
-              zIndex: 5000,
-              backdropFilter: 'blur(10px)'
-            }}
-          >
-            {/* Header with target name */}
+          <div style={{
+            position: 'fixed',
+            left: '24px',
+            top: '125px',
+            zIndex: 5000
+          }}>
+            {/* Title above the menu */}
             <div style={{
-              fontSize: '8px',
+              fontSize: '9px',
               fontWeight: 'bold',
               color: '#34e0ff',
-              marginBottom: '10px',
-              paddingBottom: '6px',
-              borderBottom: '1px solid rgba(52, 224, 255, 0.4)',
+              marginBottom: '6px',
               textAlign: 'center',
               letterSpacing: '0.5px',
               textShadow: '0 0 8px rgba(52, 224, 255, 0.8)',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
+              whiteSpace: 'nowrap'
             }}>
               {target.name}
             </div>
             
-            {/* Icon-only action buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              {actions.map((action) => (
+            {/* Menu box */}
+            <div
+              style={{
+                width: '60px',
+                background: 'rgba(0, 15, 25, 0.85)',
+                border: '2px solid rgba(52, 224, 255, 0.6)',
+                borderRadius: '6px',
+                padding: '8px 6px',
+                boxShadow: '0 0 25px rgba(52, 224, 255, 0.5)',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              {/* Icon-only action buttons */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {actions.map((action) => (
                 <div key={action.id} style={{ position: 'relative' }}>
                   <button
                     onClick={() => handleContextualAction(action.id)}
@@ -3932,10 +4358,111 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
               >
                 ✕
               </button>
+              </div>
             </div>
           </div>
         );
       })()}
+      
+      {/* Child Contextual Menu - appears below parent menu */}
+      {childContextualMenu && (() => {
+        const childPOI = pois.find(p => p.id === childContextualMenu.targetId);
+        if (!childPOI) return null;
+        
+        return (
+          <div style={{
+            position: 'fixed',
+            left: '24px',
+            top: '385px', // Position below parent menu (125px + menu height ~260px)
+            zIndex: 5000
+          }}>
+            {/* Title above the menu */}
+            <div style={{
+              fontSize: '9px',
+              fontWeight: 'bold',
+              color: '#34e0ff',
+              marginBottom: '6px',
+              textAlign: 'center',
+              letterSpacing: '0.5px',
+              textShadow: '0 0 8px rgba(52, 224, 255, 0.8)',
+              whiteSpace: 'nowrap'
+            }}>
+              {childPOI.name}
+            </div>
+            
+            {/* Menu box */}
+            <div style={{
+              width: '60px',
+              background: 'rgba(0, 15, 25, 0.85)',
+              border: '2px solid rgba(52, 224, 255, 0.6)',
+              borderRadius: '6px',
+              padding: '8px 6px',
+              boxShadow: '0 0 25px rgba(52, 224, 255, 0.5)',
+              backdropFilter: 'blur(10px)'
+            }}>
+              {/* Action buttons for child POI */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {[
+                  { id: 'moveTo', tooltip: 'Move To' },
+                  { id: 'survey', tooltip: 'Survey' }
+                ].map((action) => (
+                  <div key={action.id} style={{ position: 'relative' }}>
+                    <button
+                      onClick={() => {
+                        handleContextualAction(action.id);
+                        setChildContextualMenu(null);
+                        setSelectedChildPOI(null);
+                      }}
+                      onMouseEnter={() => setHoveredAction(action.id)}
+                      onMouseLeave={() => setHoveredAction(null)}
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        background: hoveredAction === action.id ? 'rgba(52, 224, 255, 0.25)' : 'rgba(52, 224, 255, 0.1)',
+                        border: `1px solid ${hoveredAction === action.id ? 'rgba(52, 224, 255, 0.9)' : 'rgba(52, 224, 255, 0.4)'}`,
+                        borderRadius: '4px',
+                        color: '#34e0ff',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s',
+                        boxShadow: hoveredAction === action.id ? '0 0 12px rgba(52, 224, 255, 0.6)' : 'none',
+                        fontSize: '10px'
+                      }}
+                    >
+                      {action.id === 'moveTo' ? '➤' : '◉'}
+                    </button>
+                    
+                    {hoveredAction === action.id && (
+                      <div style={{
+                        position: 'absolute',
+                        left: '70px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'rgba(0, 15, 25, 0.95)',
+                        border: '1px solid rgba(52, 224, 255, 0.7)',
+                        borderRadius: '4px',
+                        padding: '4px 8px',
+                        color: '#34e0ff',
+                        fontSize: '10px',
+                        fontWeight: '600',
+                        whiteSpace: 'nowrap',
+                        boxShadow: '0 0 15px rgba(52, 224, 255, 0.5)',
+                        zIndex: 6000,
+                        pointerEvents: 'none'
+                      }}>
+                        {action.tooltip}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+      
               {/* Actions Panel - shows when near POIs */}
         <ActionsPanel
           system={system}
