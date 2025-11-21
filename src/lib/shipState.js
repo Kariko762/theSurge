@@ -22,7 +22,10 @@ export const INITIAL_SHIP_STATE = {
   // Current Status
   currentHull: 89,        // % of max hull
   currentShields: 78,     // % of max shields
-  fuel: 84,               // % of max fuel
+  fuel: 84,               // % of max fuel (legacy, kept for compatibility)
+  fuelPellets: 1000,      // H3-Pellets (Helium-3 fuel pellets)
+  maxFuelPellets: 1200,   // Maximum H3-Pellet storage capacity
+  currentVelocity: 0,     // Current ship velocity in AU/hour
   
   // Installed Components (reference IDs from shipComponents.js)
   installedComponents: [...DEFAULT_SHIP_LOADOUT],
@@ -52,6 +55,7 @@ export const INITIAL_SHIP_STATE = {
   
   // Exploration & Scan State
   scannedPOIs: [],        // IDs of POIs revealed by scans
+  visitedPOIs: [],        // IDs of POIs that have been approached/surveyed
   visitedSystems: [],     // Seeds of visited systems
   scannedSystems: ['HOMEBASE'],  // System IDs that have been scanned (HOMEBASE pre-scanned)
   activeScan: null,       // { systemId, progress: 0-100, startTime } - currently scanning system
@@ -65,6 +69,9 @@ export const INITIAL_SHIP_STATE = {
     currentRouteIndex: 0,  // Current position in route
     routeStats: null,      // Cached stats: { totalLY, estimatedTravelTime, systems: [] }
   },
+  
+  // Asteroid Mining Registry
+  asteroidClusters: [],    // Discovered/registered clusters
   
   // Game Time
   gameTime: 0,            // Total game ticks elapsed
@@ -146,6 +153,13 @@ export class ShipStateManager {
     }
   }
 
+  // Mark POI as visited (approached or interacted)
+  visitPOI(poiId) {
+    if (!this.state.visitedPOIs.includes(poiId)) {
+      this.state.visitedPOIs.push(poiId);
+    }
+  }
+
   // Record system visit
   visitSystem(systemSeed) {
     this.state.position.system = systemSeed;
@@ -174,9 +188,26 @@ export class ShipStateManager {
     this.state.currentShields = Math.min(100, this.state.currentShields + amount);
   }
 
-  // Use fuel
+  // Use fuel (legacy percentage-based)
   consumeFuel(amount) {
     this.state.fuel = Math.max(0, this.state.fuel - amount);
+  }
+
+  // Consume H3-Pellets
+  consumePellets(amount) {
+    this.state.fuelPellets = Math.max(0, this.state.fuelPellets - amount);
+    return this.state.fuelPellets;
+  }
+
+  // Add H3-Pellets (refueling)
+  addPellets(amount) {
+    this.state.fuelPellets = Math.min(this.state.maxFuelPellets, this.state.fuelPellets + amount);
+    return this.state.fuelPellets;
+  }
+
+  // Update current velocity
+  setVelocity(velocity) {
+    this.state.currentVelocity = velocity;
   }
 
   // Add G'ejar-Vale fragment
@@ -256,6 +287,72 @@ export class ShipStateManager {
   cancelScan() {
     this.state.activeScan = null;
   }
+
+  // ========================================================================
+  // ASTEROID MINING REGISTRY
+  // ========================================================================
+
+  /**
+   * Register a newly scanned asteroid cluster
+   */
+  registerCluster(poiId, clusterData) {
+    const cluster = {
+      id: `CLUSTER_${poiId}_${Date.now()}`,
+      poiId,
+      ...clusterData,
+      lastMined: null,
+      registeredAt: this.state.gameTime
+    };
+    
+    this.state.asteroidClusters.push(cluster);
+    return cluster.id;
+  }
+
+  /**
+   * Get cluster by POI ID
+   */
+  getClusterByPOI(poiId) {
+    return this.state.asteroidClusters.find(c => c.poiId === poiId);
+  }
+
+  /**
+   * Get all registered clusters
+   */
+  getAllClusters() {
+    return [...this.state.asteroidClusters];
+  }
+
+  /**
+   * Update cluster asteroid count after mining
+   */
+  mineClusterAsteroid(clusterId) {
+    const cluster = this.state.asteroidClusters.find(c => c.id === clusterId);
+    if (cluster && cluster.currentAsteroids > 0) {
+      cluster.currentAsteroids--;
+      cluster.lastMined = this.state.gameTime;
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Recover asteroids based on time passed
+   */
+  recoverClusterAsteroids(clusterId, asteroidsRecovered) {
+    const cluster = this.state.asteroidClusters.find(c => c.id === clusterId);
+    if (cluster) {
+      cluster.currentAsteroids = Math.min(
+        cluster.maxAsteroids,
+        cluster.currentAsteroids + asteroidsRecovered
+      );
+      return cluster.currentAsteroids;
+    }
+    return 0;
+  }
+
+  // ========================================================================
+  // GENERAL STATE MANAGEMENT
+  // ========================================================================
 
   // General state update
   setState(updates) {

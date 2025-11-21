@@ -1,20 +1,212 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
 import { generateSystem, exampleSeeds, calculateTotalRisk, calculateStaticExposure, calculateWakeSignature } from '../lib/systemGenerator.js'
+import { getGameTime } from '../lib/timeAdapter.js'
 import { calculateShipAttributes, DEFAULT_SHIP_LOADOUT, DEFAULT_POWER_ALLOCATION, COMPONENTS } from '../lib/shipComponents.js'
 import { getShipState } from '../lib/shipState.js'
 import { loadGalaxy } from '../lib/galaxyLoader.js'
-import SettingsDropdown from './SettingsDropdown.jsx'
+import { getScheduler } from '../lib/scheduler.js'
+import { getUniverseTime } from '../lib/universeTime.js'
+import { TIME_SCALES } from '../lib/timeScalePresets.js'
+import GlobalSettingsMenu from './GlobalSettingsMenu.jsx'
 import ActionsPanel from './ActionsPanel.jsx'
 import TerminalModal from './TerminalModal.jsx'
-import RightPanelTabs from './RightPanelTabs.jsx'
-import { executeDREAction } from '../lib/dre/engine.js'
+import TerminalFeed from './TerminalFeed.jsx'
+import { executeDREAction, executeAsteroidScan, executeAsteroidMine, executeAsteroidRecovery } from '../lib/dre/engine.js'
+
+/**
+ * TimeControlBar - Minimal time control integrated into ship console
+ * Format: [pause icon] > >> >>> // DAY 00 | HH:MM:SS
+ */
+function TimeControlBar() {
+  const [isPaused, setIsPaused] = useState(false);
+  const [timeScale, setTimeScale] = useState(TIME_SCALES.FAST);
+  const [currentTime, setCurrentTime] = useState('');
+  const universeTime = getUniverseTime();
+  const scheduler = getScheduler();
+  const instanceId = useRef(`timebar_${Date.now()}_${Math.random()}`).current;
+  const eventType = `timebar_update_${instanceId}`;
+
+  // Initialize time scale on mount
+  useEffect(() => {
+    if (universeTime.getTimeScale() !== TIME_SCALES.FAST) {
+      universeTime.setTimeScale(TIME_SCALES.FAST);
+    }
+  }, []);
+
+  // Update time display - self-scheduling like LiveClock
+  useEffect(() => {
+    let currentEventId = null;
+    let isActive = true;
+
+    const scheduleNextUpdate = () => {
+      if (!isActive) return;
+      currentEventId = scheduler.schedule(eventType, 1.0, {}); // 1 universe second
+    };
+
+    const handleUpdate = () => {
+      if (!isActive) return;
+      setCurrentTime(getGameTime().formatGameTime());
+      scheduleNextUpdate();
+    };
+
+    const unsub = scheduler.on(eventType, handleUpdate);
+    
+    // Initial update and schedule first event
+    setCurrentTime(getGameTime().formatGameTime());
+    scheduleNextUpdate();
+
+    return () => {
+      isActive = false;
+      unsub();
+      if (currentEventId) scheduler.cancel(currentEventId);
+    };
+  }, [eventType]);
+
+  // Listen for pause/resume events
+  useEffect(() => {
+    const handlePause = () => setIsPaused(true);
+    const handleResume = () => setIsPaused(false);
+    const handleScale = ({ scale }) => setTimeScale(scale);
+
+    const unsub1 = universeTime.on('pause', handlePause);
+    const unsub2 = universeTime.on('resume', handleResume);
+    const unsub3 = universeTime.on('scale', handleScale);
+
+    return () => {
+      unsub1();
+      unsub2();
+      unsub3();
+    };
+  }, []);
+
+  // SPACE key for pause/resume
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (isPaused) {
+          universeTime.resume();
+        } else {
+          universeTime.pause();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [isPaused]);
+
+  const setSpeed = (scale) => {
+    if (isPaused) universeTime.resume();
+    universeTime.setTimeScale(scale);
+  };
+
+  return (
+    <div style={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      gap: '12px',
+      fontSize: '11px', 
+      color: '#34e0ff', 
+      fontWeight: 'bold', 
+      letterSpacing: '0.5px' 
+    }}>
+      {/* Pause button */}
+      <button
+        onClick={() => isPaused ? universeTime.resume() : universeTime.pause()}
+        title={isPaused ? 'Resume (SPACE)' : 'Pause (SPACE)'}
+        style={{
+          background: 'transparent',
+          border: 'none',
+          color: isPaused ? '#ff6b6b' : '#34e0ff',
+          cursor: 'pointer',
+          fontSize: '14px',
+          padding: '0 4px',
+          opacity: isPaused ? 1 : 0.6,
+          transition: 'all 0.2s'
+        }}
+        onMouseEnter={(e) => e.target.style.opacity = '1'}
+        onMouseLeave={(e) => e.target.style.opacity = isPaused ? '1' : '0.6'}
+      >
+        {isPaused ? '⏸' : '▶'}
+      </button>
+
+      {/* Speed controls */}
+      <div style={{ display: 'flex', gap: '6px' }}>
+        <button
+          onClick={() => setSpeed(TIME_SCALES.NORMAL)}
+          title="1x Normal Speed"
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: timeScale === TIME_SCALES.NORMAL && !isPaused ? '#34e0ff' : '#666',
+            cursor: 'pointer',
+            fontSize: '12px',
+            padding: '0',
+            opacity: timeScale === TIME_SCALES.NORMAL && !isPaused ? 1 : 0.5,
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => e.target.style.opacity = '1'}
+          onMouseLeave={(e) => e.target.style.opacity = (timeScale === TIME_SCALES.NORMAL && !isPaused) ? '1' : '0.5'}
+        >
+          &gt;
+        </button>
+        
+        <button
+          onClick={() => setSpeed(TIME_SCALES.FAST)}
+          title="5x Fast Speed"
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: timeScale === TIME_SCALES.FAST && !isPaused ? '#34e0ff' : '#666',
+            cursor: 'pointer',
+            fontSize: '12px',
+            padding: '0',
+            opacity: timeScale === TIME_SCALES.FAST && !isPaused ? 1 : 0.5,
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => e.target.style.opacity = '1'}
+          onMouseLeave={(e) => e.target.style.opacity = (timeScale === TIME_SCALES.FAST && !isPaused) ? '1' : '0.5'}
+        >
+          &gt;&gt;
+        </button>
+        
+        <button
+          onClick={() => setSpeed(TIME_SCALES.ULTRA_FAST)}
+          title="50x Ultra Fast Speed"
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: timeScale === TIME_SCALES.ULTRA_FAST && !isPaused ? '#34e0ff' : '#666',
+            cursor: 'pointer',
+            fontSize: '12px',
+            padding: '0',
+            opacity: timeScale === TIME_SCALES.ULTRA_FAST && !isPaused ? 1 : 0.5,
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => e.target.style.opacity = '1'}
+          onMouseLeave={(e) => e.target.style.opacity = (timeScale === TIME_SCALES.ULTRA_FAST && !isPaused) ? '1' : '0.5'}
+        >
+          &gt;&gt;&gt;
+        </button>
+      </div>
+
+      {/* Time display */}
+      <div style={{ opacity: isPaused ? 0.5 : 1 }}>
+        {currentTime}
+      </div>
+    </div>
+  );
+}
 
 /**
  * FRAME 3: Ship Command Console - Ship Run View
  * Simplified terminal output with power management and system controls
  */
 
-const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
+const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode, onDevModeToggle, onCreateGalaxy }) => {
   const [activeTab, setActiveTab] = useState(null);
   const [selectedPOI, setSelectedPOI] = useState(null);
   const [lockedSelection, setLockedSelection] = useState(false);
@@ -32,18 +224,33 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
   const [scanProgress, setScanProgress] = useState([]);
   const [scanningActive, setScanningActive] = useState(false);
   const [terminalLog, setTerminalLog] = useState([]);
+  // Structured terminal events: each event collates conversational (AI speech) and data stream output
+  // { id, type: 'scan'|'movement'|'mining'|..., timestamp, conversational:[], stream:[], meta:{} }
+  const [terminalEvents, setTerminalEvents] = useState([]);
   const [terminalExpanded, setTerminalExpanded] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
   const [movementProgress, setMovementProgress] = useState(0);
   const [scanPingRadius, setScanPingRadius] = useState(0); // Current ping radius in AU
   const [isPinging, setIsPinging] = useState(false); // Is ping animation active
+  const [pingOpacity, setPingOpacity] = useState(1); // Ping opacity for fade-out
   const [cursorWorldPos, setCursorWorldPos] = useState({ x: 0, y: 0 }); // Cursor position in AU
   const [isOutsideHeliosphere, setIsOutsideHeliosphere] = useState(false);
   const [droppedPins, setDroppedPins] = useState([]); // Array of {id, x, y, name}
   const [dropPinMode, setDropPinMode] = useState(false); // Is user in drop pin mode
   const [showPOINames, setShowPOINames] = useState(true);
-  const [showScaleRings, setShowScaleRings] = useState(true); // Show distance scale rings
+  const [showScaleRings, setShowScaleRings] = useState(false); // Show distance scale rings
+  const mapCanvasRef = useRef(null); // Ref to get actual canvas dimensions
+  const [canvasDimensions, setCanvasDimensions] = useState({ width: 0, height: 0, minDim: 0 });
   const [backgroundOpacity, setBackgroundOpacity] = useState(0.25); // Background image opacity (0-1)
+  const [showShip, setShowShip] = useState(true);
+  const [showPlanets, setShowPlanets] = useState(true);
+  const [showOrbitals, setShowOrbitals] = useState(true);
+  const [showMoons, setShowMoons] = useState(true);
+  const [showAsteroidClusters, setShowAsteroidClusters] = useState(true);
+  const [showAnomalies, setShowAnomalies] = useState(true);
+  const [showHabitats, setShowHabitats] = useState(true);
+  const [showConflicts, setShowConflicts] = useState(true);
+  const [showRadiation, setShowRadiation] = useState(false); // Radiation overlay OFF by default
   const [showNavMenu, setShowNavMenu] = useState(false);
   const [shipRotation, setShipRotation] = useState(0); // Ship rotation angle in degrees
   const [hoveredPin, setHoveredPin] = useState(null); // Currently hovered pin for delete button
@@ -55,6 +262,19 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
   const [sequenceWaypointCallback, setSequenceWaypointCallback] = useState(null); // Callback for adding sequence waypoints
   const [sequenceSteps, setSequenceSteps] = useState([]); // Automation sequence waypoints
   const [showActionMenu, setShowActionMenu] = useState(null); // {x, y, worldX, worldY} for action selection menu
+  const [showFuelWarning, setShowFuelWarning] = useState(false); // Fuel warning modal
+  const [pendingMovement, setPendingMovement] = useState(null); // {target, angle, callback, distance, fuelNeeded}
+  const [miningInProgress, setMiningInProgress] = useState(null); // {clusterId, poiId, progress: 0-100, startTime}
+  const [showInventoryWithTerminal, setShowInventoryWithTerminal] = useState(false); // Show inventory alongside terminal for drag-drop
+  const [currentLootItems, setCurrentLootItems] = useState([]); // Loot from current mining operation
+  const [terminalInteractive, setTerminalInteractive] = useState(false); // Terminal modal interactive mode
+  const [terminalChoices, setTerminalChoices] = useState([]); // Interactive choices for terminal modal
+  const [currentMiningPOI, setCurrentMiningPOI] = useState(null); // Current POI being mined
+  const [scanningInProgress, setScanningInProgress] = useState(null); // {poiId, progress: 0-100, startTime}
+  const [scanFailureNotification, setScanFailureNotification] = useState(null); // {poiId, message, roll}
+  const [contextualMenu, setContextualMenu] = useState(null); // {targetId, targetType: 'poi'|'ship'|'sun'}
+  const [hoveredAction, setHoveredAction] = useState(null); // Hovered action in contextual menu
+  const mapRef = useRef(null); // ref for map canvas to compute accurate pixel anchoring
   const terminalRef = useRef(null);
   
   // Ship state manager (singleton)
@@ -103,9 +323,21 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
   // Sync ship position on mount and center view
   useEffect(() => {
     if (system) {
-      const edgeAU = system.heliosphere.radiusAU * 0.95;
-      const angleRad = Math.PI * 0.25;
-      shipState.setPosition(edgeAU, angleRad);
+      // Determine spawn position
+      let spawnDistanceAU, spawnAngleRad;
+      
+      if (initialPosition) {
+        // Use provided spawn position (from DevPanel launch options)
+        spawnDistanceAU = initialPosition.distanceAU;
+        spawnAngleRad = initialPosition.angleRad;
+      } else {
+        // Default spawn: edge of heliosphere
+        const edgeAU = system.heliosphere.radiusAU * 0.95;
+        spawnDistanceAU = edgeAU;
+        spawnAngleRad = Math.PI * 0.25;
+      }
+      
+      shipState.setPosition(spawnDistanceAU, spawnAngleRad);
       shipState.visitSystem(seedInput);
       
       // Don't auto-scan - let player initiate manually
@@ -132,36 +364,151 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
     }
   }, [terminalLog]);
 
+  // No longer need to subscribe for time updates - the LiveClock component handles its own updates
+  // Parent component only re-renders on meaningful events (user interaction, scheduled gameplay events)
+  useEffect(() => {
+    // Initialize scheduler and universe time
+    const scheduler = getScheduler();
+    const universeTime = getUniverseTime();
+    
+    // Initialize universe time
+    universeTime.init();
+    
+    // Start the scheduler
+    scheduler.start();
+    
+    // Enable verbose logging (optional - comment out to reduce console noise)
+    // universeTime.setVerbose(true);
+    // scheduler.setVerbose(true);
+    
+    console.log('[ShipCommandConsole] Scheduler and UniverseTime initialized');
+  }, []);
+
+  // Simple travel state
+  const [activeTravel, setActiveTravel] = useState(null); // {startTime, targetX, targetY, targetName, distance, startPosition, onComplete}
+  const [travelAnimationTick, setTravelAnimationTick] = useState(0); // Force re-render during travel
+
+  // Travel completion scheduled event (PULL model - UI reads progress on render)
+  useEffect(() => {
+    if (!activeTravel) return;
+    
+    const scheduler = getScheduler();
+    const { distance, targetX, targetY, startPosition, targetName } = activeTravel;
+    const speedAUPerSec = 2; // Base speed: 2 AU/s in universe time
+    const travelDuration = distance / speedAUPerSec; // Duration in universe seconds
+    
+    // Smooth animation using requestAnimationFrame (60 FPS)
+    let animationFrameId;
+    const animate = () => {
+      setTravelAnimationTick(t => t + 1);
+      animationFrameId = requestAnimationFrame(animate);
+    };
+    animationFrameId = requestAnimationFrame(animate);
+    
+    const completeTravel = () => {
+      shipState.setPosition(Math.sqrt(targetX*targetX + targetY*targetY), Math.atan2(targetY, targetX));
+      shipState.setVelocity(0);
+      
+      // Consume all fuel at once on arrival
+      const pelletsPerAU = 2.5;
+      const totalPelletsNeeded = Math.ceil(distance * pelletsPerAU);
+      shipState.consumePellets(totalPelletsNeeded);
+      
+      setActiveTravel(null);
+      setIsMoving(false);
+      setMovementProgress(0);
+      setShipStateVersion(v => v + 1);
+      setTerminalLog(prev => [...prev, `> ARIA: Arrived at ${targetName}`]);
+      if (activeTravel.onComplete) activeTravel.onComplete();
+    };
+    
+    const completeUnsubscribe = scheduler.on('travel_complete', completeTravel);
+    const eventId = scheduler.schedule('travel_complete', travelDuration);
+    
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      completeUnsubscribe();
+      if (eventId) scheduler.cancel(eventId);
+    };
+  }, [activeTravel]);
+
+  // Track canvas dimensions for proper aspect ratio in circles
+  useEffect(() => {
+    if (!mapCanvasRef.current) return;
+    
+    const updateDimensions = () => {
+      const rect = mapCanvasRef.current.getBoundingClientRect();
+      const minDim = Math.min(rect.width, rect.height);
+      setCanvasDimensions({
+        width: rect.width,
+        height: rect.height,
+        minDim: minDim
+      });
+    };
+    
+    updateDimensions();
+    const resizeObserver = new ResizeObserver(updateDimensions);
+    resizeObserver.observe(mapCanvasRef.current);
+    
+    return () => resizeObserver.disconnect();
+  }, []);
+
   // Ship position from ship state
   const shipPosition = useMemo(() => {
     if (!system) return { distanceAU: 0, angleRad: 0, x: 0, y: 0 };
+    
+    // If actively traveling, interpolate position between start and target
+    if (activeTravel) {
+      const speedAUPerSec = 2;
+      const now = getUniverseTime().getTime();
+      const elapsed = now - activeTravel.startTime;
+      const totalTime = activeTravel.distance / speedAUPerSec;
+      const progress = Math.min(elapsed / totalTime, 1);
+      
+      // Lerp between start and target
+      const currentX = activeTravel.startPosition.x + (activeTravel.targetX - activeTravel.startPosition.x) * progress;
+      const currentY = activeTravel.startPosition.y + (activeTravel.targetY - activeTravel.startPosition.y) * progress;
+      const distanceAU = Math.sqrt(currentX * currentX + currentY * currentY);
+      const angleRad = Math.atan2(currentY, currentX);
+      
+      return { distanceAU, angleRad, x: currentX, y: currentY };
+    }
+    
     return currentShipState.position;
-  }, [system, currentShipState.position]);
+  }, [system, currentShipState.position, activeTravel, travelAnimationTick]);
 
-  // Passive hull damage from static exposure (damage-over-time)
+  // Passive hull damage from static exposure (damage-over-time) - scheduled
   useEffect(() => {
     if (!system || !shipPosition || gamePhase !== 'scanning') return;
     
-    const damageInterval = setInterval(() => {
+    const scheduler = getScheduler();
+    const applyRadiationDamage = () => {
       const exposure = calculateStaticExposure(system, shipPosition.distanceAU);
       
-      // Damage scales with exposure: 0 damage below 10 mSv/h, ramps up above
       if (exposure > 10) {
-        const damagePerSecond = (exposure - 10) * 0.01; // 0.01% hull per mSv/h above threshold
+        const damagePerSecond = (exposure - 10) * 0.01;
         shipState.damageHull(damagePerSecond);
         setShipStateVersion(v => v + 1);
         
-        // Log warning at dangerous levels
-        if (exposure > 50 && Math.random() < 0.05) { // 5% chance per tick
+        if (exposure > 50 && Math.random() < 0.05) {
           setTerminalLog(prev => [
             ...prev,
             `> WARNING: Critical static exposure (${exposure.toFixed(1)} mSv/h). Hull integrity degrading.`
           ]);
         }
       }
-    }, 1000); // Tick every second
+      
+      // Schedule next damage tick in 1 second universe time
+      scheduler.schedule('radiation_damage', 1.0);
+    };
     
-    return () => clearInterval(damageInterval);
+    const unsubscribe = scheduler.on('radiation_damage', applyRadiationDamage);
+    scheduler.schedule('radiation_damage', 1.0); // Start the loop
+    
+    return () => {
+      unsubscribe();
+      // No need to cancel - unsubscribe removes handler, events will fire harmlessly
+    };
   }, [system, shipPosition, gamePhase]);
   
   // Center view on ship at current zoom
@@ -204,25 +551,29 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
     const normalizedX = (canvasX - centerX) / width - panOffset.x;
     const normalizedY = (canvasY - centerY) / height - panOffset.y;
     
-    // Distance from center in normalized viewport units
-    const distFromCenter = Math.sqrt(normalizedX * normalizedX + normalizedY * normalizedY);
+    // Calculate distance from center in viewport units (same as toXY uses)
+    // toXY: r = (au / heliosphereRadiusAU) * 0.92 * zoom
+    // So cursor r_normalized should be compared to 0.92 * zoom (the heliosphere radius in viewport)
+    const r_normalized = Math.sqrt(normalizedX * normalizedX + normalizedY * normalizedY);
+    const heliosphereRadiusViewport = 0.92 * zoom;
     
-    // The heliosphere circle has radius = 0.92 * zoom (diameter = 0.92 * zoom * 2)
-    const heliosphereRadius = 0.92 * zoom;
-    
-    // Check if cursor is outside the visual heliosphere circle
-    setIsOutsideHeliosphere(distFromCenter > heliosphereRadius);
+    // Check if cursor is outside the heliosphere boundary
+    const isOutside = r_normalized > heliosphereRadiusViewport;
+    setIsOutsideHeliosphere(prev => prev === isOutside ? prev : isOutside);
     
     // Also calculate world coordinates for pin dropping
-    // Reverse the toXY transformation: screen -> normalized -> world
-    const screenX = (canvasX / width) - 0.5 - panOffset.x;
-    const screenY = (canvasY / height) - 0.5 - panOffset.y;
-    const r_normalized = Math.sqrt(screenX * screenX + screenY * screenY);
-    const angle = Math.atan2(screenY, screenX);
-    const distanceAU = (r_normalized / (0.92 * zoom)) * system.heliosphere.radiusAU;
-    const worldX = distanceAU * Math.cos(angle);
-    const worldY = distanceAU * Math.sin(angle);
-    setCursorWorldPos({ x: worldX, y: worldY });
+    // Reverse the toXY transformation: distanceAU = (r / (0.92 * zoom)) * heliosphereRadiusAU
+    const heliosphereRadiusAU = system?.heliosphere_radius || 50;
+    const distanceFromCenterAU = (r_normalized / (0.92 * zoom)) * heliosphereRadiusAU;
+    const angle = Math.atan2(normalizedY, normalizedX);
+    const worldX = distanceFromCenterAU * Math.cos(angle);
+    const worldY = distanceFromCenterAU * Math.sin(angle);
+    setCursorWorldPos(prev => {
+      // Only update if position changed significantly (avoid re-render on tiny movements)
+      const dx = Math.abs(prev.x - worldX);
+      const dy = Math.abs(prev.y - worldY);
+      return (dx > 0.01 || dy > 0.01) ? { x: worldX, y: worldY } : prev;
+    });
   };
   
   const handleDropPin = (e, containerRect) => {
@@ -253,6 +604,99 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
     setPanOffset({ x: offsetX, y: offsetY });
     setTimeout(() => setPanTransition(false), 1000);
   };
+  
+  // Confirm and execute pending movement (after fuel warning)
+  const confirmMovement = () => {
+    if (!pendingMovement) return;
+    setShowFuelWarning(false);
+    const { targetPOIorAU, targetAngle, onComplete } = pendingMovement;
+    setPendingMovement(null);
+    // Call moveShipTo again but it will skip the warning since we've consumed the pending state
+    executeMovement(targetPOIorAU, targetAngle, onComplete);
+  };
+  
+  // Cancel pending movement
+  const cancelMovement = () => {
+    setShowFuelWarning(false);
+    setPendingMovement(null);
+    setTerminalLog(prev => [...prev, '> ARIA: Navigation cancelled. Fuel reserves too low.']);
+  };
+  
+  // Execute movement without fuel warning check (internal use only)
+  const executeMovement = (targetPOIorAU, targetAngle = null, onComplete = null) => {
+    if (!system || isMoving) return;
+    
+    let targetX, targetY, targetName;
+    
+    // Check if we received coordinates (AU, angle) or POI ID
+    if (typeof targetPOIorAU === 'number' && targetAngle !== null) {
+      targetX = targetPOIorAU * Math.cos(targetAngle);
+      targetY = targetPOIorAU * Math.sin(targetAngle);
+      targetName = `Waypoint (${targetPOIorAU.toFixed(2)} AU)`;
+    } else {
+      if (!targetPOIorAU) return;
+      let target = pois.find(p => p.id === targetPOIorAU);
+      if (!target) {
+        target = droppedPins.find(p => p.id === targetPOIorAU);
+      }
+      if (!target) return;
+      
+      targetX = target.distanceAU * Math.cos(target.angleRad);
+      targetY = target.distanceAU * Math.sin(target.angleRad);
+      targetName = target.name;
+    }
+
+    const currentPos = shipState.getState().position;
+    const distance = Math.sqrt(
+      Math.pow(targetX - currentPos.x, 2) + Math.pow(targetY - currentPos.y, 2)
+    );
+    
+    const dx = targetX - currentPos.x;
+    const dy = targetY - currentPos.y;
+    const rotationAngle = (Math.atan2(dy, dx) * 180 / Math.PI) + 90;
+    setShipRotation(rotationAngle);
+    
+    // Continue with physics calculations and movement...
+    const pelletsPerAU = 2.5;
+    const totalPelletsNeeded = Math.ceil(distance * pelletsPerAU);
+    const currentFuel = shipState.getState().fuelPellets;
+    
+    // Check if we have enough fuel (final check)
+    if (currentFuel < totalPelletsNeeded) {
+      setTerminalLog(prev => [...prev, 
+        `> ARIA: Insufficient fuel for this maneuver.`,
+        `> Required: ${totalPelletsNeeded} H3-Pellets`,
+        `> Available: ${currentFuel} H3-Pellets`,
+        `> ARIA: Course plotting aborted.`
+      ]);
+      return;
+    }
+    
+    // Ship speed: 2 AU/s in universe time
+    const speedAUPerSec = 2;
+    const travelTimeSeconds = distance / speedAUPerSec;
+    
+    setTerminalLog(prev => [...prev,
+      `> ARIA: Plotting course to ${targetName}...`,
+      `> Distance: ${distance.toFixed(2)} AU`,
+      `> Velocity: ${speedAUPerSec.toFixed(2)} AU/sec`,
+      `> Estimated travel time: ${travelTimeSeconds.toFixed(1)}s (universe time)`,
+      `> Fuel (est): ${totalPelletsNeeded} H3-Pellets`,
+      `> Engines engaged...`]);
+    setIsMoving(true);
+    setMovementProgress(0);
+    
+    setActiveTravel({
+      startTime: getUniverseTime().getTime(),
+      distance,
+      targetX,
+      targetY,
+      targetName,
+      startPosition: { x: currentPos.x, y: currentPos.y },
+      pelletsConsumed: 0,
+      onComplete
+    });
+  };
 
   const moveShipTo = (targetPOIorAU, targetAngle = null, onComplete = null) => {
     if (!system || isMoving) return;
@@ -279,7 +723,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
       targetName = target.name;
     }
 
-    const currentPos = shipPosition;
+    // Get fresh position from shipState to avoid stale closure issues
+    const currentPos = shipState.getState().position;
     const distance = Math.sqrt(
       Math.pow(targetX - currentPos.x, 2) + Math.pow(targetY - currentPos.y, 2)
     );
@@ -289,76 +734,58 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
     const dy = targetY - currentPos.y;
     const rotationAngle = (Math.atan2(dy, dx) * 180 / Math.PI) + 90; // +90 to point up by default
     setShipRotation(rotationAngle);
-
-    // Calculate travel time based on engine speed (AU/hour)
-    const engineSpeed = shipAttributes.speed || 1.0; // AU per hour
-    const travelTimeHours = distance / engineSpeed;
-    const travelTimeSeconds = Math.min(travelTimeHours * 2, 10); // Cap at 10 seconds for gameplay
-
-    // Fuel consumption (arbitrary units per AU)
-    const fuelNeeded = distance * 0.5;
     
-    setTerminalLog(prev => [...prev, 
-      `> ARIA: Plotting course to ${targetName}...`,
-      `> Distance: ${distance.toFixed(2)} AU`,
-      `> Travel time: ${travelTimeHours.toFixed(1)} hours (${travelTimeSeconds.toFixed(1)}s real-time)`,
-      `> Fuel required: ${fuelNeeded.toFixed(1)} units`,
-      `> Engaging engines...`
-    ]);
-
-    setIsMoving(true);
-    setMovementProgress(0);
-
-    // Animate movement
-    const startTime = Date.now();
-    const animationInterval = setInterval(() => {
-      const elapsed = (Date.now() - startTime) / 1000;
-      const progress = Math.min(elapsed / travelTimeSeconds, 1);
-      setMovementProgress(progress);
-
-      // Interpolate position
-      const newX = currentPos.x + (targetX - currentPos.x) * progress;
-      const newY = currentPos.y + (targetY - currentPos.y) * progress;
-      const newDistanceAU = Math.sqrt(newX * newX + newY * newY);
-      const newAngleRad = Math.atan2(newY, newX);
-
-      shipState.setPosition(newDistanceAU, newAngleRad);
-      setShipStateVersion(v => v + 1);
-
-      if (progress >= 1) {
-        clearInterval(animationInterval);
-        setIsMoving(false);
-        setMovementProgress(0);
-        setTerminalLog(prev => [...prev, 
-          `> ARIA: Arrived at ${targetName}`,
-          `> Position: ${Math.sqrt(targetX * targetX + targetY * targetY).toFixed(2)} AU from sun`
-        ]);
-        // Don't auto-center during sequence execution - let sequence manage view
-        
-        // Call completion callback if provided
-        if (onComplete) {
-          setTimeout(() => onComplete(), 200);
-        }
-      }
-    }, 50); // Update every 50ms for smooth animation
+    // Calculate fuel needed before movement
+    const pelletsPerAU = 2.5;
+    const totalPelletsNeeded = Math.ceil(distance * pelletsPerAU);
+    const currentFuel = shipState.getState().fuelPellets;
+    const maxFuel = shipState.getState().maxFuelPellets;
+    const fuelPercentage = (currentFuel / maxFuel) * 100;
+    
+    // Check if fuel is critically low (below 25%) and show warning
+    if (fuelPercentage <= 25 && currentFuel >= totalPelletsNeeded) {
+      setPendingMovement({ 
+        targetPOIorAU, 
+        targetAngle, 
+        onComplete,
+        targetX,
+        targetY,
+        targetName,
+        distance, 
+        fuelNeeded: totalPelletsNeeded,
+        currentFuel,
+        fuelPercentage 
+      });
+      setShowFuelWarning(true);
+      return;
+    }
+    
+    // If fuel is OK or above threshold, proceed with movement
+    executeMovement(targetPOIorAU, targetAngle, onComplete);
   };
-
   const startSystemScan = () => {
     if (scanningActive) return;
     setScanningActive(true);
     setIsPinging(true);
     setScanPingRadius(0);
+    setPingOpacity(1);
     
-    setTerminalLog(prev => [
-      ...prev, 
-      '> ARIA: Initiating sensor sweep...',
-      `> ARIA: Sensor range: ${shipAttributes.sensorRange} AU`,
-      `> ARIA: Galactic zone: ${system.galactic.zone}. Surge radiation: ${system.galactic.surgeRadiation.toFixed(1)} mSv/h baseline.`,
-      `> ARIA: Star class ${system.star.class}, luminosity ${system.star.lum.toFixed(2)}. Stellar protection: ${system.galactic.stellarProtection.toFixed(2)}.`
-    ]);
+    // Build structured event containers
+    const conversational = [];
+    const stream = [];
+    conversational.push(`> Initiating Sensor Sweep, current range is ${shipAttributes.sensorRange} AU`);
+    stream.push('> Initializing Sensor Sweep');
+    stream.push(`> Sensor Range: ${shipAttributes.sensorRange} AU`);
+    stream.push(`> Zone: ${system.galactic.zone} | Surge Radiation: ${system.galactic.surgeRadiation.toFixed(1)} mSv/h`);
+    stream.push(`> Star Class ${system.star.class} | Luminosity ${system.star.lum.toFixed(2)} | Stellar Protection ${system.galactic.stellarProtection.toFixed(2)}`);
+    setTerminalLog(prev => [...prev, '> ARIA: Initiating sensor sweep...']);
     
     // Animate ping expanding from ship to sensor range
-    const pingDuration = 2000; // 2 seconds for ping to expand
+    // Total duration: 3 seconds (2.5s visible + 0.5s fade)
+    const pingDuration = 2500; // 2.5 seconds for ping to expand at full opacity
+    const fadeStart = 2500; // Start fade at 2.5 seconds
+    const fadeDuration = 500; // 0.5 seconds for fade-out
+    const totalDuration = 3000; // Total 3 seconds
     const startTime = Date.now();
     
     const pingInterval = setInterval(() => {
@@ -367,10 +794,17 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
       const currentRadius = shipAttributes.sensorRange * progress;
       setScanPingRadius(currentRadius);
       
-      if (progress >= 1) {
+      // Handle fade-out after 2.5 seconds
+      if (elapsed >= fadeStart) {
+        const fadeProgress = (elapsed - fadeStart) / fadeDuration;
+        setPingOpacity(Math.max(0, 1 - fadeProgress));
+      }
+      
+      if (elapsed >= totalDuration) {
         clearInterval(pingInterval);
         setIsPinging(false);
         setScanPingRadius(0);
+        setPingOpacity(1);
       }
     }, 16); // ~60fps
     
@@ -393,6 +827,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
     const outOfRange = totalPois - poisWithinRange.length;
 
     // Progressive reveal as ping reaches each POI
+    const detectedSummary = { planets: 0, moons: 0, belts: 0, habitats: 0, anomalies: 0, conflicts: 0, orbitals: 0, other: 0 };
+
     poisWithinRange.forEach((poi) => {
       const distFromShip = Math.sqrt(
         Math.pow(poi.distanceAU * Math.cos(poi.angleRad) - shipPosition.x, 2) +
@@ -406,20 +842,526 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
         shipState.scanPOI(poi.id);
         const x = (poi.distanceAU * Math.cos(poi.angleRad)).toFixed(2);
         const y = (poi.distanceAU * Math.sin(poi.angleRad)).toFixed(2);
-        setTerminalLog(prev => [
-          ...prev,
-          `> ARIA: Detected ${poi.type} at (${x}, ${y}), distance ${distFromShip.toFixed(2)} AU from ship.`
-        ]);
+        // Data stream line
+        stream.push(`> Detected ${poi.type} (${x}, ${y}) distance ${distFromShip.toFixed(2)} AU`);
+        // Increment summary counters
+        const t = poi.type.toLowerCase();
+        if (t.includes('planet')) detectedSummary.planets++;
+        else if (t.includes('moon')) detectedSummary.moons++;
+        else if (t.includes('belt')) detectedSummary.belts++;
+        else if (t.includes('habitat')) detectedSummary.habitats++;
+        else if (t.includes('anomaly')) detectedSummary.anomalies++;
+        else if (t.includes('conflict')) detectedSummary.conflicts++;
+        else if (t.includes('orbital')) detectedSummary.orbitals++;
+        else detectedSummary.other++;
       }, timeToReach);
     });
 
     setTimeout(() => {
       const rangeMsg = outOfRange > 0 
-        ? `> ARIA: Scan complete. ${poisWithinRange.length} contacts detected. ${outOfRange} contacts beyond sensor range.`
+        ? `> ARIA: Scan complete. ${poisWithinRange.length} contacts detected. ${outOfRange} beyond range.`
         : `> ARIA: Scan complete. All ${poisWithinRange.length} contacts catalogued.`;
       setTerminalLog(prev => [...prev, rangeMsg]);
+      conversational.push(`> Scan complete, we have ${detectedSummary.planets} planets, ${detectedSummary.moons} moons, ${detectedSummary.belts} asteroid clusters${detectedSummary.other ? ` and ${detectedSummary.other} anomalies` : ''}.`);
+      conversational.push('> Awaiting your orders, Sir.');
+      stream.push('> SCAN COMPLETE');
+
+      setTerminalEvents(prev => [...prev, {
+        id: `evt_scan_${Date.now()}`,
+        type: 'scan',
+        timestamp: Date.now(),
+        conversational,
+        stream,
+        meta: { summaries: detectedSummary, title: 'SYSTEM SCAN REPORT' }
+      }]);
+
       setScanningActive(false);
     }, pingDuration + 500);
+  };
+  
+  // Mining handlers
+  // NOTE: Belt POI scanning is now triggered from POI Actions panel (Scan Cluster)
+  // Mining operations are triggered after successful scan via terminal modal
+  
+  const handleScanCluster = (poiId, poi) => {
+    console.log('[MINING] === Scan Cluster Initiated ===');
+    console.log('[MINING] POI ID:', poiId);
+    console.log('[MINING] POI Name:', poi.name);
+    console.log('[MINING] POI Type:', poi.type);
+    console.log('[MINING] System Tier:', currentGalaxySystem?.tier || 1.0);
+    console.log('[MINING] Galactic Zone:', currentGalaxySystem?.zone || 'periphery');
+    
+    // Add initiating message to terminal
+    const conversational = [`"Initiating deep survey of ${poi.name}, analyzing cluster composition..."`];
+    const stream = [`> CLUSTER SURVEY INITIATED`, `> TARGET: ${poi.name}`, `> Scanning...`];
+    
+    setTerminalEvents(prev => [...prev, {
+      id: `evt_cluster_survey_start_${Date.now()}`,
+      type: 'survey',
+      timestamp: Date.now(),
+      conversational,
+      stream,
+      meta: { poiId, title: 'SURVEY INITIATED' }
+    }]);
+    
+    // Step 1: Pan to cluster
+    setPanTransition(true);
+    const r = (poi.distanceAU / system.heliosphere.radiusAU) * 0.92 * zoom;
+    const offsetX = -r * Math.cos(poi.angleRad);
+    const offsetY = -r * Math.sin(poi.angleRad);
+    setPanOffset({ x: offsetX, y: offsetY });
+    
+    // Step 2: Start scanning progress after pan completes
+    setTimeout(() => {
+      setPanTransition(false);
+      
+      const scheduler = getScheduler();
+      const scanStart = getUniverseTime().getTime();
+      setScanningInProgress({
+        poiId,
+        progress: 0,
+        startTime: scanStart
+      });
+      
+      // Schedule scan completion in 3 universe seconds
+      const completeScanEvent = () => {
+        completeScan(poiId, poi);
+        setScanningInProgress(null);
+      };
+      
+      scheduler.on(`scan_complete_${poiId}`, completeScanEvent);
+      scheduler.schedule(`scan_complete_${poiId}`, 3.0);
+    }, 1000); // Wait 1s for pan to complete
+  };
+  
+  const completeScan = (poiId, poi) => {
+    console.log('[MINING] === Scan Complete - Executing DRE ===');
+    
+    const scanContext = {
+      systemTier: currentGalaxySystem?.tier || 1.0,
+      galacticZone: currentGalaxySystem?.zone || 'periphery',
+      difficulty: 'easy' // Easy difficulty (DC 3) for asteroid scanning
+    };
+    
+    console.log('[MINING] Scan Context:', scanContext);
+    
+    // Execute DRE scan action
+    const scanResult = executeAsteroidScan(scanContext);
+    
+    console.log('[MINING] === DRE Scan Result ===');
+    console.log('[MINING] Full Result:', scanResult);
+    console.log('[MINING] Result Type:', scanResult.result);
+    console.log('[MINING] Total Roll:', scanResult.totalRoll);
+    console.log('[MINING] Target Difficulty:', scanResult.targetDifficulty);
+    console.log('[MINING] Roll Log:', scanResult.rollLog);
+    console.log('[MINING] Cluster Data:', scanResult.clusterData);
+    
+    // Check if scan was successful
+    if (scanResult.result === 'success' && scanResult.clusterData) {
+      console.log('[MINING] ✓ Scan SUCCESS!');
+      const clusterData = scanResult.clusterData;
+      console.log('[MINING] Cluster Data:', clusterData);
+      
+      // Add POI to scanned list (visual fill)
+      setScanProgress(prev => [...prev, poiId]);
+      shipState.scanPOI(poiId);
+      
+      // Register cluster to ship state
+      shipState.registerCluster(poiId, {
+        type: clusterData.type,
+        maxAsteroids: clusterData.maxAsteroids,
+        currentAsteroids: clusterData.currentAsteroids,
+        compositionBonus: clusterData.compositionBonus,
+        recoveryRate: clusterData.recoveryDays,
+        miningRate: clusterData.miningRate,
+        scannedAt: Date.now()
+      });
+      
+      setShipStateVersion(v => v + 1);
+      
+      // Build conversational output
+      const conversational = [
+        `"Survey complete, ${poi.name} identified."`,
+        `"Cluster classification: ${clusterData.type}. Composition analysis indicates +${clusterData.compositionBonus} yield potential."`,
+        `"Detecting ${clusterData.currentAsteroids} asteroids in stable formation. Mining systems ready."`
+      ];
+      
+      // Build data stream output
+      const stream = [
+        `> CLUSTER SURVEY COMPLETE`,
+        `> TARGET: ${poi.name}`,
+        `> `,
+        `> CLASSIFICATION: ${clusterData.type || 'Unknown'}`,
+        `> Asteroid Count: ${clusterData.currentAsteroids}/${clusterData.maxAsteroids}`,
+        `> Composition Bonus: +${clusterData.compositionBonus}`,
+        `> Recovery Rate: ${clusterData.recoveryDays} day(s) per asteroid`,
+        `> Mining Rate: ${clusterData.miningRate}s per asteroid`,
+        `> `,
+        `> Cluster registered to ship database.`,
+        `> Mining operations authorized.`
+      ];
+      
+      // Add to terminal events
+      setTerminalEvents(prev => [...prev, {
+        id: `evt_cluster_survey_${Date.now()}`,
+        type: 'survey',
+        timestamp: Date.now(),
+        conversational,
+        stream,
+        meta: { poiId, clusterData, title: 'CLUSTER SURVEY REPORT' }
+      }]);
+      
+    } else {
+      console.log('[MINING] ✗ Scan FAILED!');
+      console.log('[MINING] Failure reason - Result:', scanResult.result);
+      console.log('[MINING] Has clusterData?', !!scanResult.clusterData);
+      console.log('[MINING] Consequences:', scanResult.consequences);
+      
+      // Scan failed - show notification bubble
+      const failMessage = scanResult.consequences?.message || 'Sensor sweep inconclusive.';
+      setScanFailureNotification({
+        poiId,
+        message: failMessage,
+        roll: scanResult.totalRoll
+      });
+      
+      // Build conversational output for failure
+      const conversational = [
+        `"Survey failed, sensor readings inconclusive."`,
+        `"${failMessage}"`
+      ];
+      
+      const stream = [
+        `> CLUSTER SURVEY FAILED`,
+        `> ROLL: ${scanResult.totalRoll} vs DC ${scanResult.targetDifficulty}`,
+        `> ${failMessage}`
+      ];
+      
+      setTerminalEvents(prev => [...prev, {
+        id: `evt_cluster_survey_fail_${Date.now()}`,
+        type: 'survey',
+        timestamp: Date.now(),
+        conversational,
+        stream,
+        meta: { poiId, failed: true, title: 'SURVEY FAILURE' }
+      }]);
+    }
+  };
+  
+  const handleMiningOptions = (poiId, cluster) => {
+    if (cluster.currentAsteroids === 0) {
+      const conversational = [
+        `"Cluster depleted. No asteroids available for extraction."`,
+        `"Recovery rate: ${cluster.recoveryRate} days per asteroid. Recommend waiting or relocating."`
+      ];
+      
+      const stream = [
+        `> CLUSTER DEPLETED`,
+        `> Current asteroids: 0/${cluster.maxAsteroids}`,
+        `> Recovery rate: ${cluster.recoveryRate} day(s) per asteroid`,
+        `> `,
+        `> Recommend moving to another cluster or waiting for recovery.`
+      ];
+      
+      setTerminalEvents(prev => [...prev, {
+        id: `evt_mining_depleted_${Date.now()}`,
+        type: 'mining',
+        timestamp: Date.now(),
+        conversational,
+        stream,
+        meta: { poiId, title: 'CLUSTER DEPLETED' }
+      }]);
+      return;
+    }
+    
+    // Show mining prompt in terminal with interactive choice
+    const conversational = [
+      `"Cluster ${cluster.type} detected and ready for mining."`,
+      `"Available asteroids: ${cluster.currentAsteroids}. Mining rate: ${cluster.miningRate} seconds per asteroid."`,
+      `"Awaiting authorization to commence extraction..."`
+    ];
+    
+    const stream = [
+      `> MINING AUTHORIZATION REQUEST`,
+      `> Cluster Type: ${cluster.type}`,
+      `> Available asteroids: ${cluster.currentAsteroids}/${cluster.maxAsteroids}`,
+      `> Mining rate: ${cluster.miningRate}s per asteroid`,
+      `> Composition bonus: +${cluster.compositionBonus}`,
+      `> `,
+      `> Ready to commence mining operation?`
+    ];
+    
+    setCurrentMiningPOI(poiId);
+    
+    setTerminalEvents(prev => [...prev, {
+      id: `evt_mining_confirm_${Date.now()}`,
+      type: 'mining',
+      timestamp: Date.now(),
+      conversational,
+      stream,
+      meta: { 
+        poiId, 
+        title: 'MINING AUTHORIZATION',
+        pendingMiningStart: true,
+        eventId: `evt_mining_confirm_${Date.now()}`
+      }
+    }]);
+  };
+  
+  const startMining = (poiId) => {
+    const cluster = shipState.getClusterByPOI(poiId);
+    if (!cluster || cluster.currentAsteroids === 0) return;
+    
+    // Add mining start message to terminal
+    const conversational = [`"Commencing mining operation, laser systems online."`, `"Targeting asteroid, extraction sequence initiated..."`];
+    const stream = [`> MINING OPERATION COMMENCED`, `> Laser mining in progress...`];
+    
+    setTerminalEvents(prev => [...prev, {
+      id: `evt_mining_start_${Date.now()}`,
+      type: 'mining',
+      timestamp: Date.now(),
+      conversational,
+      stream,
+      meta: { poiId, title: 'MINING INITIATED' }
+    }]);
+    
+    // Start mining operation - schedule completion
+    const scheduler = getScheduler();
+    const clusterId = shipState.getAllClusters().find(c => c.poiId === poiId)?.id;
+    const miningStart = getUniverseTime().getTime();
+    
+    setMiningInProgress({
+      clusterId,
+      poiId,
+      progress: 0,
+      startTime: miningStart,
+      duration: cluster.miningRate // Store duration for PULL progress calculation
+    });
+    
+    const completeMiningEvent = () => {
+      completeMining(poiId, cluster);
+      setMiningInProgress(null);
+    };
+    
+    scheduler.on(`mining_complete_${poiId}`, completeMiningEvent);
+    scheduler.schedule(`mining_complete_${poiId}`, cluster.miningRate);
+  };
+  
+  const completeMining = (poiId, cluster) => {
+    console.log('[MINING] === Mining Complete - Executing DRE ===');
+    console.log('[MINING] Cluster Type:', cluster.type);
+    console.log('[MINING] Composition Bonus:', cluster.compositionBonus);
+    
+    // Execute DRE mining action
+    const miningResult = executeAsteroidMine({
+      clusterType: cluster.type,
+      compositionBonus: cluster.compositionBonus,
+      difficulty: 'normal'
+    });
+    
+    console.log('[MINING] === DRE Mining Result ===');
+    console.log('[MINING] Full Result:', miningResult);
+    console.log('[MINING] Result Type:', miningResult.result);
+    console.log('[MINING] Loot:', miningResult.loot);
+    console.log('[MINING] Composition:', miningResult.composition);
+    
+    // Handle mining failure
+    if (miningResult.result === 'fail') {
+      const conversational = [
+        `"Mining operation failed, asteroid destabilized."`,
+        `"Laser extraction unsuccessful. No viable resources recovered."`
+      ];
+      
+      const stream = [
+        `> MINING OPERATION FAILED`,
+        `> ROLL: ${miningResult.totalRoll} vs DC ${miningResult.targetDifficulty}`,
+        `> STATUS: Insufficient yield - asteroid fragmented`,
+        `> `,
+        `> Asteroid destroyed: 0 resources extracted`,
+        `> Recommend alternative cluster selection.`
+      ];
+      
+      setTerminalEvents(prev => [...prev, {
+        id: `evt_mining_fail_${Date.now()}`,
+        type: 'mining',
+        timestamp: Date.now(),
+        conversational,
+        stream,
+        meta: { poiId, failed: true, title: 'MINING FAILURE' }
+      }]);
+      
+      // Still decrement asteroid count (destroyed by failed mining)
+      shipState.mineClusterAsteroid(shipState.getAllClusters().find(c => c.poiId === poiId)?.id);
+      
+      // Clear mining progress
+      setMiningInProgress(null);
+      setShipStateVersion(v => v + 1);
+      
+      return;
+    }
+    
+    // Handle successful mining
+    // Convert loot to inventory format
+    const lootItems = (miningResult.loot || []).map(item => ({
+      itemId: item.itemId,
+      item: item.name,
+      quantity: item.quantity,
+      category: item.category
+    }));
+    
+    // Build conversational output
+    const conversational = [
+      `"Mining operation complete, extracting resources now."`,
+      `"Composition analysis: ${miningResult.composition}. Yield multiplier ${miningResult.yieldMultiplier}x."`,
+      `"Resources secured and transferred to cargo hold."`
+    ];
+    
+    // Build data stream output
+    const stream = [
+      `> MINING OPERATION COMPLETE`,
+      `> COMPOSITION: ${miningResult.composition}`,
+      `> Yield Multiplier: ${miningResult.yieldMultiplier}x`,
+      `> `,
+      `> === EXTRACTED RESOURCES ===`
+    ];
+    
+    // Add loot details to stream
+    (miningResult.loot || []).forEach(item => {
+      stream.push(`> ${item.quantity}x ${item.name} (${item.category})`);
+    });
+    
+    stream.push(`> `);
+    stream.push(`> Awaiting transfer confirmation...`);
+    
+    console.log('[MINING] Terminal event created');
+    
+    setTerminalEvents(prev => [...prev, {
+      id: `evt_mining_${Date.now()}`,
+      type: 'mining',
+      timestamp: Date.now(),
+      conversational,
+      stream,
+      meta: { poiId, loot: lootItems, composition: miningResult.composition, title: 'MINING REPORT', pendingTransfer: true, eventId: `evt_mining_${Date.now()}` }
+    }]);
+    
+    // Store loot items for user to decide
+    setCurrentLootItems(lootItems);
+    setCurrentMiningPOI(poiId);
+    
+    // Decrement cluster asteroid count
+    shipState.mineClusterAsteroid(shipState.getAllClusters().find(c => c.poiId === poiId)?.id);
+    
+    // Clear mining progress
+    setMiningInProgress(null);
+    setShipStateVersion(v => v + 1);
+  };
+  
+  const transferLootToInventory = (lootItems) => {
+    // Add all loot items to ship inventory
+    lootItems.forEach(loot => {
+      shipState.addInventoryItem({
+        itemId: loot.itemId,
+        name: loot.item,
+        quantity: loot.quantity,
+        category: loot.category,
+        addedAt: Date.now()
+      });
+    });
+    
+    setTerminalLog(prev => [
+      ...prev,
+      `> ARIA: Transferred ${lootItems.length} item type(s) to ship inventory.`
+    ]);
+    
+    // Clear loot and close
+    setCurrentLootItems([]);
+    setShowInventoryWithTerminal(false);
+    setShowTerminalModal(false);
+    setShipStateVersion(v => v + 1);
+  };
+
+  // Contextual Menu Handlers
+  const openContextualMenu = (targetId, targetType) => {
+    setContextualMenu({ targetId, targetType });
+  };
+  
+  const closeContextualMenu = () => {
+    setContextualMenu(null);
+  };
+  
+  const handleContextualAction = (action) => {
+    if (!contextualMenu) return;
+    const target = contextualMenu.targetType === 'poi' ? pois.find(p => p.id === contextualMenu.targetId) : null;
+
+    switch(action) {
+      case 'moveTo': {
+        if (contextualMenu.targetType === 'poi') {
+          moveShipTo(contextualMenu.targetId, null, () => {
+            shipState.visitPOI(contextualMenu.targetId);
+            setShipStateVersion(v => v + 1);
+            const name = target?.name || contextualMenu.targetId;
+            setTerminalLog(prev => [...prev, `> ARIA: ${name} marked as visited.`]);
+          });
+        }
+        break;
+      }
+      case 'survey': {
+        if (target) {
+          if (target.type === 'BELT') {
+            handleScanCluster(target.id, target);
+          } else {
+            shipState.scanPOI(target.id);
+            setShipStateVersion(v => v + 1);
+            setTerminalLog(prev => [...prev, `> ARIA: Survey initiated on ${target.name}.`]);
+          }
+        } else if (contextualMenu.targetType === 'sun') {
+          setTerminalLog(prev => [...prev, '> ARIA: Stellar survey initiated.']);
+        }
+        break;
+      }
+      case 'mine': {
+        if (target && target.type === 'BELT') {
+            const cluster = shipState.getClusterByPOI(target.id);
+            if (cluster) {
+              handleMiningOptions(target.id, cluster);
+            } else {
+              setTerminalLog(prev => [...prev, `> ARIA: Cluster not registered. Survey required before mining.`]);
+            }
+        }
+        break;
+      }
+      case 'inventory': {
+        setTerminalLog(prev => [...prev, '> ARIA: Opening ship inventory...']);
+        setRightPanelTab('inventory');
+        break;
+      }
+      case 'surveySystem': {
+        startSystemScan();
+        break;
+      }
+      case 'tag': {
+        if (target) {
+          const currentTags = poiTags[contextualMenu.targetId] || [];
+          const nextTag = currentTags.length === 0 ? 'marked' : currentTags.includes('marked') ? 'avoid' : currentTags.includes('avoid') ? 'cache' : null;
+          if (nextTag) {
+            setPoiTags(prev => ({ ...prev, [contextualMenu.targetId]: [nextTag] }));
+            setTerminalLog(prev => [...prev, `> ARIA: ${target.name} tagged as '${nextTag}'.`]);
+          } else {
+            setPoiTags(prev => {
+              const updated = { ...prev };
+              delete updated[contextualMenu.targetId];
+              return updated;
+            });
+            setTerminalLog(prev => [...prev, `> ARIA: Tags cleared from ${target.name}.`]);
+          }
+        }
+        break;
+      }
+      default:
+        break;
+    }
+
+    closeContextualMenu();
   };
 
   const shipVitals = {
@@ -797,20 +1739,292 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
     );
   };
 
+  // Calculate zoom-responsive POI size with min/max constraints
+  const getResponsivePOISize = (zoom) => {
+    const minSize = 40; // Minimum size in pixels (increased from 30)
+    const maxSize = 100; // Maximum size in pixels (increased from 60)
+    const baseSize = 50; // Base size at 1x zoom (increased from 40)
+    const responsiveSize = baseSize * zoom;
+    return Math.max(minSize, Math.min(maxSize, responsiveSize));
+  };
+  
   return (
     <div className="terminal-frame">
-      <SettingsDropdown />
-
       {/* Fullscreen Solar System Map - Always visible */}
       {system && (
         <div className="map-fullscreen-overlay">
-          {/* Left 2/3: Map Canvas + Terminal */}
-          <div className="map-fullscreen-left">
-            <div className="map-fullscreen-header" style={{ marginTop: '25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>SOLAR SYSTEM MAP — {systemName}</span>
+          {/* Full Width Header */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            padding: '25px 16px 16px 16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            borderBottom: '1px solid rgba(52, 224, 255, 0.3)',
+            background: 'rgba(0, 0, 0, 0.8)',
+            zIndex: 10
+          }}>
+            {/* Left Side: Admin + Title + Settings + Return */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', paddingBottom: '4px', position: 'relative' }}>
+              {/* Admin Settings Icon */}
+              <GlobalSettingsMenu 
+                onGalaxyEditor={onCreateGalaxy}
+                devMode={devMode}
+                onDevModeToggle={onDevModeToggle}
+              />
               
-              {/* All Status Cubes in One Row */}
-              <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto', marginRight: '16px', alignItems: 'center' }}>
+              {/* Title */}
+              <span style={{ fontSize: '13px', color: '#34e0ff', fontWeight: 'bold', letterSpacing: '1px' }}>
+                SOLAR SYSTEM MAP — {systemName}
+              </span>
+              
+              {/* Settings Button with Dropdown */}
+              <div style={{ position: 'relative' }}>
+                <button 
+                  className="small-btn" 
+                  onClick={() => setShowNavMenu(!showNavMenu)}
+                  style={{ fontSize: '9px', padding: '6px 12px' }}
+                >
+                  SETTINGS ▾
+                </button>
+                
+                {showNavMenu && (
+                  <div style={{
+                    position: 'fixed',
+                    top: '90px',
+                    left: '335px',
+                    background: 'rgba(0, 20, 40, 0.95)',
+                    border: '1px solid #34e0ff',
+                    borderRadius: '4px',
+                    padding: '12px',
+                    minWidth: '200px',
+                    maxHeight: '70vh',
+                    overflowY: 'auto',
+                    zIndex: 10001,
+                    boxShadow: '0 0 20px rgba(52, 224, 255, 0.3)'
+                  }}>
+                    <div style={{ fontSize: '10px', color: '#34e0ff', marginBottom: '10px', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                      GUI SETTINGS
+                    </div>
+                    
+                    {/* Show All / Hide All buttons */}
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                      <button
+                        onClick={() => {
+                          setShowShip(true);
+                          setShowPlanets(true);
+                          setShowMoons(true);
+                          setShowAsteroidClusters(true);
+                          setShowOrbitals(true);
+                          setShowAnomalies(true);
+                          setShowHabitats(true);
+                          setShowConflicts(true);
+                          setShowPOINames(true);
+                          setShowScaleRings(true);
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '6px 12px',
+                          background: 'rgba(52, 224, 255, 0.1)',
+                          border: '1px solid rgba(52, 224, 255, 0.4)',
+                          borderRadius: '4px',
+                          color: '#34e0ff',
+                          fontSize: '9px',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(52, 224, 255, 0.2)';
+                          e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.8)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'rgba(52, 224, 255, 0.1)';
+                          e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.4)';
+                        }}
+                      >
+                        SHOW ALL
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowShip(false);
+                          setShowPlanets(false);
+                          setShowMoons(false);
+                          setShowAsteroidClusters(false);
+                          setShowOrbitals(false);
+                          setShowAnomalies(false);
+                          setShowHabitats(false);
+                          setShowConflicts(false);
+                          setShowPOINames(false);
+                          setShowScaleRings(false);
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '6px 12px',
+                          background: 'rgba(52, 224, 255, 0.1)',
+                          border: '1px solid rgba(52, 224, 255, 0.4)',
+                          borderRadius: '4px',
+                          color: '#34e0ff',
+                          fontSize: '9px',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(52, 224, 255, 0.2)';
+                          e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.8)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'rgba(52, 224, 255, 0.1)';
+                          e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.4)';
+                        }}
+                      >
+                        HIDE ALL
+                      </button>
+                    </div>
+                    
+                    {/* Visibility Toggles - Single Column */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '10px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '9px', color: '#cfd8df', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={showShip} 
+                          onChange={(e) => setShowShip(e.target.checked)}
+                          style={{ accentColor: '#34e0ff' }}
+                        />
+                        Show Ship
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '9px', color: '#cfd8df', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={showPlanets} 
+                          onChange={(e) => setShowPlanets(e.target.checked)}
+                          style={{ accentColor: '#34e0ff' }}
+                        />
+                        Show Planets
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '9px', color: '#cfd8df', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={showMoons} 
+                          onChange={(e) => setShowMoons(e.target.checked)}
+                          style={{ accentColor: '#34e0ff' }}
+                        />
+                        Show Moons
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '9px', color: '#cfd8df', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={showAsteroidClusters} 
+                          onChange={(e) => setShowAsteroidClusters(e.target.checked)}
+                          style={{ accentColor: '#34e0ff' }}
+                        />
+                        Show Asteroid Belts
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '9px', color: '#cfd8df', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={showOrbitals} 
+                          onChange={(e) => setShowOrbitals(e.target.checked)}
+                          style={{ accentColor: '#34e0ff' }}
+                        />
+                        Show Orbitals
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '9px', color: '#cfd8df', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={showAnomalies} 
+                          onChange={(e) => setShowAnomalies(e.target.checked)}
+                          style={{ accentColor: '#34e0ff' }}
+                        />
+                        Show Anomalies
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '9px', color: '#cfd8df', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={showHabitats} 
+                          onChange={(e) => setShowHabitats(e.target.checked)}
+                          style={{ accentColor: '#34e0ff' }}
+                        />
+                        Show Habitats
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '9px', color: '#cfd8df', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={showConflicts} 
+                          onChange={(e) => setShowConflicts(e.target.checked)}
+                          style={{ accentColor: '#34e0ff' }}
+                        />
+                        Show Conflicts
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '9px', color: '#cfd8df', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={showPOINames} 
+                          onChange={(e) => setShowPOINames(e.target.checked)}
+                          style={{ accentColor: '#34e0ff' }}
+                        />
+                        Show POI Names
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '9px', color: '#cfd8df', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={showScaleRings} 
+                          onChange={(e) => setShowScaleRings(e.target.checked)}
+                          style={{ accentColor: '#34e0ff' }}
+                        />
+                        Show Scale Rings
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '9px', color: 'rgba(255, 107, 107, 0.9)', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={showRadiation} 
+                          onChange={(e) => setShowRadiation(e.target.checked)}
+                          style={{ accentColor: '#ff6b6b' }}
+                        />
+                        Show Radiation Overlay
+                      </label>
+                    </div>
+                    
+                    <div style={{ borderTop: '1px solid rgba(52, 224, 255, 0.3)', margin: '10px 0' }} />
+                    
+                    {/* Background Opacity */}
+                    <div>
+                      <div style={{ fontSize: '9px', color: '#cfd8df', marginBottom: '6px' }}>
+                        Background Opacity
+                      </div>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="100" 
+                        value={backgroundOpacity * 100}
+                        onChange={(e) => setBackgroundOpacity(e.target.value / 100)}
+                        style={{
+                          width: '100%',
+                          accentColor: '#34e0ff',
+                          cursor: 'pointer'
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Return to Homebase */}
+              <button 
+                className="small-btn" 
+                onClick={() => onNavigate && onNavigate('homebase')}
+                style={{ fontSize: '9px', padding: '6px 12px' }}
+              >
+                Return to Homebase
+              </button>
+            </div>
+            
+            {/* Center: Ship Statistics - shifted left by 136px (2 boxes + 4/5 of static box) */}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginRight: '136px' }}>
                 {/* Shields Cube */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                   <div style={{
@@ -889,7 +2103,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                   <div style={{ fontSize: '7px', color: '#34e0ff', fontWeight: 'bold', letterSpacing: '0.5px' }}>HULL</div>
                 </div>
 
-                {/* Energy Cube */}
+                {/* Power Cube (Bar Chart) */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                   <div style={{
                     width: '40px',
@@ -906,7 +2120,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      height: `${currentShipState.fuel}%`,
+                      height: `${(shipAttributes.totalPowerReq / shipAttributes.maxPower) * 100}%`,
                       background: 'linear-gradient(to top, rgba(52, 224, 255, 0.6), rgba(52, 224, 255, 0.3))',
                       transition: 'height 0.3s ease',
                       boxShadow: 'inset 0 0 10px rgba(52, 224, 255, 0.5)'
@@ -916,16 +2130,57 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                       top: '50%',
                       left: '50%',
                       transform: 'translate(-50%, -50%)',
-                      fontSize: '10px',
+                      fontSize: '9px',
                       fontWeight: 'bold',
                       color: '#34e0ff',
                       textShadow: '0 0 4px rgba(52, 224, 255, 0.8)',
-                      zIndex: 1
+                      zIndex: 1,
+                      whiteSpace: 'nowrap'
                     }}>
-                      {Math.round(currentShipState.fuel)}
+                      {Math.round((shipAttributes.totalPowerReq / shipAttributes.maxPower) * 100)}
                     </div>
                   </div>
-                  <div style={{ fontSize: '7px', color: '#34e0ff', fontWeight: 'bold', letterSpacing: '0.5px' }}>ENERGY</div>
+                  <div style={{ fontSize: '7px', color: '#34e0ff', fontWeight: 'bold', letterSpacing: '0.5px' }}>POWER</div>
+                </div>
+
+                {/* H3-Fuel Cube */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    background: 'rgba(0, 20, 40, 0.8)',
+                    border: '1px solid rgba(52, 224, 255, 0.4)',
+                    borderRadius: '4px',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    boxShadow: '0 0 10px rgba(52, 224, 255, 0.3)'
+                  }}>
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: `${(currentShipState.fuelPellets / currentShipState.maxFuelPellets) * 100}%`,
+                      background: 'linear-gradient(to top, rgba(52, 224, 255, 0.6), rgba(52, 224, 255, 0.3))',
+                      transition: 'height 0.3s ease',
+                      boxShadow: 'inset 0 0 10px rgba(52, 224, 255, 0.5)'
+                    }} />
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      fontSize: '9px',
+                      fontWeight: 'bold',
+                      color: '#34e0ff',
+                      textShadow: '0 0 4px rgba(52, 224, 255, 0.8)',
+                      zIndex: 1,
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {currentShipState.fuelPellets}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '7px', color: '#34e0ff', fontWeight: 'bold', letterSpacing: '0.5px' }}>H3-FUEL</div>
                 </div>
 
                 {/* Separator */}
@@ -1014,116 +2269,15 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                   </div>
                   <div style={{ fontSize: '7px', color: '#34e0ff', fontWeight: 'bold', letterSpacing: '0.5px' }}>STATIC</div>
                 </div>
-              </div>
-              
-              {/* Navigation Menu */}
-              <div style={{ position: 'relative', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                {/* Drop Pin Toggle Button */}
-                <button 
-                  className="small-btn" 
-                  onClick={() => setDropPinMode(!dropPinMode)}
-                  style={{ 
-                    fontSize: '9px', 
-                    padding: '1px 6px',
-                    width: '26px',
-                    height: '26px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: dropPinMode ? 'rgba(52, 224, 255, 0.3)' : 'rgba(52, 224, 255, 0.1)'
-                  }}
-                  title={dropPinMode ? 'Drop Pin Mode Active' : 'Activate Drop Pin Mode'}
-                >
-                  <svg width="12" height="14" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Pin head - teardrop shape */}
-                    <path d="M8 2C5.8 2 4 3.8 4 6C4 8.5 8 13 8 13C8 13 12 8.5 12 6C12 3.8 10.2 2 8 2Z" 
-                      stroke="#34e0ff" 
-                      strokeWidth="1.2" 
-                      fill="none"
-                    />
-                    {/* Center dot */}
-                    <circle cx="8" cy="6" r="1.5" fill="#34e0ff" />
-                    {/* Isometric ring at bottom */}
-                    <ellipse cx="8" cy="16" rx="4" ry="1.5" 
-                      stroke="#34e0ff" 
-                      strokeWidth="1" 
-                      fill="none"
-                      opacity="0.6"
-                    />
-                    {/* Connection line from pin to ring */}
-                    <line x1="8" y1="13" x2="8" y2="16" 
-                      stroke="#34e0ff" 
-                      strokeWidth="0.8" 
-                      opacity="0.4"
-                      strokeDasharray="1,1"
-                    />
-                  </svg>
-                </button>
-                
-                <button 
-                  className="small-btn" 
-                  onClick={() => setShowNavMenu(!showNavMenu)}
-                  style={{ fontSize: '9px', padding: '6px 12px' }}
-                >
-                  SETTINGS ▾
-                </button>
-                
-                {showNavMenu && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '100%',
-                    right: 0,
-                    marginTop: '4px',
-                    background: 'rgba(0, 20, 40, 0.95)',
-                    border: '1px solid #34e0ff',
-                    borderRadius: '4px',
-                    padding: '8px',
-                    minWidth: '200px',
-                    zIndex: 1000,
-                    boxShadow: '0 0 20px rgba(52, 224, 255, 0.3)'
-                  }}>
-                    <div style={{ fontSize: '10px', color: '#cfd8df', marginBottom: '8px', fontWeight: 'bold' }}>
-                      SETTINGS
-                    </div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '9px', color: '#cfd8df', cursor: 'pointer', marginBottom: '4px' }}>
-                      <input 
-                        type="checkbox" 
-                        checked={showPOINames} 
-                        onChange={(e) => setShowPOINames(e.target.checked)}
-                      />
-                      Show POI Names
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '9px', color: '#cfd8df', cursor: 'pointer' }}>
-                      <input 
-                        type="checkbox" 
-                        checked={showScaleRings} 
-                        onChange={(e) => setShowScaleRings(e.target.checked)}
-                      />
-                      Show Scale Rings
-                    </label>
-                    <div style={{ borderTop: '1px solid rgba(52, 224, 255, 0.3)', margin: '8px 0' }} />
-                    <div style={{ fontSize: '9px', color: '#cfd8df', marginBottom: '6px' }}>
-                      Background Opacity
-                    </div>
-                    <input 
-                      type="range" 
-                      min="0" 
-                      max="100" 
-                      value={backgroundOpacity * 100}
-                      onChange={(e) => setBackgroundOpacity(e.target.value / 100)}
-                      style={{
-                        width: '100%',
-                        accentColor: '#34e0ff',
-                        cursor: 'pointer'
-                      }}
-                    />
-                  </div>
-                )}
-                
-                <button className="small-btn" onClick={() => onNavigate && onNavigate('homebase')}>Return to Homebase</button>
-              </div>
             </div>
-            <div className="map-fullscreen-canvas" style={{ 
+            
+            {/* Right Side: Time Control Bar */}
+            <TimeControlBar />
+          </div>
+          
+          {/* Left 2/3: Map Canvas */}
+          <div className="map-fullscreen-left" style={{ paddingTop: '91px' }}>
+            <div ref={mapCanvasRef} className="map-fullscreen-canvas" style={{ 
               flex: 1,
               position: 'relative',
               backgroundImage: 'url(/src/assets/media/solar_system_bg.jpg)',
@@ -1143,6 +2297,66 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                 zIndex: 0
               }} />
               
+              {/* Radiation Overlay - Shows static radiation levels */}
+              {showRadiation && system && (() => {
+                const currentExposure = calculateStaticExposure(system, shipPosition.distanceAU);
+                // Create radiation zones based on distance from sun
+                // Radiation INCREASES with distance (galactic surge is stronger far from stellar protection)
+                const zones = [
+                  { distance: 0.3, intensity: 0.1, color: 'rgba(100, 255, 100, 0.08)' },  // Inner: Safe (stellar protection)
+                  { distance: 0.5, intensity: 0.3, color: 'rgba(255, 255, 100, 0.1)' },   // Mid: Low radiation
+                  { distance: 0.7, intensity: 0.6, color: 'rgba(255, 150, 50, 0.15)' },   // Outer: Moderate radiation
+                  { distance: 0.9, intensity: 0.9, color: 'rgba(255, 50, 50, 0.25)' },    // Edge: High radiation (galactic surge)
+                ];
+                
+                return (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    pointerEvents: 'none',
+                    zIndex: 1
+                  }}>
+                    {zones.map((zone, idx) => {
+                      const radius = zone.distance * 0.92 * zoom;
+                      const diameter = radius * 2;
+                      return (
+                        <div key={`rad-zone-${idx}`} style={{
+                          position: 'absolute',
+                          left: `${(0.5 + panOffset.x) * 100}%`,
+                          top: `${(0.5 + panOffset.y) * 100}%`,
+                          transform: 'translate(-50%, -50%)',
+                          width: `${diameter * 100}%`,
+                          height: `${diameter * 100}%`,
+                          borderRadius: '50%',
+                          background: `radial-gradient(circle at center, transparent 40%, ${zone.color} 90%)`,
+                          transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none'
+                        }} />
+                      );
+                    })}
+                    {/* Radiation level indicator */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '10px',
+                      right: '10px',
+                      background: 'rgba(0, 12, 18, 0.9)',
+                      border: '1px solid rgba(255, 107, 107, 0.6)',
+                      borderRadius: '4px',
+                      padding: '8px 12px',
+                      fontSize: '9px',
+                      color: '#ff6b6b',
+                      fontWeight: 'bold',
+                      textShadow: '0 0 4px rgba(255, 107, 107, 0.6)',
+                      boxShadow: '0 0 12px rgba(255, 107, 107, 0.3)'
+                    }}>
+                      ☢ RADIATION: {currentExposure.toFixed(1)} mSv/hr
+                    </div>
+                  </div>
+                );
+              })()}
+              
               <div className="map-grid"></div>
               
               {/* Solar System Map - POIs revealed by scanning */}
@@ -1153,6 +2367,9 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                   () => setZoom(z => Math.min(maxZoom, z < 2 ? Math.round((z + 0.2) * 10) / 10 : Math.round((z + 0.5) * 10) / 10)),
                   () => setZoom(z => Math.max(minZoom, z <= 2 ? Math.round((z - 0.2) * 10) / 10 : Math.round((z - 0.5) * 10) / 10))
                 ];
+                
+                // Use the smaller dimension to ensure circles stay circular
+                // This makes the coordinate system based on a square within the rectangle
                 const toXY = (au, angle) => {
                   const centerX = 0.5; 
                   const centerY = 0.5;
@@ -1206,22 +2423,166 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                 
                 // Ship marker - holographic circle with rotating ship icon
                 const shipPos = toXY(shipPosition.distanceAU, shipPosition.angleRad);
-                console.log('Ship render position:', shipPos, 'Ship AU:', shipPosition.distanceAU, 'Angle:', shipPosition.angleRad, 'PanOffset:', panOffset, 'Zoom:', zoom);
-                const shipMarker = (
+                
+                // Calculate velocity percentage (0-100% of max speed)
+                const maxSpeed = shipAttributes.speed || 1.0;
+                const currentVelocity = currentShipState.currentVelocity || 0;
+                const velocityPercent = Math.min((currentVelocity / maxSpeed) * 100, 100);
+                
+                // Determine if ship is actively traveling
+                const isTraveling = !!activeTravel;
+                const travelProgress = isTraveling ? (() => {
+                  const speedAUPerSec = 2;
+                  const now = getUniverseTime().getTime();
+                  const elapsed = now - activeTravel.startTime;
+                  const totalTime = activeTravel.distance / speedAUPerSec;
+                  return Math.min(elapsed / totalTime, 1);
+                })() : 0;
+                
+                // Calculate rotation angle toward target during travel
+                const travelRotation = isTraveling ? (() => {
+                  const dx = activeTravel.targetX - shipPosition.x;
+                  const dy = activeTravel.targetY - shipPosition.y;
+                  // Convert to degrees, add 90 to account for ship pointing "up" in SVG
+                  return (Math.atan2(dy, dx) * 180 / Math.PI) + 90;
+                })() : shipRotation;
+                
+                // Apply same responsive sizing to ship as POIs
+                const shipSize = getResponsivePOISize(zoom);
+                const shipRadius = shipSize / 2;
+                
+                // Engine flicker animation (only when traveling) - use universe time
+                const enginePulse = isTraveling ? Math.sin(getUniverseTime().getTime() * 20) * 0.3 + 0.7 : 0;
+                
+                const shipMarker = showShip ? (
                   <div
                     style={{
                       ...shipPos,
                       position: 'absolute',
                       transform: 'translate(-50%, -50%)',
-                      transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none',
+                      transition: isTraveling ? 'none' : (panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none'),
                       cursor: 'pointer'
                     }}
-                    onClick={() => { setSelectedPOI('SHIP'); setLockedSelection(true); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openContextualMenu('SHIP', 'ship');
+                    }}
                   >
+                    {/* Travel trail - line from start to current position */}
+                    {isTraveling && (() => {
+                      const startPos = toXY(
+                        Math.sqrt(activeTravel.startPosition.x ** 2 + activeTravel.startPosition.y ** 2),
+                        Math.atan2(activeTravel.startPosition.y, activeTravel.startPosition.x)
+                      );
+                      const targetPos = toXY(
+                        Math.sqrt(activeTravel.targetX ** 2 + activeTravel.targetY ** 2),
+                        Math.atan2(activeTravel.targetY, activeTravel.targetX)
+                      );
+                      
+                      // Convert percentages to actual pixels
+                      const canvas = mapCanvasRef.current;
+                      if (!canvas) return null;
+                      const rect = canvas.getBoundingClientRect();
+                      
+                      const startX = (parseFloat(startPos.left) / 100) * rect.width;
+                      const startY = (parseFloat(startPos.top) / 100) * rect.height;
+                      const currentX = (parseFloat(shipPos.left) / 100) * rect.width;
+                      const currentY = (parseFloat(shipPos.top) / 100) * rect.height;
+                      const targetX = (parseFloat(targetPos.left) / 100) * rect.width;
+                      const targetY = (parseFloat(targetPos.top) / 100) * rect.height;
+                      
+                      const svgWidth = rect.width;
+                      const svgHeight = rect.height;
+                      
+                      return (
+                        <svg
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            pointerEvents: 'none',
+                            zIndex: -1
+                          }}
+                          width={svgWidth}
+                          height={svgHeight}
+                          viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+                        >
+                          {/* Planned route (dim) */}
+                          <line
+                            x1={startX}
+                            y1={startY}
+                            x2={targetX}
+                            y2={targetY}
+                            stroke="rgba(52, 224, 255, 0.15)"
+                            strokeWidth="1"
+                            strokeDasharray="4 4"
+                          />
+                          {/* Traveled path (bright) */}
+                          <line
+                            x1={startX}
+                            y1={startY}
+                            x2={currentX}
+                            y2={currentY}
+                            stroke="rgba(52, 224, 255, 0.6)"
+                            strokeWidth="2"
+                            style={{
+                              filter: 'drop-shadow(0 0 3px rgba(52, 224, 255, 0.8))'
+                            }}
+                          />
+                        </svg>
+                      );
+                    })()}
+                    {/* Velocity arc indicator (180° from 6 o'clock to 12 o'clock anti-clockwise) */}
+                    {currentVelocity > 0 && (() => {
+                      const r = shipRadius * 0.55;
+                      const halfCircumference = Math.PI * r; // path length for 180° arc
+                      const dash = (velocityPercent / 100) * halfCircumference;
+                      const svgSize = shipSize * 1.36;
+                      const center = svgSize / 2;
+                      return (
+                        <svg
+                          width={svgSize}
+                          height={svgSize}
+                          viewBox={`0 0 ${svgSize} ${svgSize}`}
+                          style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            pointerEvents: 'none'
+                          }}
+                        >
+                          {/* Background half-arc (dim) */}
+                          <path
+                            d={`M${center} ${center + r} A${r} ${r} 0 0 0 ${center} ${center - r}`}
+                            fill="none"
+                            stroke="rgba(52, 224, 255, 0.15)"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
+                          {/* Active velocity arc */}
+                          <path
+                            d={`M${center} ${center + r} A${r} ${r} 0 0 0 ${center} ${center - r}`}
+                            fill="none"
+                            stroke="rgba(52, 224, 255, 0.9)"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            style={{
+                              strokeDasharray: `${dash} ${halfCircumference}`,
+                              filter: 'drop-shadow(0 0 4px rgba(52, 224, 255, 0.9))',
+                              transition: 'stroke-dasharray 0.12s linear'
+                            }}
+                          />
+                        </svg>
+                      );
+                    })()}
+                    
                     {/* Holographic circle */}
                     <div style={{
-                      width: '44px',
-                      height: '44px',
+                      width: `${shipSize}px`,
+                      height: `${shipSize}px`,
                       borderRadius: '50%',
                       border: '2px solid rgba(52, 224, 255, 0.9)',
                       background: 'radial-gradient(circle at center, rgba(52, 224, 255, 0.15) 0%, rgba(52, 224, 255, 0.05) 50%, transparent 100%)',
@@ -1233,14 +2594,25 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                     }}>
                       {/* Salvage Ship icon with rotation */}
                       <svg 
-                        width="28" 
-                        height="28" 
+                        width={shipSize * 0.64} 
+                        height={shipSize * 0.64} 
                         viewBox="0 0 24 24" 
                         style={{ 
-                          transform: `rotate(${shipRotation}deg)`,
-                          transition: 'transform 0.5s ease-out'
+                          transform: `rotate(${travelRotation}deg)`,
+                          transition: isTraveling ? 'none' : 'transform 0.5s ease-out'
                         }}
                       >
+                        <defs>
+                          {/* Engine glow filter */}
+                          <filter id="engineGlow">
+                            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                            <feMerge>
+                              <feMergeNode in="coloredBlur"/>
+                              <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                          </filter>
+                        </defs>
+                        
                         {/* Main hull */}
                         <path d="M12 4 L16 10 L14 16 L10 16 L8 10 Z" fill="none" stroke="#34e0ff" strokeWidth="1.5" strokeLinejoin="round"/>
                         {/* Cockpit */}
@@ -1249,10 +2621,53 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                         <path d="M8 10 L4 12 L6 14 L8 12" fill="none" stroke="#34e0ff" strokeWidth="1.5" strokeLinejoin="round"/>
                         {/* Right wing */}
                         <path d="M16 10 L20 12 L18 14 L16 12" fill="none" stroke="#34e0ff" strokeWidth="1.5" strokeLinejoin="round"/>
-                        {/* Engine glow left */}
+                        
+                        {/* Engine glow - animated when traveling */}
+                        {isTraveling && (
+                          <>
+                            {/* Left engine glow */}
+                            <circle 
+                              cx="10" 
+                              cy="16" 
+                              r="2.5" 
+                              fill="#34e0ff" 
+                              opacity={enginePulse * 0.8}
+                              filter="url(#engineGlow)"
+                            />
+                            {/* Right engine glow */}
+                            <circle 
+                              cx="14" 
+                              cy="16" 
+                              r="2.5" 
+                              fill="#34e0ff" 
+                              opacity={enginePulse * 0.8}
+                              filter="url(#engineGlow)"
+                            />
+                            {/* Engine trail left */}
+                            <path 
+                              d="M10 17 L10 22" 
+                              stroke="#34e0ff" 
+                              strokeWidth="2" 
+                              opacity={enginePulse * 0.5}
+                              strokeLinecap="round"
+                              filter="url(#engineGlow)"
+                            />
+                            {/* Engine trail right */}
+                            <path 
+                              d="M14 17 L14 22" 
+                              stroke="#34e0ff" 
+                              strokeWidth="2" 
+                              opacity={enginePulse * 0.5}
+                              strokeLinecap="round"
+                              filter="url(#engineGlow)"
+                            />
+                          </>
+                        )}
+                        
+                        {/* Static engine cores (always visible) */}
                         <circle cx="10" cy="16" r="1.5" fill="#34e0ff" opacity="0.6"/>
-                        {/* Engine glow right */}
                         <circle cx="14" cy="16" r="1.5" fill="#34e0ff" opacity="0.6"/>
+                        
                         {/* Salvage claw left */}
                         <path d="M9 14 L7 18 M7 18 L8 19" stroke="#34e0ff" strokeWidth="1" strokeLinecap="round"/>
                         {/* Salvage claw right */}
@@ -1275,29 +2690,94 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                         SS-ARKOSE
                       </div>
                     )}
+                    
+                    {/* ETA countdown timer - show if travel time > 10 seconds */}
+                    {activeTravel && (() => {
+                      const speedAUPerSec = 2; // Fixed 2 AU/s in universe time
+                      const totalTravelTime = activeTravel.distance / speedAUPerSec;
+                      
+                      if (totalTravelTime <= 10) return null;
+                      
+                      const now = getUniverseTime().getTime();
+                      const elapsed = now - activeTravel.startTime;
+                      const remaining = Math.max(0, totalTravelTime - elapsed);
+                      const minutes = Math.floor(remaining / 60);
+                      const seconds = Math.floor(remaining % 60);
+                      
+                      return (
+                        <div style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '100%',
+                          transform: 'translate(8px, -50%)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '2px',
+                          padding: '6px 10px',
+                          background: 'rgba(0, 20, 40, 0.9)',
+                          border: '1px solid rgba(52, 224, 255, 0.6)',
+                          borderRadius: '6px',
+                          boxShadow: '0 0 12px rgba(52, 224, 255, 0.4)',
+                          minWidth: '60px'
+                        }}>
+                          <div style={{
+                            fontSize: '7px',
+                            color: 'rgba(52, 224, 255, 0.7)',
+                            fontWeight: '600',
+                            letterSpacing: '0.5px'
+                          }}>
+                            ETA
+                          </div>
+                          <div style={{
+                            fontSize: '14px',
+                            color: '#34e0ff',
+                            fontWeight: 'bold',
+                            fontFamily: 'monospace',
+                            textShadow: '0 0 6px rgba(52, 224, 255, 0.8)'
+                          }}>
+                            {minutes > 0 ? `${minutes}:${seconds.toString().padStart(2, '0')}` : `${seconds}s`}
+                          </div>
+                          <div style={{
+                            fontSize: '6px',
+                            color: 'rgba(52, 224, 255, 0.5)',
+                            fontWeight: '600',
+                            letterSpacing: '0.5px'
+                          }}>
+                            {activeTravel.targetName}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
-                );
+                ) : null;
                 
                 // Ping wave expanding from ship (sensor sweep visualization)
                 const pingWave = isPinging ? (() => {
                   const shipPos = toXY(shipPosition.distanceAU, shipPosition.angleRad);
                   // Convert scan radius from AU to viewport percentage using same calculation as toXY
                   const radiusInViewport = (scanPingRadius / system.heliosphere.radiusAU) * 0.92 * zoom;
-                  const diameter = radiusInViewport * 2;
+                  const diameterPx = radiusInViewport * 2 * canvasDimensions.minDim;
+                  const shipPosX = parseFloat(shipPos.left);
+                  const shipPosY = parseFloat(shipPos.top);
+                  const leftPx = (shipPosX / 100) * canvasDimensions.width;
+                  const topPx = (shipPosY / 100) * canvasDimensions.height;
                   return (
                     <div
                       style={{
                         position: 'absolute',
-                        left: shipPos.left,
-                        top: shipPos.top,
+                        left: `${leftPx}px`,
+                        top: `${topPx}px`,
                         transform: 'translate(-50%, -50%)',
-                        width: `${diameter * 100}%`,
-                        height: `${diameter * 100}%`,
+                        width: `${diameterPx}px`,
+                        height: `${diameterPx}px`,
                         border: '2px solid rgba(52, 224, 255, 0.8)',
                         borderRadius: '50%',
                         boxShadow: '0 0 20px rgba(52, 224, 255, 0.6), inset 0 0 20px rgba(52, 224, 255, 0.3)',
                         pointerEvents: 'none',
                         animation: 'pulse 0.5s ease-in-out infinite',
+                        opacity: pingOpacity,
+                        transition: 'opacity 0.5s ease-out',
                         zIndex: 5
                       }}
                     />
@@ -1323,26 +2803,39 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                     <div className="poi-tooltip">SUN ({system.star.class}-TYPE)</div>
                   </div>
                 );
-                // Get scanned parents first
+                // Get scanned parents first, filtered by visibility settings
                 const parents = [
                   ...system.orbits.map(o => ({ ...o.parent, distanceAU: o.distanceAU, angleRad: o.angleRad, orbitIndex: o.index })),
                   ...(system.extras || []).map(e => ({ ...e.parent, distanceAU: e.distanceAU, angleRad: e.angleRad, orbitIndex: -1 })),
-                ].filter(p => scanProgress.includes(p.id));
+                ].filter(p => {
+                  if (!scanProgress.includes(p.id)) return false;
+                  // Apply visibility filters
+                  if (p.type === 'planet' && !showPlanets) return false;
+                  if (p.type === 'moon' && !showMoons) return false;
+                  if (p.type === 'belt' && !showAsteroidClusters) return false;
+                  if (p.type === 'orbital' && !showOrbitals) return false;
+                  if (p.type === 'anomaly' && !showAnomalies) return false;
+                  if (p.type === 'habitat' && !showHabitats) return false;
+                  if (p.type === 'conflict' && !showConflicts) return false;
+                  return true;
+                });
                 
-                // Orbits as rings - only show rings for scanned planets
-                const planetDistances = system.orbits
+                // Orbits as rings - show only if planets are visible and scanned
+                const planetDistances = showPlanets ? system.orbits
                   .filter(o => o.parent.type === 'planet' && scanProgress.includes(o.parent.id))
-                  .map(o => o.distanceAU);
+                  .map(o => o.distanceAU) : [];
                 const rings = planetDistances.map((distAU, idx) => {
-                  const r = (distAU / system.heliosphere.radiusAU) * 0.92 * zoom; // radius in viewport units
-                  const diameter = r * 2; // rings are sized by diameter (width/height)
+                  const r = (distAU / system.heliosphere.radiusAU) * 0.92 * zoom; // radius in viewport units (0-1)
+                  const diameterPx = r * 2 * canvasDimensions.minDim; // convert to pixels using min dimension
+                  const leftPx = (0.5 + panOffset.x) * canvasDimensions.width;
+                  const topPx = (0.5 + panOffset.y) * canvasDimensions.height;
                   return (
                     <div key={`ring-${idx}`} className="orbit-ring" style={{
-                      left: `${(0.5 + panOffset.x) * 100}%`, 
-                      top: `${(0.5 + panOffset.y) * 100}%`, 
+                      left: `${leftPx}px`,
+                      top: `${topPx}px`,
                       transform: 'translate(-50%, -50%)',
-                      width: `${diameter * 100}%`,
-                      height: `${diameter * 100}%`,
+                      width: `${diameterPx}px`,
+                      height: `${diameterPx}px`,
                       transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out, width 0.8s ease-in-out, height 0.8s ease-in-out' : 'none'
                     }} />
                   );
@@ -1350,28 +2843,31 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                 
                 // Scale rings - dotted circles at regular AU intervals with distance labels
                 const scaleRings = showScaleRings ? (() => {
-                  const scaleInterval = 10; // AU between each ring
                   const maxAU = system.heliosphere.radiusAU;
+                  let scaleInterval;
+                  if (maxAU <= 80) scaleInterval = 20; // dense small systems
+                  else if (maxAU <= 130) scaleInterval = 30; // medium systems
+                  else scaleInterval = 40; // large systems
                   const numRings = Math.floor(maxAU / scaleInterval);
                   
                   return Array.from({ length: numRings }, (_, idx) => {
                     const distAU = (idx + 1) * scaleInterval;
                     const r = (distAU / system.heliosphere.radiusAU) * 0.92 * zoom;
-                    const diameter = r * 2;
-                    const centerX = (0.5 + panOffset.x) * 100;
-                    const centerY = (0.5 + panOffset.y) * 100;
+                    const diameterPx = r * 2 * canvasDimensions.minDim;
+                    const centerXPx = (0.5 + panOffset.x) * canvasDimensions.width;
+                    const centerYPx = (0.5 + panOffset.y) * canvasDimensions.height;
                     
                     return (
                       <div key={`scale-ring-${idx}`}>
                         {/* Dotted ring */}
                         <div style={{
                           position: 'absolute',
-                          left: `${centerX}%`,
-                          top: `${centerY}%`,
+                          left: `${centerXPx}px`,
+                          top: `${centerYPx}px`,
                           transform: 'translate(-50%, -50%)',
-                          width: `${diameter * 100}%`,
-                          height: `${diameter * 100}%`,
-                          border: '1px dotted rgba(52, 224, 255, 0.15)',
+                          width: `${diameterPx}px`,
+                          height: `${diameterPx}px`,
+                          border: '1px dotted rgba(52, 224, 255, 0.28)', // brighter ring
                           borderRadius: '50%',
                           pointerEvents: 'none',
                           transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out, width 0.8s ease-in-out, height 0.8s ease-in-out' : 'none',
@@ -1437,44 +2933,244 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                   }
                 };
                 
-                const markers = parents.map(p => (
+                const poiSize = getResponsivePOISize(zoom);
+                const iconSize = poiSize * 0.5; // Icon always 50% of POI size (no separate limits)
+                
+                // Separate parent and child POIs
+                const parentPOIs = parents.filter(p => 
+                  p.type !== 'orbital' && p.type !== 'moon'
+                );
+                const childPOIs = parents.filter(p => 
+                  p.type === 'orbital' || p.type === 'moon'
+                );
+                
+                // Apply collision prevention to parent POIs
+                const applyCollisionPrevention = (pois) => {
+                  const minSeparation = poiSize * 2; // Minimum separation in pixels
+                  const positioned = [];
+                  
+                  pois.forEach((poi, idx) => {
+                    let xy = toXY(poi.distanceAU, poi.angleRad);
+                    let adjusted = { ...xy };
+                    let attempts = 0;
+                    const maxAttempts = 50;
+                    
+                    // Check collision with already positioned POIs
+                    while (attempts < maxAttempts) {
+                      const collision = positioned.some(other => {
+                        const dx = parseFloat(adjusted.left) - parseFloat(other.xy.left);
+                        const dy = parseFloat(adjusted.top) - parseFloat(other.xy.top);
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        return distance < minSeparation / 100; // Convert to percentage
+                      });
+                      
+                      if (!collision) break;
+                      
+                      // Spiral out from original position
+                      const spiralAngle = (attempts / maxAttempts) * Math.PI * 2 * 3;
+                      const spiralRadius = (attempts / maxAttempts) * 0.05; // 5% max offset
+                      adjusted = {
+                        left: `${parseFloat(xy.left) + Math.cos(spiralAngle) * spiralRadius}%`,
+                        top: `${parseFloat(xy.top) + Math.sin(spiralAngle) * spiralRadius}%`
+                      };
+                      attempts++;
+                    }
+                    
+                    positioned.push({ poi, xy: adjusted });
+                  });
+                  
+                  return positioned;
+                };
+                
+                const positionedParents = applyCollisionPrevention(parentPOIs);
+                
+                // Position child POIs next to their parents
+                const positionedChildren = childPOIs.map(child => {
+                  const parentPOI = positionedParents.find(p => p.poi.id === child.anchorId);
+                  
+                  if (!parentPOI) {
+                    // No parent found, use original position
+                    return { poi: child, xy: toXY(child.distanceAU, child.angleRad) };
+                  }
+                  
+                  // Position child beside parent (offset to the right)
+                  const parentLeft = parseFloat(parentPOI.xy.left);
+                  const parentTop = parseFloat(parentPOI.xy.top);
+                  const offsetX = (poiSize * 1.2) / window.innerWidth * 100; // 120% of POI size in percentage
+                  
+                  return {
+                    poi: child,
+                    xy: {
+                      left: `${parentLeft + offsetX}%`,
+                      top: `${parentTop}%`
+                    }
+                  };
+                });
+                
+                const allPositionedPOIs = [...positionedParents, ...positionedChildren];
+
+                const markers = allPositionedPOIs.map(({ poi: p, xy }) => {
+                  // Overlap handling: offset POI slightly if overlapping ship position
+                  const shipDist = Math.sqrt(Math.pow(p.distanceAU * Math.cos(p.angleRad) - shipPosition.x, 2) + Math.pow(p.distanceAU * Math.sin(p.angleRad) - shipPosition.y, 2));
+                  let overlapTransform = '';
+                  if (shipDist < 0.05) { // threshold AU
+                    const offsetPx = 14; // outward offset in px
+                    overlapTransform = `translate(${Math.cos(p.angleRad)*offsetPx}px, ${Math.sin(p.angleRad)*offsetPx}px)`;
+                  }
+                  return (
                   <div
                     key={p.id}
                     style={{
-                      ...toXY(p.distanceAU, p.angleRad),
+                      ...xy,
                       position: 'absolute',
-                      transform: 'translate(-50%, -50%)',
+                      transform: `translate(-50%, -50%) ${overlapTransform}`,
                       transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none',
                       cursor: 'pointer'
                     }}
-                    onMouseEnter={() => { if (!lockedSelection) setSelectedPOI(p.id); }}
-                    onMouseLeave={() => { if (!lockedSelection) setSelectedPOI(null); }}
+                    onMouseEnter={() => { if (!lockedSelection && !contextualMenu) setSelectedPOI(p.id); }}
+                    onMouseLeave={() => { if (!lockedSelection && !contextualMenu) setSelectedPOI(null); }}
                     onClick={(e) => { 
                       e.stopPropagation();
-                      setSelectedPOI(p.id); 
-                      setLockedSelection(true); 
+                      openContextualMenu(p.id, 'poi');
                     }}
                   >
                     {/* Holographic circle */}
                     <div style={{
-                      width: '40px',
-                      height: '40px',
+                      width: `${poiSize}px`,
+                      height: `${poiSize}px`,
                       borderRadius: '50%',
-                      border: `2px solid ${selectedPOI === p.id ? '#34e0ff' : 'rgba(52, 224, 255, 0.6)'}`,
+                      border: `2px solid ${selectedPOI === p.id ? '#34e0ff' : shipState.getState().visitedPOIs?.includes(p.id) ? 'rgba(52, 224, 255, 0.9)' : 'rgba(26, 95, 127, 0.7)'}`,
                       background: selectedPOI === p.id 
                         ? 'radial-gradient(circle, rgba(52, 224, 255, 0.3) 0%, rgba(52, 224, 255, 0.1) 50%, transparent 100%)'
-                        : 'radial-gradient(circle, rgba(52, 224, 255, 0.15) 0%, rgba(52, 224, 255, 0.05) 50%, transparent 100%)',
+                        : shipState.getState().visitedPOIs?.includes(p.id)
+                          ? 'radial-gradient(circle, rgba(52, 224, 255, 0.15) 0%, rgba(52, 224, 255, 0.05) 50%, transparent 100%)'
+                          : 'radial-gradient(circle, rgba(26, 95, 127, 0.08) 0%, rgba(26, 95, 127, 0.03) 50%, transparent 100%)',
                       boxShadow: selectedPOI === p.id 
                         ? '0 0 20px rgba(52, 224, 255, 0.8), inset 0 0 10px rgba(52, 224, 255, 0.3)'
-                        : '0 0 10px rgba(52, 224, 255, 0.4)',
+                        : shipState.getState().visitedPOIs?.includes(p.id)
+                          ? '0 0 10px rgba(52, 224, 255, 0.4)'
+                          : '0 0 5px rgba(26, 95, 127, 0.3)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#34e0ff',
+                      color: shipState.getState().visitedPOIs?.includes(p.id) ? '#34e0ff' : 'rgba(26, 95, 127, 0.8)',
                       position: 'relative',
-                      transition: 'all 0.3s ease'
+                      transition: 'all 0.3s ease',
+                      opacity: shipState.getState().visitedPOIs?.includes(p.id) ? 1 : 0.6,
+                      overflow: 'visible'
                     }}>
-                      {getPOIIcon(p.type)}
+                      {/* Scanning progress pie chart fill on main POI circle */}
+                      {(() => {
+                        const isScanning = scanningInProgress?.poiId === p.id;
+                        if (!isScanning) return null;
+                        
+                        // PULL progress: calculate from elapsed universe time
+                        const now = getUniverseTime().getTime();
+                        const elapsed = now - scanningInProgress.startTime;
+                        const progress = Math.min((elapsed / 3.0) * 100, 100); // 3 second scan duration
+                        
+                        return (
+                          <div style={{
+                            position: 'absolute',
+                            inset: 0,
+                            borderRadius: '50%',
+                            background: `conic-gradient(
+                              rgba(52, 224, 255, 0.6) 0deg,
+                              rgba(52, 224, 255, 0.6) ${progress * 3.6}deg,
+                              transparent ${progress * 3.6}deg,
+                              transparent 360deg
+                            )`,
+                            zIndex: 0
+                          }} />
+                        );
+                      })()}
+                      
+                      {/* Mining progress pie chart fill on main POI circle */}
+                      {(() => {
+                        const isMining = miningInProgress?.poiId === p.id;
+                        if (!isMining) return null;
+                        
+                        // PULL progress: calculate from elapsed universe time
+                        const now = getUniverseTime().getTime();
+                        const elapsed = now - miningInProgress.startTime;
+                        const progress = Math.min((elapsed / miningInProgress.duration) * 100, 100);
+                        
+                        return (
+                          <div style={{
+                            position: 'absolute',
+                            inset: 0,
+                            borderRadius: '50%',
+                            background: `conic-gradient(
+                              rgba(255, 200, 100, 0.6) 0deg,
+                              rgba(255, 200, 100, 0.6) ${progress * 3.6}deg,
+                              transparent ${progress * 3.6}deg,
+                              transparent 360deg
+                            )`,
+                            zIndex: 0
+                          }} />
+                        );
+                      })()}
+                      
+                      <span style={{ position: 'relative', zIndex: 1, fontSize: `${iconSize}px`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {getPOIIcon(p.type)}
+                      </span>
+                      
+                      {/* Belt cluster asteroid count - text only at 12 o'clock */}
+                      {p.type === 'belt' && (() => {
+                        const cluster = shipState.getClusterByPOI(p.id);
+                        if (!cluster) return null; // Only show after cluster is scanned
+                        
+                        return (
+                          <div style={{
+                            position: 'absolute',
+                            top: `${-poiSize * 0.7}px`,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            fontSize: `${Math.max(10, Math.min(14, poiSize * 0.3))}px`,
+                            fontWeight: 'bold',
+                            color: cluster.currentAsteroids === 0 ? '#ff8800' : '#34e0ff',
+                            textShadow: '0 0 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(52, 224, 255, 0.6)',
+                            pointerEvents: 'none',
+                            whiteSpace: 'nowrap',
+                            zIndex: 100
+                          }}>
+                            {cluster.currentAsteroids}/{cluster.maxAsteroids}
+                          </div>
+                        );
+                      })()}
+                      
+                      {/* Tag icon overlay */}
+                      {poiTags[p.id] && poiTags[p.id].length > 0 && (() => {
+                        const tag = poiTags[p.id][0];
+                        const tagColors = {
+                          marked: { bg: 'rgba(52, 224, 255, 0.9)', shadow: 'rgba(52, 224, 255, 0.6)' },
+                          avoid: { bg: 'rgba(255, 80, 80, 0.9)', shadow: 'rgba(255, 80, 80, 0.6)' },
+                          cache: { bg: 'rgba(255, 200, 100, 0.9)', shadow: 'rgba(255, 200, 100, 0.6)' }
+                        };
+                        const colors = tagColors[tag] || tagColors.marked;
+                        
+                        return (
+                          <svg 
+                            style={{
+                              position: 'absolute',
+                              top: `${-poiSize * 0.3}px`,
+                              right: `${-poiSize * 0.3}px`,
+                              width: `${poiSize * 0.6}px`,
+                              height: `${poiSize * 0.6}px`,
+                              pointerEvents: 'none',
+                              filter: `drop-shadow(0 0 4px ${colors.shadow})`,
+                              zIndex: 200
+                            }}
+                            viewBox="0 0 24 24"
+                            fill={colors.bg}
+                            stroke="rgba(0, 0, 0, 0.5)"
+                            strokeWidth="1.5"
+                          >
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" strokeLinejoin="round"/>
+                            <circle cx="7" cy="7" r="2" fill="rgba(0, 0, 0, 0.4)"/>
+                          </svg>
+                        );
+                      })()}
                     </div>
                     {showPOINames && (
                       <div style={{
@@ -1485,15 +3181,95 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                         whiteSpace: 'nowrap',
                         fontSize: '9px',
                         color: '#34e0ff',
-                        textShadow: '0 0 4px rgba(0, 0, 0, 0.8)',
+                        textShadow: '0 0 4px rgba(52, 224, 255, 0.8)',
                         marginTop: '4px',
                         pointerEvents: 'none'
                       }}>
                         {p.name}
                       </div>
                     )}
+                    
+                    {/* Scan failure notification bubble */}
+                    {scanFailureNotification?.poiId === p.id && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '-120px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: '280px',
+                        padding: '12px 16px',
+                        background: 'linear-gradient(135deg, rgba(20, 0, 0, 0.95), rgba(40, 10, 0, 0.95))',
+                        border: '2px solid rgba(255, 80, 80, 0.8)',
+                        borderRadius: '8px',
+                        boxShadow: '0 0 20px rgba(255, 80, 80, 0.6), inset 0 0 10px rgba(255, 80, 80, 0.2)',
+                        animation: 'slideDown 0.3s ease-out',
+                        zIndex: 1000
+                      }}>
+                        {/* Speech bubble arrow */}
+                        <div style={{
+                          position: 'absolute',
+                          bottom: '-10px',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          width: 0,
+                          height: 0,
+                          borderLeft: '10px solid transparent',
+                          borderRight: '10px solid transparent',
+                          borderTop: '10px solid rgba(255, 80, 80, 0.8)'
+                        }} />
+                        
+                        <div style={{
+                          fontSize: '11px',
+                          color: '#ff9999',
+                          fontWeight: '600',
+                          marginBottom: '8px',
+                          letterSpacing: '0.5px'
+                        }}>
+                          [ROLL {scanFailureNotification.roll}] SCAN FAILED
+                        </div>
+                        
+                        <div style={{
+                          fontSize: '10px',
+                          color: '#ffcccc',
+                          lineHeight: '1.5',
+                          marginBottom: '10px'
+                        }}>
+                          {scanFailureNotification.message}
+                        </div>
+                        
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setScanFailureNotification(null);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '6px',
+                            background: 'rgba(255, 80, 80, 0.3)',
+                            border: '1px solid rgba(255, 80, 80, 0.6)',
+                            borderRadius: '4px',
+                            color: '#ff9999',
+                            fontSize: '9px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            letterSpacing: '1px',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.background = 'rgba(255, 80, 80, 0.5)';
+                            e.target.style.borderColor = 'rgba(255, 80, 80, 0.9)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.background = 'rgba(255, 80, 80, 0.3)';
+                            e.target.style.borderColor = 'rgba(255, 80, 80, 0.6)';
+                          }}
+                        >
+                          OK
+                        </button>
+                      </div>
+                    )}
                   </div>
-                ));
+                );});
                 
                 // Dropped navigation pins - holographic circle design
                 const pinMarkers = droppedPins.map(pin => (
@@ -1739,7 +3515,20 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                   );
                 })() : null;
                 return (<>
+                  <style>{`
+                    @keyframes slideDown {
+                      from {
+                        opacity: 0;
+                        transform: translateX(-50%) translateY(-10px);
+                      }
+                      to {
+                        opacity: 1;
+                        transform: translateX(-50%) translateY(0);
+                      }
+                    }
+                  `}</style>
                   <div 
+                    ref={mapRef}
                     onMouseDown={handleMouseDown}
                     onMouseMove={(e) => {
                       handleMouseMove(e);
@@ -1780,7 +3569,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                         ? 'crosshair'
                         : dropPinMode 
                         ? (isOutsideHeliosphere ? 'not-allowed' : 'crosshair')
-                        : (isDragging ? 'grabbing' : 'grab')
+                        : (isDragging ? 'grabbing' : 'grab'),
+                      userSelect: 'none'
                     }}
                   >
                     {/* Cursor position and warning indicator */}
@@ -1808,28 +3598,83 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                       </div>
                     )}
                     
-                    <div style={{ position: 'absolute', right: 10, top: 35, display: 'flex', gap: 6, zIndex: 2 }}>
-                      <button className="small-btn" onClick={zoomOut}>-</button>
-                      <span className="ui-small text-muted">{(zoom*100).toFixed(0)}%</span>
-                      <button className="small-btn" onClick={zoomIn}>+</button>
-                      <button className="small-btn" onClick={centerOnShip} title="Reset view to ship">⊙</button>
+                    {/* Zoom Controls + Reset View - moved up and reorganized */}
+                    <div style={{ position: 'absolute', right: 10, top: 10, display: 'flex', flexDirection: 'column', gap: 8, zIndex: 2 }}>
+                      {/* Zoom controls row */}
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <button className="small-btn" onClick={zoomOut}>-</button>
+                        <span className="ui-small text-muted" style={{ opacity: 0.8 }}>{(zoom*100).toFixed(0)}%</span>
+                        <button className="small-btn" onClick={zoomIn}>+</button>
+                        <button className="small-btn" onClick={resetToDefaultView} title="Reset view (Sun-centered)">⊙</button>
+                      </div>
+                      
+                      {/* Navigation Pin button - square, under reset camera */}
+                      <button 
+                        className="small-btn" 
+                        onClick={() => setDropPinMode(!dropPinMode)}
+                        style={{ 
+                          fontSize: '9px', 
+                          padding: '6px',
+                          width: '26px',
+                          height: '26px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: dropPinMode ? 'rgba(52, 224, 255, 0.3)' : 'rgba(52, 224, 255, 0.1)',
+                          marginLeft: 'auto'
+                        }}
+                        title={dropPinMode ? 'Drop Pin Mode Active' : 'Activate Drop Pin Mode'}
+                      >
+                        <svg width="12" height="14" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M8 2C5.8 2 4 3.8 4 6C4 8.5 8 13 8 13C8 13 12 8.5 12 6C12 3.8 10.2 2 8 2Z" 
+                            stroke="#34e0ff" 
+                            strokeWidth="1.2" 
+                            fill="none"
+                          />
+                          <circle cx="8" cy="6" r="1.5" fill="#34e0ff" />
+                          <ellipse cx="8" cy="16" rx="4" ry="1.5" 
+                            stroke="#34e0ff" 
+                            strokeWidth="1" 
+                            fill="none"
+                            opacity="0.6"
+                          />
+                          <line x1="8" y1="13" x2="8" y2="16" 
+                            stroke="#34e0ff" 
+                            strokeWidth="0.8" 
+                            opacity="0.4"
+                            strokeDasharray="1,1"
+                          />
+                        </svg>
+                      </button>
                     </div>
                     {/* Heliosphere background - faint glow distinguishing solar system from deep space */}
-                    <div style={{
-                      position: 'absolute',
-                      left: `${(0.5 + panOffset.x) * 100}%`,
-                      top: `${(0.5 + panOffset.y) * 100}%`,
-                      transform: 'translate(-50%, -50%)',
-                      width: `${(system.heliosphere.radiusAU / system.heliosphere.radiusAU) * 0.92 * zoom * 2 * 100}%`,
-                      height: `${(system.heliosphere.radiusAU / system.heliosphere.radiusAU) * 0.92 * zoom * 2 * 100}%`,
-                      borderRadius: '50%',
-                      background: 'radial-gradient(circle at center, rgba(52, 224, 255, 0.03) 0%, rgba(52, 224, 255, 0.015) 50%, transparent 70%)',
-                      border: '1px solid rgba(52, 224, 255, 0.15)',
-                      boxShadow: 'inset 0 0 80px rgba(52, 224, 255, 0.08)',
-                      pointerEvents: 'none',
-                      transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out, width 0.8s ease-in-out, height 0.8s ease-in-out' : 'none',
-                      zIndex: 0
-                    }} />
+                    {/* Calculate actual max POI distance to size heliosphere correctly */}
+                    {(() => {
+                      const maxPOIDistance = Math.max(
+                        ...pois.filter(p => p.id !== 'SUN').map(p => p.distanceAU),
+                        system.heliosphere.radiusAU
+                      ) + 5; // Add 5 AU padding so heliosphere extends beyond largest orbit
+                      // Heliosphere diameter in viewport units: 0.92 * zoom is radius, so diameter = 0.92 * zoom * 2
+                      const heliosphereDiameter = 0.92 * zoom * 2;
+                      
+                      return (
+                        <div style={{
+                          position: 'absolute',
+                          left: `${(0.5 + panOffset.x) * 100}%`,
+                          top: `${(0.5 + panOffset.y) * 100}%`,
+                          transform: 'translate(-50%, -50%)',
+                          width: `${heliosphereDiameter * 100}%`,
+                          height: `${heliosphereDiameter * 100}%`,
+                          borderRadius: '50%',
+                          background: 'radial-gradient(circle at center, rgba(52, 224, 255, 0.03) 0%, rgba(52, 224, 255, 0.015) 50%, transparent 70%)',
+                          border: '1px solid rgba(52, 224, 255, 0.15)',
+                          boxShadow: 'inset 0 0 80px rgba(52, 224, 255, 0.08)',
+                          pointerEvents: 'none',
+                          transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out, width 0.8s ease-in-out, height 0.8s ease-in-out' : 'none',
+                          zIndex: 0
+                        }} />
+                      );
+                    })()}
                     {scaleRings}
                     {rings}
                     {pingWave}
@@ -1846,32 +3691,252 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
             </div>
           </div>
 
-          {/* Right 1/3: Tabbed Interface */}
-          <div style={{ flex: 1, marginTop: '25px' }}>
-            <RightPanelTabs
-              system={system}
-              shipPosition={shipPosition}
-              pois={pois}
-              droppedPins={droppedPins}
-              scanProgress={scanProgress}
-              selectedPOI={selectedPOI}
-              setSelectedPOI={setSelectedPOI}
-              setLockedSelection={setLockedSelection}
-              centerOnPOI={centerOnPOI}
-              moveShipTo={moveShipTo}
-              isMoving={isMoving}
-              movementProgress={movementProgress}
-              scanningActive={scanningActive}
-              startSystemScan={startSystemScan}
-              shipState={shipState}
-              onSequenceWaypointAdd={(callback) => setSequenceWaypointCallback(() => callback)}
-              sequenceSteps={sequenceSteps}
-              setSequenceSteps={setSequenceSteps}
-              resetToDefaultView={resetToDefaultView}
+          {/* Right Panel replaced with persistent Terminal Feed */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingTop: '0px', marginTop: '103px', marginBottom: '16px' }}>
+            <TerminalFeed 
+              events={terminalEvents} 
+              legacyEntries={terminalLog} 
+              onStartMining={(eventId, poiId) => {
+                // Start mining operation
+                startMining(poiId);
+                // Remove pending confirmation from event
+                setTerminalEvents(prev => prev.map(evt => 
+                  evt.id === eventId ? { ...evt, meta: { ...evt.meta, pendingMiningStart: false } } : evt
+                ));
+              }}
+              onCancelMining={(eventId) => {
+                // Cancel mining
+                setTerminalEvents(prev => prev.map(evt => 
+                  evt.id === eventId ? { ...evt, meta: { ...evt.meta, pendingMiningStart: false, cancelled: true } } : evt
+                ));
+                setCurrentMiningPOI(null);
+              }}
+              onTransferLoot={(eventId, items) => {
+                // Transfer selected items to inventory
+                items.forEach(item => {
+                  shipState.addToInventory(item.itemId, item.quantity);
+                });
+                setShipStateVersion(v => v + 1);
+                // Update event to remove pending transfer flag
+                setTerminalEvents(prev => prev.map(evt => 
+                  evt.id === eventId ? { ...evt, meta: { ...evt.meta, pendingTransfer: false } } : evt
+                ));
+                setCurrentLootItems([]);
+                setCurrentMiningPOI(null);
+              }} 
+              onLeaveLoot={(eventId) => {
+                // Leave loot behind
+                setTerminalEvents(prev => prev.map(evt => 
+                  evt.id === eventId ? { ...evt, meta: { ...evt.meta, pendingTransfer: false, lootAbandoned: true } } : evt
+                ));
+                setCurrentLootItems([]);
+                setCurrentMiningPOI(null);
+              }} 
             />
           </div>
         </div>
-      )}        {/* Actions Panel - shows when near POIs */}
+      )}
+      
+      {/* Fixed Left-Side Vertical Contextual Menu */}
+      {contextualMenu && (() => {
+        // Determine target 
+        let target;
+        if (contextualMenu.targetType === 'poi') {
+          target = pois.find(p => p.id === contextualMenu.targetId);
+        } else if (contextualMenu.targetType === 'ship') {
+          target = { name: 'SS-ARKOSE' };
+        } else if (contextualMenu.targetType === 'sun') {
+          target = { name: 'SUN' };
+        }
+        if (!target) return null;
+        
+        // SVG Icons for contextual menu
+        const IconMoveTo = () => (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="5" r="2.5"/>
+            <path d="M12 7.5 L12 18" strokeLinecap="round"/>
+            <circle cx="12" cy="18" r="3" fill="currentColor" opacity="0.3"/>
+          </svg>
+        );
+        const IconSurvey = () => (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="8"/>
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 4 L12 8 M12 16 L12 20 M4 12 L8 12 M16 12 L20 12" strokeLinecap="round"/>
+          </svg>
+        );
+        const IconMine = () => (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M14 4 L10 4 L8 10 L16 10 L14 4" strokeLinejoin="round"/>
+            <path d="M12 10 L12 20" strokeLinecap="round"/>
+            <path d="M8 16 L16 16" strokeLinecap="round"/>
+          </svg>
+        );
+        const IconInventory = () => (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="4" y="6" width="16" height="14" rx="2"/>
+            <path d="M4 10 L20 10" strokeLinecap="round"/>
+            <path d="M10 6 L10 4 L14 4 L14 6" strokeLinecap="round"/>
+          </svg>
+        );
+        const IconTag = () => (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" strokeLinejoin="round"/>
+            <circle cx="7" cy="7" r="1.5" fill="currentColor"/>
+          </svg>
+        );
+        
+        // Determine actions based on target type
+        const getActions = () => {
+          if (contextualMenu.targetType === 'ship') {
+            return [
+              { id: 'inventory', icon: <IconInventory />, tooltip: 'Inventory' },
+              { id: 'surveySystem', icon: <IconSurvey />, tooltip: 'Survey System' }
+            ];
+          } else if (contextualMenu.targetType === 'sun') {
+            return [
+              { id: 'survey', icon: <IconSurvey />, tooltip: 'Survey Star' }
+            ];
+          } else if (target?.type === 'BELT') {
+            return [
+              { id: 'moveTo', icon: <IconMoveTo />, tooltip: 'Move To' },
+              { id: 'survey', icon: <IconSurvey />, tooltip: 'Survey Cluster' },
+              { id: 'mine', icon: <IconMine />, tooltip: 'Mine' },
+              { id: 'tag', icon: <IconTag />, tooltip: 'Tag' }
+            ];
+          } else {
+            return [
+              { id: 'moveTo', icon: <IconMoveTo />, tooltip: 'Move To' },
+              { id: 'survey', icon: <IconSurvey />, tooltip: 'Survey' },
+              { id: 'tag', icon: <IconTag />, tooltip: 'Tag' }
+            ];
+          }
+        };
+        
+        const actions = getActions();
+        
+        return (
+          <div
+            style={{
+              position: 'fixed',
+              left: '24px',
+              top: '125px',
+              width: '60px',
+              background: 'rgba(0, 15, 25, 0.85)',
+              border: '2px solid rgba(52, 224, 255, 0.6)',
+              borderRadius: '6px',
+              padding: '8px 6px',
+              boxShadow: '0 0 25px rgba(52, 224, 255, 0.5)',
+              zIndex: 5000,
+              backdropFilter: 'blur(10px)'
+            }}
+          >
+            {/* Header with target name */}
+            <div style={{
+              fontSize: '8px',
+              fontWeight: 'bold',
+              color: '#34e0ff',
+              marginBottom: '10px',
+              paddingBottom: '6px',
+              borderBottom: '1px solid rgba(52, 224, 255, 0.4)',
+              textAlign: 'center',
+              letterSpacing: '0.5px',
+              textShadow: '0 0 8px rgba(52, 224, 255, 0.8)',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>
+              {target.name}
+            </div>
+            
+            {/* Icon-only action buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {actions.map((action) => (
+                <div key={action.id} style={{ position: 'relative' }}>
+                  <button
+                    onClick={() => handleContextualAction(action.id)}
+                    onMouseEnter={() => setHoveredAction(action.id)}
+                    onMouseLeave={() => setHoveredAction(null)}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      background: hoveredAction === action.id ? 'rgba(52, 224, 255, 0.25)' : 'rgba(52, 224, 255, 0.1)',
+                      border: `1px solid ${hoveredAction === action.id ? 'rgba(52, 224, 255, 0.9)' : 'rgba(52, 224, 255, 0.4)'}`,
+                      borderRadius: '4px',
+                      color: '#34e0ff',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s',
+                      boxShadow: hoveredAction === action.id ? '0 0 12px rgba(52, 224, 255, 0.6)' : 'none'
+                    }}
+                  >
+                    {action.icon}
+                  </button>
+                  
+                  {/* Tooltip */}
+                  {hoveredAction === action.id && (
+                    <div style={{
+                      position: 'absolute',
+                      left: '70px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'rgba(0, 15, 25, 0.95)',
+                      border: '1px solid rgba(52, 224, 255, 0.7)',
+                      borderRadius: '4px',
+                      padding: '4px 8px',
+                      color: '#34e0ff',
+                      fontSize: '10px',
+                      fontWeight: '600',
+                      whiteSpace: 'nowrap',
+                      boxShadow: '0 0 15px rgba(52, 224, 255, 0.5)',
+                      zIndex: 6000,
+                      pointerEvents: 'none',
+                      letterSpacing: '0.3px'
+                    }}>
+                      {action.tooltip}
+                    </div>
+                  )}
+                </div>
+              ))}
+              
+              {/* Close button */}
+              <button
+                onClick={closeContextualMenu}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  background: 'rgba(255, 80, 80, 0.1)',
+                  border: '1px solid rgba(255, 80, 80, 0.4)',
+                  borderRadius: '4px',
+                  color: '#ff5050',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  marginTop: '6px',
+                  transition: 'all 0.2s',
+                  fontWeight: '700',
+                  letterSpacing: '0.5px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 80, 80, 0.25)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 80, 80, 0.8)';
+                  e.currentTarget.style.boxShadow = '0 0 10px rgba(255, 80, 80, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 80, 80, 0.1)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 80, 80, 0.4)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+              {/* Actions Panel - shows when near POIs */}
         <ActionsPanel
           system={system}
           shipPosition={shipPosition}
@@ -1882,8 +3947,22 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
         {/* Terminal Modal for action results */}
         {showTerminalModal && (
           <TerminalModal
+            isOpen={showTerminalModal}
             content={terminalModalContent}
-            onClose={() => setShowTerminalModal(false)}
+            onClose={() => {
+              setShowTerminalModal(false);
+              setShowInventoryWithTerminal(false);
+              setCurrentLootItems([]);
+              setTerminalInteractive(false);
+              setTerminalChoices([]);
+              setCurrentMiningPOI(null);
+            }}
+            interactive={terminalInteractive}
+            choices={terminalChoices}
+            onChoice={handleTerminalChoice}
+            lootItems={currentLootItems}
+            onLootTransfer={transferLootToInventory}
+            showInventory={showInventoryWithTerminal}
           />
         )}
 
@@ -2076,6 +4155,141 @@ const ShipCommandConsole = ({ onNavigate, initialSeed }) => {
                   }}
                 >
                   Back
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Fuel Warning Modal */}
+        {showFuelWarning && pendingMovement && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000
+          }}>
+            <div style={{
+              background: 'rgba(0, 20, 40, 0.95)',
+              border: '2px solid rgba(255, 136, 0, 0.6)',
+              borderRadius: '8px',
+              padding: '24px',
+              maxWidth: '450px',
+              boxShadow: '0 0 30px rgba(255, 136, 0, 0.4), inset 0 0 20px rgba(255, 136, 0, 0.1)',
+              animation: 'fadeInScale 0.3s ease-out'
+            }}>
+              <div style={{
+                fontSize: '16px',
+                fontWeight: 'bold',
+                color: '#ff8800',
+                marginBottom: '16px',
+                textShadow: '0 0 8px rgba(255, 136, 0, 0.6)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <span style={{ fontSize: '20px' }}>⚠️</span>
+                LOW FUEL WARNING
+              </div>
+              
+              <div style={{
+                fontSize: '11px',
+                color: '#cfd8df',
+                lineHeight: '1.6',
+                marginBottom: '20px'
+              }}>
+                <div style={{ marginBottom: '12px' }}>
+                  You are running critically low on H3-Pellets.
+                </div>
+                
+                <div style={{
+                  background: 'rgba(255, 136, 0, 0.1)',
+                  border: '1px solid rgba(255, 136, 0, 0.3)',
+                  borderRadius: '4px',
+                  padding: '12px',
+                  marginBottom: '12px'
+                }}>
+                  <div style={{ marginBottom: '6px' }}>
+                    <span style={{ color: '#ff8800', fontWeight: 'bold' }}>Current Fuel:</span>{' '}
+                    <span style={{ color: '#ff5050' }}>{pendingMovement.currentFuel} H3-Pellets ({pendingMovement.fuelPercentage.toFixed(1)}%)</span>
+                  </div>
+                  <div style={{ marginBottom: '6px' }}>
+                    <span style={{ color: '#ff8800', fontWeight: 'bold' }}>Distance:</span>{' '}
+                    <span style={{ color: '#34e0ff' }}>{pendingMovement.distance.toFixed(2)} AU</span>
+                  </div>
+                  <div>
+                    <span style={{ color: '#ff8800', fontWeight: 'bold' }}>Required:</span>{' '}
+                    <span style={{ color: '#34e0ff' }}>{pendingMovement.fuelNeeded} H3-Pellets</span>
+                  </div>
+                </div>
+                
+                <div style={{ color: '#ff8800', fontSize: '10px' }}>
+                  Are you sure you want to proceed with this maneuver?
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={confirmMovement}
+                  style={{
+                    flex: 1,
+                    padding: '10px',
+                    background: 'rgba(52, 224, 255, 0.1)',
+                    border: '1px solid rgba(52, 224, 255, 0.4)',
+                    borderRadius: '4px',
+                    color: '#34e0ff',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(52, 224, 255, 0.2)';
+                    e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.8)';
+                    e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 224, 255, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(52, 224, 255, 0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.4)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  PROCEED ANYWAY
+                </button>
+                
+                <button
+                  onClick={cancelMovement}
+                  style={{
+                    flex: 1,
+                    padding: '10px',
+                    background: 'rgba(255, 80, 80, 0.1)',
+                    border: '1px solid rgba(255, 80, 80, 0.4)',
+                    borderRadius: '4px',
+                    color: '#ff5050',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 80, 80, 0.2)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 80, 80, 0.8)';
+                    e.currentTarget.style.boxShadow = '0 0 12px rgba(255, 80, 80, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 80, 80, 0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 80, 80, 0.4)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  CANCEL
                 </button>
               </div>
             </div>

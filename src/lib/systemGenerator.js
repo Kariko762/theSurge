@@ -105,9 +105,9 @@ function calculateEncounterActivity(starClass, lum) {
 }
 
 function makeZones(rng, lum, starClass) {
-  // zone radii scale with luminosity
-  const darkAU = lerp(0.2, 0.6, rng()) * lum;       // Surge-safe inner zone
-  const staticAU = lerp(6.0, 12.0, rng()) * lum;    // high ambient radiation
+  // zone radii scale with luminosity and new larger system sizes
+  const darkAU = lerp(8, 20, rng()) * lum;        // Inner safe zone (8-40 AU typical)
+  const staticAU = lerp(60, 100, rng()) * lum;    // Outer radiation zone (60-200 AU typical)
   // seeded surge loci (angle, au, strength)
   const lociCount = randInt(rng, 2, 4);
   const surgeLoci = Array.from({ length: lociCount }, () => ({
@@ -120,12 +120,27 @@ function makeZones(rng, lum, starClass) {
 
 function makeOrbits(rng, starClass) {
   const n = randInt(rng, 6, 12);
-  const r = lerp(1.4, 1.6, rng()); // Tighter range for more consistent spacing
-  let d0 = lerp(0.5, 1.2, rng()); // Start closer to sun
+  const maxRadius = lerp(120, 180, rng()); // Target max system radius
   const out = [];
+  
+  // Use hybrid approach: exponential base with linear spread adjustment
+  const r = lerp(1.25, 1.35, rng()); // Gentle exponential growth
+  let d0 = lerp(5.0, 12.0, rng()); // Start further out (5-12 AU)
+  
   for (let i = 0; i < n; i++) {
-    const eps = lerp(-0.08, 0.08, rng());
-    const distanceAU = d0 * Math.pow(r, i) * (1 + eps);
+    // Exponential base
+    const expDistance = d0 * Math.pow(r, i);
+    
+    // Linear interpolation factor to spread toward max radius
+    const linearFactor = (i / (n - 1)); // 0 to 1 across orbits
+    const targetDistance = d0 + (maxRadius - d0) * linearFactor;
+    
+    // Blend exponential and linear (60% linear, 40% exponential for better spread)
+    const blended = targetDistance * 0.6 + expDistance * 0.4;
+    
+    // Add jitter
+    const eps = lerp(-0.12, 0.12, rng());
+    const distanceAU = blended * (1 + eps);
     const angleRad = lerp(0, Math.PI * 2, rng());
     out.push({ index: i, distanceAU, angleRad });
   }
@@ -210,13 +225,14 @@ export function generateSystem(seedStr, opts = {}) {
   const zones = makeZones(rngZones, lum, starClass);
   const orbits = makeOrbits(rngOrbits, starClass);
 
-  // Heliosphere size table - [min, max] ranges
+  // Heliosphere size table - [min, max] ranges (RADIUS in AU) capped at 110 max
+  // Diameter thus <= 220 AU. Brackets tightened to encourage diversity.
   const heliosphereSizes = [
-    { size: 1, range: [50, 80] },
-    { size: 2, range: [80, 120] },
-    { size: 3, range: [120, 180] },
-    { size: 4, range: [180, 250] },
-    { size: 5, range: [250, 350] }
+    { size: 1, range: [50, 70] },
+    { size: 2, range: [70, 85] },
+    { size: 3, range: [85, 95] },
+    { size: 4, range: [95, 105] },
+    { size: 5, range: [105, 110] } // hard upper bound
   ];
   
   // Find max orbit distance
@@ -228,8 +244,8 @@ export function generateSystem(seedStr, opts = {}) {
   // Random heliosphere within that range, ensuring it's always > maxOrbit
   const [minHelio, maxHelio] = sizeEntry.range;
   const heliosphere = { 
-    radiusAU: Math.max(maxOrbitDistance * 1.3, lerp(minHelio, maxHelio, rngStar()))
-  };
+    radiusAU: Math.min(110, Math.max(maxOrbitDistance * 1.1, lerp(minHelio, maxHelio, rngStar())))
+  }; // slight padding (1.1x) and hard cap
 
   // Build parents and detection hints (edge distance ~ heliosphere radius)
   const sensorsPower = opts.sensorsPower ?? 20; // baseline ship

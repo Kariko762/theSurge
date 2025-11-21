@@ -11,7 +11,7 @@ import { weighted } from '../rng.js';
 
 export const DIFFICULTY_TDS = {
   trivial: 5,
-  easy: 10,
+  easy: 3,      // Lowered from 10 - asteroid scanning should be very reliable
   normal: 15,
   hard: 18,
   deadly: 22,
@@ -259,3 +259,176 @@ export function getCombatDamage(weaponType, tier) {
   const tierKey = `tier${Math.min(tier, 3)}`;
   return weapon[tierKey]?.dice || '1d6';
 }
+
+// ============================================================================
+// ASTEROID MINING TABLES
+// ============================================================================
+
+/**
+ * Cluster Type Classification (Type-I to Type-V)
+ * Inverted density: Lower types = MORE asteroids but WORSE quality
+ *                   Higher types = FEWER asteroids but BETTER quality
+ */
+export const CLUSTER_TYPE_CLASSIFICATION = [
+  { 
+    type: 'Type-I', 
+    weight: 50, 
+    densityRange: [15, 20],
+    recoveryDays: 5,
+    compositionBonus: 0,
+    miningRate: 8,  // seconds per asteroid extraction
+    label: 'Type-I Cluster',
+    description: 'Common ferrous asteroids, low-grade ore'
+  },
+  { 
+    type: 'Type-II', 
+    weight: 30, 
+    densityRange: [10, 15],
+    recoveryDays: 4,
+    compositionBonus: 1,
+    miningRate: 10,
+    label: 'Type-II Cluster',
+    description: 'Mixed composition, moderate yield'
+  },
+  { 
+    type: 'Type-III', 
+    weight: 15, 
+    densityRange: [6, 10],
+    recoveryDays: 3,
+    compositionBonus: 2,
+    miningRate: 12,
+    label: 'Type-III Cluster',
+    description: 'Platinum-group concentration, high yield'
+  },
+  { 
+    type: 'Type-IV', 
+    weight: 4, 
+    densityRange: [3, 6],
+    recoveryDays: 2,
+    compositionBonus: 4,
+    miningRate: 15,
+    label: 'Type-IV Cluster',
+    description: 'Exotic crystalline structures, very high yield'
+  },
+  { 
+    type: 'Type-V', 
+    weight: 1, 
+    densityRange: [1, 3],
+    recoveryDays: 1,
+    compositionBonus: 6,
+    miningRate: 18,  // Slowest to mine but best rewards
+    label: 'Type-V Cluster',
+    description: 'Anomalous composition - possible xenotech',
+    darkZoneOnly: true
+  }
+];
+
+/**
+ * Asteroid Composition (rolled per individual asteroid)
+ * Better cluster types get composition bonus to shift weights toward higher tiers
+ */
+export const ASTEROID_COMPOSITION = [
+  { 
+    composition: 'Ferrous', 
+    weight: 45, 
+    yieldMultiplier: 1.0,
+    lootTable: 'metals',
+    label: 'Ferrous Asteroid',
+    description: 'Iron-nickel core, standard metals'
+  },
+  { 
+    composition: 'Carbonaceous', 
+    weight: 25, 
+    yieldMultiplier: 1.3,
+    lootTable: 'volatiles',
+    label: 'Carbonaceous Asteroid',
+    description: 'Carbon-rich, organic compounds'
+  },
+  { 
+    composition: 'Silicate', 
+    weight: 15, 
+    yieldMultiplier: 1.6,
+    lootTable: 'minerals',
+    label: 'Silicate Asteroid',
+    description: 'Rare earth elements, refined minerals'
+  },
+  { 
+    composition: 'Metallic', 
+    weight: 10, 
+    yieldMultiplier: 2.0,
+    lootTable: 'precious',
+    label: 'Metallic Asteroid',
+    description: 'Platinum-group metals, high-value ore'
+  },
+  { 
+    composition: 'Crystalline', 
+    weight: 4, 
+    yieldMultiplier: 3.0,
+    lootTable: 'exotic',
+    label: 'Crystalline Asteroid',
+    description: 'Energy crystals, exotic compounds'
+  },
+  { 
+    composition: 'Xenotech', 
+    weight: 1, 
+    yieldMultiplier: 5.0,
+    lootTable: 'xenotech',
+    label: 'Xenotech Asteroid',
+    description: 'Precursor materials, unknown alloys',
+    requiresBonus: 4
+  }
+];
+
+/**
+ * Loot Tables by Composition Type
+ */
+export const ASTEROID_LOOT_TABLES = {
+  metals: [
+    { itemId: 'scrap_metal', item: 'Scrap Metal', weight: 40 },
+    { itemId: 'iron_ore', item: 'Iron Ore', weight: 30 },
+    { itemId: 'titanium_alloy', item: 'Titanium Alloy', weight: 20 },
+    { itemId: 'steel_alloy', item: 'Steel Alloy', weight: 10 }
+  ],
+  volatiles: [
+    { itemId: 'water_ice', item: 'Water Ice', weight: 35 },
+    { itemId: 'fuel_cell', item: 'Helium-3 Pellets', weight: 30 },
+    { itemId: 'methane', item: 'Methane', weight: 20 },
+    { itemId: 'ammonia', item: 'Ammonia', weight: 15 }
+  ],
+  minerals: [
+    { itemId: 'silicon', item: 'Silicon', weight: 35 },
+    { itemId: 'rare_ore', item: 'Rare Ore', weight: 30 },
+    { itemId: 'carbon_fiber', item: 'Carbon Fiber', weight: 20 },
+    { itemId: 'crystal_matrix', item: 'Crystal Matrix', weight: 15 }
+  ],
+  precious: [
+    { itemId: 'platinum', item: 'Platinum', weight: 40 },
+    { itemId: 'iridium', item: 'Iridium', weight: 30 },
+    { itemId: 'palladium', item: 'Palladium', weight: 20 },
+    { itemId: 'rhodium', item: 'Rhodium', weight: 10 }
+  ],
+  exotic: [
+    { itemId: 'quantum_core', item: 'Quantum Core', weight: 35 },
+    { itemId: 'dark_matter', item: 'Dark Matter Residue', weight: 30 },
+    { itemId: 'nanotech_comp', item: 'Nanotech Components', weight: 20 },
+    { itemId: 'exotic_polymer', item: 'Exotic Polymers', weight: 15 }
+  ],
+  xenotech: [
+    { itemId: 'precursor_frag', item: 'Precursor Fragment', weight: 35 },
+    { itemId: 'xenotech_alloy', item: 'Xenotech Alloy', weight: 30 },
+    { itemId: 'ancient_tech', item: 'Ancient Tech', weight: 20 },
+    { itemId: 'gv_coordinate', item: "G'ejar-Vale Coordinate", weight: 10 },
+    { itemId: 'ai_core_frag', item: 'AI Core Fragment', weight: 5 }
+  ]
+};
+
+/**
+ * Mining Hazards (rolled during extraction)
+ */
+export const ASTEROID_MINING_HAZARDS = [
+  { value: 'clean', weight: 50, damage: 0, label: 'Clean extraction' },
+  { value: 'debris', weight: 25, damage: 5, label: 'Minor debris impact' },
+  { value: 'unstable', weight: 15, damage: 15, label: 'Unstable rotation' },
+  { value: 'collision', weight: 8, damage: 30, label: 'Collision with fragments' },
+  { value: 'explosion', weight: 2, damage: 50, statusEffect: 'Mining Laser Damaged', label: 'Volatile explosion' }
+];

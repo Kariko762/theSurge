@@ -96,21 +96,21 @@ export const COMPONENTS = {
     type: COMPONENT_TYPES.SENSORS,
     name: 'Short-Range Sensors',
     powerReq: 8,
-    attributes: { sensorRange: 15 }
+    attributes: { sensorRange: 100 }
   },
   SENSORS_LONG: {
     id: 'SENSORS_LONG',
     type: COMPONENT_TYPES.SENSORS,
     name: 'Long-Range Sensors',
     powerReq: 15,
-    attributes: { sensorRange: 40 }
+    attributes: { sensorRange: 200 }
   },
   SENSORS_DEEP: {
     id: 'SENSORS_DEEP',
     type: COMPONENT_TYPES.SENSORS,
     name: 'Deep-Space Array',
     powerReq: 25,
-    attributes: { sensorRange: 80 }
+    attributes: { sensorRange: 300 }
   },
 
   // AI Cores

@@ -1,0 +1,771 @@
+{
+  "$schema": "poi_actions_schema",
+  "version": "1.0.0",
+  "description": "Action definitions for POI interactions - supports hierarchical actions with DRE integration",
+  
+  "actionDefinitions": {
+    "PLANET": {
+      "name": "Planet",
+      "actions": [
+        {
+          "id": "moveTo",
+          "label": "Move To",
+          "icon": "moveTo",
+          "enabled": true,
+          "immediate": true,
+          "description": "Navigate ship to this planet's orbit"
+        },
+        {
+          "id": "survey",
+          "label": "Survey",
+          "icon": "survey",
+          "enabled": true,
+          "parent": true,
+          "description": "Conduct detailed planetary survey",
+          "children": [
+            {
+              "id": "survey_atmospheric",
+              "label": "Atmospheric Scan",
+              "dreTable": "atmospheric_scan",
+              "requirements": {
+                "shipSystems": ["sensors"],
+                "minPowerLevel": 20
+              },
+              "duration": 30,
+              "description": "Analyze atmospheric composition and weather patterns"
+            },
+            {
+              "id": "survey_surface",
+              "label": "Surface Scan",
+              "dreTable": "surface_scan",
+              "requirements": {
+                "shipSystems": ["sensors", "deep_scanner"],
+                "minPowerLevel": 30
+              },
+              "duration": 45,
+              "description": "Scan surface features, mineral deposits, and geological activity"
+            },
+            {
+              "id": "survey_biological",
+              "label": "Bio-Scan",
+              "dreTable": "bio_scan",
+              "requirements": {
+                "shipSystems": ["bio_scanner"],
+                "minPowerLevel": 25
+              },
+              "duration": 40,
+              "description": "Detect signs of biological activity or biosignatures"
+            },
+            {
+              "id": "survey_orbital",
+              "label": "Orbital Analysis",
+              "dreTable": "orbital_scan",
+              "requirements": {
+                "shipSystems": ["sensors"],
+                "minPowerLevel": 15
+              },
+              "duration": 20,
+              "description": "Analyze orbital mechanics and gravitational anomalies"
+            }
+          ]
+        },
+        {
+          "id": "deploy",
+          "label": "Deploy",
+          "icon": "deploy",
+          "enabled": true,
+          "parent": true,
+          "description": "Deploy equipment or probes",
+          "children": [
+            {
+              "id": "deploy_probe",
+              "label": "Survey Probe",
+              "dreTable": "deploy_probe",
+              "requirements": {
+                "inventory": [{"itemId": "probe_basic", "quantity": 1}],
+                "minPowerLevel": 10
+              },
+              "duration": 15,
+              "description": "Deploy automated survey probe for long-term monitoring"
+            },
+            {
+              "id": "deploy_beacon",
+              "label": "Nav Beacon",
+              "dreTable": "deploy_beacon",
+              "requirements": {
+                "inventory": [{"itemId": "nav_beacon", "quantity": 1}],
+                "minPowerLevel": 5
+              },
+              "duration": 10,
+              "description": "Deploy navigation beacon for improved tracking"
+            }
+          ]
+        },
+        {
+          "id": "tag",
+          "label": "Tag",
+          "icon": "tag",
+          "enabled": true,
+          "immediate": true,
+          "description": "Add custom tag/note to this planet"
+        }
+      ]
+    },
+    
+    "MOON": {
+      "name": "Moon",
+      "actions": [
+        {
+          "id": "moveTo",
+          "label": "Move To",
+          "icon": "moveTo",
+          "enabled": true,
+          "immediate": true,
+          "description": "Navigate ship to this moon's orbit"
+        },
+        {
+          "id": "survey",
+          "label": "Survey",
+          "icon": "survey",
+          "enabled": true,
+          "parent": true,
+          "description": "Conduct moon survey operations",
+          "children": [
+            {
+              "id": "survey_surface",
+              "label": "Surface Scan",
+              "dreTable": "moon_surface_scan",
+              "requirements": {
+                "shipSystems": ["sensors"],
+                "minPowerLevel": 20
+              },
+              "duration": 30,
+              "description": "Scan surface composition and terrain features"
+            },
+            {
+              "id": "survey_subsurface",
+              "label": "Sub-Surface Scan",
+              "dreTable": "subsurface_scan",
+              "requirements": {
+                "shipSystems": ["deep_scanner"],
+                "minPowerLevel": 35
+              },
+              "duration": 50,
+              "description": "Deep scan for underground structures or resources"
+            },
+            {
+              "id": "survey_tidal",
+              "label": "Tidal Analysis",
+              "dreTable": "tidal_scan",
+              "requirements": {
+                "shipSystems": ["sensors"],
+                "minPowerLevel": 15
+              },
+              "duration": 25,
+              "description": "Analyze tidal forces and gravitational interactions"
+            }
+          ]
+        },
+        {
+          "id": "mine",
+          "label": "Mine",
+          "icon": "mine",
+          "enabled": true,
+          "parent": true,
+          "description": "Mining operations",
+          "children": [
+            {
+              "id": "mine_surface",
+              "label": "Surface Mining",
+              "dreTable": "moon_mining",
+              "requirements": {
+                "shipSystems": ["mining_laser"],
+                "minPowerLevel": 40
+              },
+              "duration": 60,
+              "description": "Extract surface minerals and ores"
+            }
+          ]
+        },
+        {
+          "id": "tag",
+          "label": "Tag",
+          "icon": "tag",
+          "enabled": true,
+          "immediate": true,
+          "description": "Add custom tag/note to this moon"
+        }
+      ]
+    },
+    
+    "BELT": {
+      "name": "Asteroid Belt",
+      "actions": [
+        {
+          "id": "moveTo",
+          "label": "Move To",
+          "icon": "moveTo",
+          "enabled": true,
+          "immediate": true,
+          "description": "Navigate ship into asteroid cluster"
+        },
+        {
+          "id": "survey",
+          "label": "Survey",
+          "icon": "survey",
+          "enabled": true,
+          "parent": true,
+          "description": "Survey asteroid cluster",
+          "children": [
+            {
+              "id": "survey_composition",
+              "label": "Composition Scan",
+              "dreTable": "asteroid_composition",
+              "requirements": {
+                "shipSystems": ["sensors"],
+                "minPowerLevel": 20
+              },
+              "duration": 25,
+              "description": "Analyze mineral composition of asteroids"
+            },
+            {
+              "id": "survey_density",
+              "label": "Density Mapping",
+              "dreTable": "asteroid_density",
+              "requirements": {
+                "shipSystems": ["sensors", "nav_computer"],
+                "minPowerLevel": 15
+              },
+              "duration": 30,
+              "description": "Map asteroid density and identify safe passages"
+            }
+          ]
+        },
+        {
+          "id": "mine",
+          "label": "Mine",
+          "icon": "mine",
+          "enabled": true,
+          "parent": true,
+          "description": "Mining operations in asteroid belt",
+          "children": [
+            {
+              "id": "mine_standard",
+              "label": "Standard Mining",
+              "dreTable": "asteroid_mining",
+              "requirements": {
+                "shipSystems": ["mining_laser"],
+                "minPowerLevel": 35
+              },
+              "duration": 45,
+              "description": "Extract common minerals and ores"
+            },
+            {
+              "id": "mine_precision",
+              "label": "Precision Mining",
+              "dreTable": "precision_mining",
+              "requirements": {
+                "shipSystems": ["mining_laser", "precision_manipulator"],
+                "minPowerLevel": 50,
+                "skills": [{"name": "mining", "level": 3}]
+              },
+              "duration": 90,
+              "description": "Carefully extract rare materials with minimal waste"
+            }
+          ]
+        },
+        {
+          "id": "tag",
+          "label": "Tag",
+          "icon": "tag",
+          "enabled": true,
+          "immediate": true,
+          "description": "Mark this asteroid cluster"
+        }
+      ]
+    },
+    
+    "ORBITAL": {
+      "name": "Orbital Station",
+      "actions": [
+        {
+          "id": "moveTo",
+          "label": "Move To",
+          "icon": "moveTo",
+          "enabled": true,
+          "immediate": true,
+          "description": "Approach orbital station"
+        },
+        {
+          "id": "survey",
+          "label": "Survey",
+          "icon": "survey",
+          "enabled": true,
+          "parent": true,
+          "description": "Scan the orbital station",
+          "children": [
+            {
+              "id": "survey_structural",
+              "label": "Structural Scan",
+              "dreTable": "station_structural",
+              "requirements": {
+                "shipSystems": ["sensors"],
+                "minPowerLevel": 20
+              },
+              "duration": 30,
+              "description": "Assess structural integrity and damage"
+            },
+            {
+              "id": "survey_systems",
+              "label": "Systems Analysis",
+              "dreTable": "station_systems",
+              "requirements": {
+                "shipSystems": ["sensors", "tech_scanner"],
+                "minPowerLevel": 25
+              },
+              "duration": 40,
+              "description": "Analyze operational systems and power status"
+            },
+            {
+              "id": "survey_lifesigns",
+              "label": "Life Signs",
+              "dreTable": "station_lifesigns",
+              "requirements": {
+                "shipSystems": ["bio_scanner"],
+                "minPowerLevel": 20
+              },
+              "duration": 25,
+              "description": "Scan for survivors or biological activity"
+            }
+          ]
+        },
+        {
+          "id": "dock",
+          "label": "Dock",
+          "icon": "dock",
+          "enabled": true,
+          "parent": true,
+          "description": "Attempt to dock with station",
+          "children": [
+            {
+              "id": "dock_standard",
+              "label": "Standard Docking",
+              "dreTable": "station_dock",
+              "requirements": {
+                "shipSystems": ["docking_clamps"],
+                "minPowerLevel": 15
+              },
+              "duration": 20,
+              "description": "Use automated docking protocols"
+            },
+            {
+              "id": "dock_manual",
+              "label": "Manual Docking",
+              "dreTable": "station_dock_manual",
+              "requirements": {
+                "shipSystems": ["maneuvering_thrusters"],
+                "minPowerLevel": 20,
+                "skills": [{"name": "piloting", "level": 2}]
+              },
+              "duration": 35,
+              "description": "Manually pilot ship to docking port"
+            }
+          ]
+        },
+        {
+          "id": "salvage",
+          "label": "Salvage",
+          "icon": "salvage",
+          "enabled": true,
+          "parent": true,
+          "description": "Salvage materials from station",
+          "children": [
+            {
+              "id": "salvage_external",
+              "label": "External Salvage",
+              "dreTable": "station_salvage_ext",
+              "requirements": {
+                "shipSystems": ["salvage_arm"],
+                "minPowerLevel": 30
+              },
+              "duration": 50,
+              "description": "Extract external components and hull plating"
+            }
+          ]
+        },
+        {
+          "id": "tag",
+          "label": "Tag",
+          "icon": "tag",
+          "enabled": true,
+          "immediate": true,
+          "description": "Mark this station"
+        }
+      ]
+    },
+    
+    "ANOMALY": {
+      "name": "Anomaly",
+      "actions": [
+        {
+          "id": "moveTo",
+          "label": "Move To",
+          "icon": "moveTo",
+          "enabled": true,
+          "immediate": true,
+          "description": "Approach anomaly (caution advised)"
+        },
+        {
+          "id": "survey",
+          "label": "Survey",
+          "icon": "survey",
+          "enabled": true,
+          "parent": true,
+          "description": "Scan the anomaly",
+          "children": [
+            {
+              "id": "survey_passive",
+              "label": "Passive Scan",
+              "dreTable": "anomaly_passive",
+              "requirements": {
+                "shipSystems": ["sensors"],
+                "minPowerLevel": 15
+              },
+              "duration": 20,
+              "description": "Long-range passive scan (safer)"
+            },
+            {
+              "id": "survey_active",
+              "label": "Active Scan",
+              "dreTable": "anomaly_active",
+              "requirements": {
+                "shipSystems": ["sensors", "science_array"],
+                "minPowerLevel": 30
+              },
+              "duration": 40,
+              "description": "Deep active scan (may trigger response)"
+            },
+            {
+              "id": "survey_quantum",
+              "label": "Quantum Analysis",
+              "dreTable": "anomaly_quantum",
+              "requirements": {
+                "shipSystems": ["quantum_scanner"],
+                "minPowerLevel": 45,
+                "skills": [{"name": "science", "level": 4}]
+              },
+              "duration": 60,
+              "description": "Analyze quantum-level phenomena"
+            }
+          ]
+        },
+        {
+          "id": "interact",
+          "label": "Interact",
+          "icon": "interact",
+          "enabled": true,
+          "parent": true,
+          "description": "Attempt interaction with anomaly",
+          "children": [
+            {
+              "id": "interact_probe",
+              "label": "Send Probe",
+              "dreTable": "anomaly_probe",
+              "requirements": {
+                "inventory": [{"itemId": "probe_advanced", "quantity": 1}],
+                "minPowerLevel": 20
+              },
+              "duration": 30,
+              "description": "Send expendable probe to investigate"
+            },
+            {
+              "id": "interact_signal",
+              "label": "Broadcast Signal",
+              "dreTable": "anomaly_signal",
+              "requirements": {
+                "shipSystems": ["communications"],
+                "minPowerLevel": 25
+              },
+              "duration": 15,
+              "description": "Attempt communication on all frequencies"
+            }
+          ]
+        },
+        {
+          "id": "tag",
+          "label": "Tag",
+          "icon": "tag",
+          "enabled": true,
+          "immediate": true,
+          "description": "Mark this anomaly"
+        }
+      ]
+    },
+    
+    "HABITAT": {
+      "name": "Habitat",
+      "actions": [
+        {
+          "id": "moveTo",
+          "label": "Move To",
+          "icon": "moveTo",
+          "enabled": true,
+          "immediate": true,
+          "description": "Approach habitat"
+        },
+        {
+          "id": "survey",
+          "label": "Survey",
+          "icon": "survey",
+          "enabled": true,
+          "parent": true,
+          "description": "Scan the habitat",
+          "children": [
+            {
+              "id": "survey_status",
+              "label": "Status Check",
+              "dreTable": "habitat_status",
+              "requirements": {
+                "shipSystems": ["sensors"],
+                "minPowerLevel": 15
+              },
+              "duration": 20,
+              "description": "Check power, life support, and integrity"
+            },
+            {
+              "id": "survey_population",
+              "label": "Population Scan",
+              "dreTable": "habitat_population",
+              "requirements": {
+                "shipSystems": ["bio_scanner"],
+                "minPowerLevel": 20
+              },
+              "duration": 25,
+              "description": "Detect number and condition of inhabitants"
+            }
+          ]
+        },
+        {
+          "id": "hail",
+          "label": "Hail",
+          "icon": "hail",
+          "enabled": true,
+          "parent": true,
+          "description": "Attempt communication",
+          "children": [
+            {
+              "id": "hail_standard",
+              "label": "Standard Hail",
+              "dreTable": "habitat_hail",
+              "requirements": {
+                "shipSystems": ["communications"],
+                "minPowerLevel": 10
+              },
+              "duration": 10,
+              "description": "Standard communication protocols"
+            },
+            {
+              "id": "hail_emergency",
+              "label": "Emergency Channel",
+              "dreTable": "habitat_emergency",
+              "requirements": {
+                "shipSystems": ["communications"],
+                "minPowerLevel": 10
+              },
+              "duration": 5,
+              "description": "Use emergency frequencies"
+            }
+          ]
+        },
+        {
+          "id": "trade",
+          "label": "Trade",
+          "icon": "trade",
+          "enabled": false,
+          "description": "Initiate trade (requires docking/comms)"
+        },
+        {
+          "id": "tag",
+          "label": "Tag",
+          "icon": "tag",
+          "enabled": true,
+          "immediate": true,
+          "description": "Mark this habitat"
+        }
+      ]
+    },
+    
+    "CONFLICT": {
+      "name": "Conflict Zone",
+      "actions": [
+        {
+          "id": "moveTo",
+          "label": "Move To",
+          "icon": "moveTo",
+          "enabled": true,
+          "immediate": true,
+          "description": "Enter conflict zone (dangerous)"
+        },
+        {
+          "id": "survey",
+          "label": "Survey",
+          "icon": "survey",
+          "enabled": true,
+          "parent": true,
+          "description": "Scan the battlefield",
+          "children": [
+            {
+              "id": "survey_tactical",
+              "label": "Tactical Scan",
+              "dreTable": "conflict_tactical",
+              "requirements": {
+                "shipSystems": ["sensors", "tactical_computer"],
+                "minPowerLevel": 25
+              },
+              "duration": 15,
+              "description": "Identify combatants and threat levels"
+            },
+            {
+              "id": "survey_wreckage",
+              "label": "Wreckage Analysis",
+              "dreTable": "conflict_wreckage",
+              "requirements": {
+                "shipSystems": ["sensors"],
+                "minPowerLevel": 20
+              },
+              "duration": 30,
+              "description": "Scan debris field for salvage opportunities"
+            }
+          ]
+        },
+        {
+          "id": "salvage",
+          "label": "Salvage",
+          "icon": "salvage",
+          "enabled": true,
+          "parent": true,
+          "description": "Salvage from wreckage",
+          "children": [
+            {
+              "id": "salvage_quick",
+              "label": "Quick Salvage",
+              "dreTable": "conflict_salvage_quick",
+              "requirements": {
+                "shipSystems": ["salvage_arm"],
+                "minPowerLevel": 30
+              },
+              "duration": 20,
+              "description": "Grab what you can and leave quickly"
+            },
+            {
+              "id": "salvage_thorough",
+              "label": "Thorough Salvage",
+              "dreTable": "conflict_salvage_thorough",
+              "requirements": {
+                "shipSystems": ["salvage_arm", "cargo_manipulator"],
+                "minPowerLevel": 40
+              },
+              "duration": 60,
+              "description": "Methodical salvage operation (risky, exposed)"
+            }
+          ]
+        },
+        {
+          "id": "tag",
+          "label": "Tag",
+          "icon": "tag",
+          "enabled": true,
+          "immediate": true,
+          "description": "Mark this conflict zone"
+        }
+      ]
+    },
+    
+    "DISTRESS": {
+      "name": "Distress Beacon",
+      "actions": [
+        {
+          "id": "moveTo",
+          "label": "Move To",
+          "icon": "moveTo",
+          "enabled": true,
+          "immediate": true,
+          "description": "Move to distress beacon location"
+        },
+        {
+          "id": "survey",
+          "label": "Survey",
+          "icon": "survey",
+          "enabled": true,
+          "parent": true,
+          "description": "Scan distress signal",
+          "children": [
+            {
+              "id": "survey_signal",
+              "label": "Signal Analysis",
+              "dreTable": "distress_signal",
+              "requirements": {
+                "shipSystems": ["sensors", "communications"],
+                "minPowerLevel": 15
+              },
+              "duration": 15,
+              "description": "Analyze beacon authenticity and origin"
+            },
+            {
+              "id": "survey_area",
+              "label": "Area Scan",
+              "dreTable": "distress_area",
+              "requirements": {
+                "shipSystems": ["sensors"],
+                "minPowerLevel": 20
+              },
+              "duration": 25,
+              "description": "Scan surrounding area for threats or survivors"
+            }
+          ]
+        },
+        {
+          "id": "respond",
+          "label": "Respond",
+          "icon": "respond",
+          "enabled": true,
+          "parent": true,
+          "description": "Respond to distress call",
+          "children": [
+            {
+              "id": "respond_investigate",
+              "label": "Investigate",
+              "dreTable": "distress_investigate",
+              "requirements": {
+                "shipSystems": ["eva_suit"],
+                "minPowerLevel": 25
+              },
+              "duration": 45,
+              "description": "Deploy to investigate the source"
+            },
+            {
+              "id": "respond_rescue",
+              "label": "Rescue Attempt",
+              "dreTable": "distress_rescue",
+              "requirements": {
+                "shipSystems": ["life_support", "medical_bay"],
+                "minPowerLevel": 30,
+                "skills": [{"name": "medical", "level": 2}]
+              },
+              "duration": 60,
+              "description": "Attempt rescue operation"
+            }
+          ]
+        },
+        {
+          "id": "tag",
+          "label": "Tag",
+          "icon": "tag",
+          "enabled": true,
+          "immediate": true,
+          "description": "Mark this beacon"
+        }
+      ]
+    }
+  }
+}

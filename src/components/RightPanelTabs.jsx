@@ -25,7 +25,9 @@ const RightPanelTabs = ({
   onSequenceWaypointAdd,
   sequenceSteps,
   setSequenceSteps,
-  resetToDefaultView
+  resetToDefaultView,
+  onScanCluster,
+  onMineCluster
 }) => {
   const [activeTab, setActiveTab] = useState('pois');
   const [openDropdown, setOpenDropdown] = useState(null); // {type, poiId}
@@ -334,31 +336,74 @@ const RightPanelTabs = ({
                     >
                       Actions
                     </button>
-                    {openDropdown?.type === 'actions' && openDropdown?.poiId === poi.id && inRange && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '100%',
-                        left: 0,
-                        marginTop: '2px',
-                        background: 'rgba(0, 20, 40, 0.95)',
-                        border: '1px solid #34e0ff',
-                        borderRadius: '4px',
-                        padding: '6px',
-                        minWidth: '100px',
-                        zIndex: 1000,
-                        boxShadow: '0 0 15px rgba(52, 224, 255, 0.4)'
-                      }}>
-                        <button className="small-btn" style={{ width: '100%', fontSize: '8px', padding: '4px', marginBottom: '3px' }}>
-                          Scan
-                        </button>
-                        <button className="small-btn" style={{ width: '100%', fontSize: '8px', padding: '4px', marginBottom: '3px' }}>
-                          Mine
-                        </button>
-                        <button className="small-btn" style={{ width: '100%', fontSize: '8px', padding: '4px' }}>
-                          Investigate
-                        </button>
-                      </div>
-                    )}
+                    {openDropdown?.type === 'actions' && openDropdown?.poiId === poi.id && inRange && (() => {
+                      const isBelt = poi.type?.toLowerCase() === 'belt';
+                      const cluster = isBelt ? shipState.getClusterByPOI(poi.id) : null;
+                      const isScanned = !!cluster;
+                      return (
+                        <div style={{
+                          position: 'absolute',
+                          top: '100%',
+                          left: 0,
+                          marginTop: '2px',
+                          background: 'rgba(0, 20, 40, 0.95)',
+                          border: '1px solid #34e0ff',
+                          borderRadius: '4px',
+                          padding: '6px',
+                          minWidth: '120px',
+                          zIndex: 1000,
+                          boxShadow: '0 0 15px rgba(52, 224, 255, 0.4)'
+                        }}>
+                          {isBelt && !isScanned && (
+                            <button 
+                              className="small-btn" 
+                              style={{ width: '100%', fontSize: '8px', padding: '4px', marginBottom: '3px' }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenDropdown(null);
+                                if (onScanCluster) {
+                                  onScanCluster(poi.id, poi);
+                                }
+                              }}
+                            >
+                              🔍 Scan Cluster
+                            </button>
+                          )}
+                          {isBelt && isScanned && cluster && (
+                            <button 
+                              className="small-btn" 
+                              style={{ 
+                                width: '100%', 
+                                fontSize: '8px', 
+                                padding: '4px', 
+                                marginBottom: '3px',
+                                opacity: cluster.currentAsteroids > 0 ? 1 : 0.5
+                              }}
+                              disabled={cluster.currentAsteroids === 0}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenDropdown(null);
+                                if (onMineCluster && cluster.currentAsteroids > 0) {
+                                  onMineCluster(poi.id, cluster);
+                                }
+                              }}
+                            >
+                              ⛏️ Mine Asteroids ({cluster.currentAsteroids}/{cluster.maxAsteroids})
+                            </button>
+                          )}
+                          {!isBelt && (
+                            <>
+                              <button className="small-btn" style={{ width: '100%', fontSize: '8px', padding: '4px', marginBottom: '3px' }}>
+                                🔍 Scan
+                              </button>
+                              <button className="small-btn" style={{ width: '100%', fontSize: '8px', padding: '4px' }}>
+                                🔬 Investigate
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>

@@ -25,7 +25,11 @@ import {
   AWAY_TEAM_OUTCOMES,
   AWAY_TEAM_HAZARDS,
   AWAY_TEAM_DISCOVERIES,
-  MISSION_COMPLETION_TABLES
+  MISSION_COMPLETION_TABLES,
+  CLUSTER_TYPE_CLASSIFICATION,
+  ASTEROID_COMPOSITION,
+  ASTEROID_LOOT_TABLES,
+  ASTEROID_MINING_HAZARDS
 } from './tables.js';
 import { collectModifiers, getDifficultyModifier } from './modifiers/index.js';
 
@@ -58,6 +62,12 @@ export function resolveAction(actionType, context, seed) {
       return resolveCombatRepair(context, rng);
     case 'missionCompletion':
       return resolveMissionCompletion(context, rng);
+    case 'scanCluster':
+        const galacticZone = (context?.galacticZone ? String(context.galacticZone).toLowerCase() : 'periphery');
+        const systemTier = typeof context?.systemTier === 'number' ? context.systemTier : 1.0;
+      return resolveMineAsteroid(context, rng);
+    case 'asteroidRecovery':
+      return resolveAsteroidRecovery(context, rng);
     default:
       throw new Error(`Unknown action type: ${actionType}`);
   }
@@ -510,7 +520,7 @@ export function executeDREAction({ actionType, targetType, targetName, distance,
   // Build context from available data
   const context = {
     location: {
-      type: targetType.toLowerCase(),
+      type: typeof targetType === 'string' ? targetType.toLowerCase() : 'unknown',
       name: targetName,
       distance: distance,
       system: systemContext?.name || 'Unknown'
@@ -534,4 +544,309 @@ export function executeDREAction({ actionType, targetType, targetName, distance,
       result.outcome
     ] : ['Action completed']
   };
+}
+
+// ============================================================================
+// ASTEROID MINING RESOLUTION
+// ============================================================================
+
+/**
+ * SCAN_CLUSTER - Initial cluster discovery and classification
+ * Returns detailed roll breakdown for terminal display
+ */
+function resolveScanCluster(context, rng) {
+  const { 
+    difficulty = 'easy', // Easy difficulty (DC 3) - asteroid scanning should be very reliable
+    galacticZone = 'Dark',
+    systemTier = 1,
+    shipSensors = 20
+  } = context;
+  
+  console.log('[DRE] === resolveScanCluster ===');
+  console.log('[DRE] Context:', context);
+  console.log('[DRE] Difficulty:', difficulty);
+  console.log('[DRE] Galactic Zone:', galacticZone);
+  console.log('[DRE] System Tier:', systemTier);
+  
+  // Collect modifiers
+  const mods = collectModifiers('mining', context);
+  console.log('[DRE] Modifiers collected:', mods);
+  
+  // Add +6 bonus to asteroid scanning to make it more reliable
+  const scanningBonus = 6;
+  
+  const baseRoll = rollD20(rng);
+  console.log('[DRE] Base D20 Roll:', baseRoll);
+  
+  const totalRoll = baseRoll.value + mods.total + scanningBonus;
+  const targetDifficulty = DIFFICULTY_TDS[difficulty];
+  const success = totalRoll >= targetDifficulty;
+  
+  console.log('[DRE] Total Roll:', totalRoll, '=', baseRoll.value, '+', mods.total, '+', scanningBonus);
+  console.log('[DRE] Target Difficulty:', targetDifficulty);
+  console.log('[DRE] Success?', success);
+  
+  // Build detailed roll log
+  const rollLog = [
+    `Scan Roll: D20(${baseRoll.value}) + Modifiers(${mods.total}) + Sensors(+${scanningBonus}) = ${totalRoll}`,
+    `Target Difficulty: ${targetDifficulty} (${difficulty})`
+  ];
+  
+  // Add modifier breakdown (breakdown is an object, not an array)
+  if (mods.breakdown && typeof mods.breakdown === 'object') {
+    Object.entries(mods.breakdown).forEach(([source, value]) => {
+      rollLog.push(`  ${source}: ${value > 0 ? '+' : ''}${value}`);
+    });
+  }
+  
+  if (!success) {
+    console.log('[DRE] Scan FAILED - returning failure result');
+    return {
+      actionType: 'scanCluster',
+      result: 'fail',
+      totalRoll,
+      targetDifficulty,
+      rollLog,
+      consequences: {
+        message: 'Sensor sweep inconclusive. Unable to classify cluster density.',
+        wakeAdded: 0.05
+      }
+    };
+  }
+  
+  console.log('[DRE] Scan SUCCESS - determining cluster type...');
+  
+  // Determine cluster type with modifiers
+  let clusterTypeTable = [...CLUSTER_TYPE_CLASSIFICATION];
+  
+  // Filter out Type-V if not in Dark zone
+  if (galacticZone !== 'Dark') {
+    clusterTypeTable = clusterTypeTable.filter(c => !c.darkZoneOnly);
+  }
+  
+  // Apply system tier bonus to shift weights toward higher types
+  const tierBonus = Math.max(0, systemTier - 1);
+  if (tierBonus > 0) {
+    clusterTypeTable = clusterTypeTable.map(c => {
+      const typeNum = parseInt(c.type.split('-')[1].replace('I', '1').replace('V', '5'));
+      const weightBoost = typeNum >= 3 ? Math.pow(1.2, tierBonus) : 1;
+      return { ...c, weight: c.weight * weightBoost };
+    });
+  }
+  
+  const clusterType = selectFromTable(clusterTypeTable, rng);
+  console.log('[DRE] Cluster Type selected:', clusterType);
+  
+  const asteroidCount = Math.floor(clusterType.densityRange[0] + rng() * (clusterType.densityRange[1] - clusterType.densityRange[0] + 1));
+  console.log('[DRE] Asteroid Count:', asteroidCount);
+  
+  rollLog.push(`Cluster Type Roll: ${clusterType.type} (${clusterType.label})`);
+  rollLog.push(`Asteroid Count: ${asteroidCount} (range ${clusterType.densityRange[0]}-${clusterType.densityRange[1]})`);
+  
+  const scanResult = {
+    actionType: 'scanCluster',
+    result: 'success',
+    totalRoll,
+    targetDifficulty,
+    rollLog,
+    clusterData: {
+      type: clusterType.type,
+      typeLabel: clusterType.label,
+      description: clusterType.description,
+      currentAsteroids: asteroidCount,
+      maxAsteroids: asteroidCount,
+      recoveryDays: clusterType.recoveryDays,
+      compositionBonus: clusterType.compositionBonus,
+      miningRate: clusterType.miningRate
+    },
+    consequences: {
+      wakeAdded: 0.1,
+      message: `${clusterType.label} detected. ${asteroidCount} asteroids available. Recovery rate: ${clusterType.recoveryDays} day(s) per asteroid.`
+    }
+  };
+  
+  console.log('[DRE] === Returning Scan Result ===');
+  console.log('[DRE] Result:', scanResult);
+  
+  return scanResult;
+}
+
+/**
+ * MINE_ASTEROID - Extract resources from an asteroid
+ * Returns detailed roll breakdown for terminal display
+ */
+function resolveMineAsteroid(context, rng) {
+  const { 
+    difficulty = 'normal', 
+    cluster,
+    galacticZone = 'Dark'
+  } = context;
+  
+  const mods = collectModifiers('mining', context);
+  const compositionBonus = cluster?.compositionBonus || 0;
+  
+  const baseRoll = rollD20(rng);
+  const totalRoll = baseRoll.value + mods.total;
+  const targetDifficulty = DIFFICULTY_TDS[difficulty];
+  const success = totalRoll >= targetDifficulty;
+  
+  const rollLog = [
+    `Mining Roll: D20(${baseRoll.value}) + Modifiers(${mods.total}) = ${totalRoll}`,
+    `Target Difficulty: ${targetDifficulty} (${difficulty})`
+  ];
+  
+  // Add modifier breakdown (breakdown is an object, not an array)
+  if (mods.breakdown && typeof mods.breakdown === 'object') {
+    Object.entries(mods.breakdown).forEach(([source, value]) => {
+      rollLog.push(`  ${source}: ${value > 0 ? '+' : ''}${value}`);
+    });
+  }
+  
+  // Hazard check (always rolled)
+  const hazard = selectFromTable(ASTEROID_MINING_HAZARDS, rng);
+  rollLog.push(`Hazard Check: ${hazard.label}`);
+  if (hazard.damage > 0) {
+    rollLog.push(`  Hull Damage: ${hazard.damage}%`);
+  }
+  
+  if (!success) {
+    return {
+      actionType: 'mineAsteroid',
+      result: 'fail',
+      totalRoll,
+      targetDifficulty,
+      rollLog,
+      secondaryRolls: { hazard },
+      consequences: {
+        damageTaken: hazard.damage,
+        message: `Mining operation failed. ${hazard.label}.`,
+        wakeAdded: 0.05,
+        statusEffects: hazard.statusEffect ? [hazard.statusEffect] : []
+      }
+    };
+  }
+  
+  // Determine asteroid composition with cluster bonus
+  let compositionTable = [...ASTEROID_COMPOSITION];
+  
+  // Apply composition bonus by shifting weights toward higher tiers
+  if (compositionBonus > 0) {
+    compositionTable = compositionTable.map((comp, idx) => {
+      const tierScore = compositionTable.length - idx; // Higher index = better tier
+      const weightBoost = Math.pow(1.15, compositionBonus * (tierScore / compositionTable.length));
+      return { ...comp, weight: comp.weight * weightBoost };
+    });
+  }
+  
+  // Filter out Xenotech if bonus too low
+  compositionTable = compositionTable.filter(c => 
+    !c.requiresBonus || compositionBonus >= c.requiresBonus
+  );
+  
+  const composition = selectFromTable(compositionTable, rng);
+  rollLog.push(`Asteroid Composition: ${composition.label} (${composition.yieldMultiplier}x multiplier)`);
+  rollLog.push(`  ${composition.description}`);
+  
+  // Select loot from composition's loot table
+  const lootTable = ASTEROID_LOOT_TABLES[composition.lootTable] || ASTEROID_LOOT_TABLES.metals;
+  const loot = selectFromTable(lootTable, rng);
+  
+  // Calculate yield
+  const baseYield = rollD6(rng);
+  const finalYield = Math.floor(baseYield * composition.yieldMultiplier);
+  
+  rollLog.push(`Base Yield: D6(${baseYield})`);
+  rollLog.push(`Final Yield: ${baseYield} × ${composition.yieldMultiplier} = ${finalYield}x ${loot.item}`);
+  
+  return {
+    actionType: 'mineAsteroid',
+    result: baseRoll.isCritSuccess ? 'crit_success' : 'success',
+    totalRoll,
+    targetDifficulty,
+    rollLog,
+    composition: composition.label,
+    yieldMultiplier: composition.yieldMultiplier,
+    secondaryRolls: {
+      hazard,
+      yield: { base: baseYield, multiplier: composition.yieldMultiplier, final: finalYield }
+    },
+    loot: [{ itemId: loot.itemId, name: loot.item, quantity: finalYield, category: composition.lootTable }],
+    consequences: {
+      damageTaken: hazard.damage,
+      lootGained: [{ itemId: loot.itemId, item: loot.item, quantity: finalYield }],
+      statusEffects: hazard.statusEffect ? [hazard.statusEffect] : [],
+      wakeAdded: 0.15,
+      message: `Extracted ${finalYield}x ${loot.item} from ${composition.label}. ${hazard.label}.`,
+      asteroidConsumed: true
+    }
+  };
+}
+
+/**
+ * ASTEROID_RECOVERY_TICK - Periodic replenishment check
+ */
+function resolveAsteroidRecovery(context, rng) {
+  const { cluster, daysPassed } = context;
+  
+  if (!cluster || daysPassed < cluster.recoveryDays) {
+    return {
+      actionType: 'asteroidRecovery',
+      result: 'pending',
+      consequences: { recovered: 0 }
+    };
+  }
+  
+  const cyclesCompleted = Math.floor(daysPassed / cluster.recoveryDays);
+  const asteroidsToRecover = Math.min(
+    cyclesCompleted,
+    cluster.maxAsteroids - cluster.currentAsteroids
+  );
+  
+  return {
+    actionType: 'asteroidRecovery',
+    result: 'success',
+    consequences: {
+      recovered: asteroidsToRecover,
+      message: asteroidsToRecover > 0 
+        ? `${asteroidsToRecover} asteroid(s) replenished in cluster.`
+        : 'Cluster at maximum capacity.'
+    }
+  };
+}
+
+// ============================================================================
+// EXPORTED ASTEROID OPERATIONS
+// ============================================================================
+
+/**
+ * Execute asteroid cluster scan
+ * @param {Object} context - { galacticZone, systemTier, difficulty }
+ * @returns {Object} Scan result with rollLog and clusterData
+ */
+export function executeAsteroidScan(context) {
+  const seed = `scan-${Date.now()}-${Math.random()}-${performance.now()}`;
+  const rng = makeRng(seed, 'scan_cluster');
+  return resolveScanCluster(context, rng);
+}
+
+/**
+ * Execute asteroid mining
+ * @param {Object} context - { clusterType, compositionBonus, difficulty }
+ * @returns {Object} Mining result with rollLog and loot
+ */
+export function executeAsteroidMine(context) {
+  const seed = `mine-${Date.now()}-${Math.random()}-${performance.now()}`;
+  const rng = makeRng(seed, 'mine_asteroid');
+  return resolveMineAsteroid(context, rng);
+}
+
+/**
+ * Execute asteroid recovery calculation
+ * @param {Object} context - { currentAsteroids, maxAsteroids, recoveryRate, hoursElapsed }
+ * @returns {Object} Recovery result
+ */
+export function executeAsteroidRecovery(context) {
+  const seed = `recovery-${Date.now()}`;
+  const rng = makeRng(seed, 'recovery');
+  return resolveAsteroidRecovery(context, rng);
 }

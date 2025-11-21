@@ -6,14 +6,15 @@ import HangarView from './hangar/HangarView.jsx'
 import { createDefaultInventory, addItem } from '../lib/inventory/inventoryManagerBrowser.js'
 import AdminSecurityModal from './admin/AdminSecurityModal.jsx'
 import tempBranchData from '../data/helix_systems/Temp_Branch.json'
-import SettingsDropdown from './SettingsDropdown.jsx'
+import GlobalSettingsMenu from './GlobalSettingsMenu.jsx'
+import DevPanel from './DevPanel.jsx'
 
 /**
  * FRAME 2: Homebase Terminal - Main Base UI
  * Full-screen terminal with slide-out tab stacks and central display
  */
 
-const HomebaseTerminal = ({ onLaunch, onCreateGalaxy }) => {
+const HomebaseTerminal = ({ onLaunch, onCreateGalaxy, devMode, onDevModeToggle, onNavigate, setExpeditionSeed }) => {
   const [leftActiveTab, setLeftActiveTab] = useState(null);
   const [rightActiveTab, setRightActiveTab] = useState(null);
   const [activeCoreAI, setActiveCoreAI] = useState(['ARIA', 'FORGE']); // 2 active AI
@@ -231,12 +232,31 @@ const HomebaseTerminal = ({ onLaunch, onCreateGalaxy }) => {
     }
   };
 
+  // If dev mode is enabled, show DevPanel instead of normal homebase
+  if (devMode) {
+    return (
+      <div className="terminal-frame">
+        <GlobalSettingsMenu 
+          onGalaxyEditor={onCreateGalaxy}
+          devMode={devMode}
+          onDevModeToggle={onDevModeToggle}
+        />
+        <DevPanel 
+          onNavigate={onNavigate}
+          onCreateGalaxy={onCreateGalaxy}
+          onLaunch={onLaunch}
+          setExpeditionSeed={setExpeditionSeed}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="terminal-frame">
-      <SettingsDropdown 
-        showAdmin={true} 
-        onAdmin={() => setAdminOpen(true)}
-        onCreateGalaxy={onCreateGalaxy}
+      <GlobalSettingsMenu 
+        onGalaxyEditor={onCreateGalaxy}
+        devMode={devMode}
+        onDevModeToggle={onDevModeToggle}
       />
       {/* Left Tab Stack */}
       <div className="tab-stack-left">

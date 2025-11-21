@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import SettingsDropdown from './SettingsDropdown.jsx'
 
 /**
  * FRAME 1: Login + User/Profile Management Shell
@@ -48,7 +47,6 @@ const LoginFrame = ({ onLogin }) => {
 
   return (
     <div className="terminal-frame">
-      <SettingsDropdown />
       <div className="login-container holo-glow flicker fade-in-up">
         <h1 className="login-header holo-text">
           TERMINAL ACCESS
