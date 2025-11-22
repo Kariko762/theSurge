@@ -1,0 +1,263 @@
+[
+  {
+    "id": "survey_derelict_station",
+    "metadata": {
+      "title": "Derelict Space Station",
+      "description": "The station appears abandoned. Life support is offline, but the structure seems intact.",
+      "tags": ["exploration", "risk", "loot", "derelict"],
+      "enabled": true
+    },
+    "trigger": {
+      "type": "poi_action",
+      "action": "survey",
+      "weight": 0.4,
+      "conditions": {
+        "location": "orbit",
+        "tierMultiplier": { "T0": 0.5, "T1": 0.4, "T2": 0.3, "T3": 0.2 },
+        "riskBonus": { "low": 0, "medium": 0.1, "high": 0.2 }
+      }
+    },
+    "scenario": {
+      "title": "Derelict Space Station",
+      "description": "You detect faint power signatures from the core. The hull is intact but scarred by age.",
+      "location": "orbital_station",
+      "systemMessage": "[SCAN COMPLETE] Orbital structure identified: Research Station Alpha-7. Status: DERELICT. Age: ~15 years. Radiation: Nominal."
+    },
+    "branches": [
+      {
+        "id": "leave",
+        "label": "Leave the station and continue exploration",
+        "challenge": null,
+        "outcomes": [
+          {
+            "weight": 1.0,
+            "type": "safe_exit",
+            "narrative": "You mark the station's coordinates for future reference and continue on your way.",
+            "rewards": null
+          }
+        ]
+      },
+      {
+        "id": "investigate",
+        "label": "Board the station and investigate",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "medium",
+          "skills": ["perception", "technical"],
+          "baseTarget": 12,
+          "description": "Navigating a derelict station requires both sharp observation and technical know-how."
+        },
+        "subScenarios": [
+          {
+            "id": "nothing_found",
+            "weight": 0.1,
+            "outcomeType": "failure",
+            "narrative": {
+              "title": "Empty Station",
+              "description": "After hours of searching, you find nothing of value. The station was stripped clean long ago.",
+              "systemMessage": "[INVESTIGATION COMPLETE] No salvageable materials detected. Station database corrupted beyond recovery."
+            },
+            "rewards": {
+              "credits": 50,
+              "xp": 25,
+              "items": []
+            }
+          },
+          {
+            "id": "abandon_cache",
+            "weight": 0.3,
+            "outcomeType": "success",
+            "narrative": {
+              "title": "Supply Cache Discovered",
+              "description": "You locate an emergency supply cache in the crew quarters. The contents are still sealed and functional.",
+              "systemMessage": "[CACHE LOCATED] Emergency locker E-47 opened. Contents: Medical supplies, rations, spare parts."
+            },
+            "rewards": {
+              "credits": 300,
+              "xp": 100,
+              "items": ["med_kit", "ship_components", "rare_ore"]
+            }
+          },
+          {
+            "id": "trap_raiders",
+            "weight": 0.2,
+            "outcomeType": "failure",
+            "narrative": {
+              "title": "Ambush!",
+              "description": "The station wasn't as abandoned as you thought. Raiders emerge from the shadows, demanding your cargo!",
+              "systemMessage": "[HOSTILE CONTACT] Multiple armed hostiles detected! WARNING: Combat situation imminent!"
+            },
+            "rewards": {
+              "credits": -150,
+              "xp": 75,
+              "items": [],
+              "damage": "minor"
+            }
+          },
+          {
+            "id": "friendly_encounter",
+            "weight": 0.4,
+            "outcomeType": "critical_success",
+            "narrative": {
+              "title": "Unexpected Ally",
+              "description": "You encounter a lone scientist who's been surviving on the station. They share valuable research data in exchange for passage.",
+              "systemMessage": "[CONTACT ESTABLISHED] Dr. Elena Vasquez, Xenobiology Research Lead. Offering data exchange for rescue."
+            },
+            "rewards": {
+              "credits": 500,
+              "xp": 200,
+              "items": ["data_core", "research_notes"],
+              "unlocks": ["scientist_rescued", "xenobiology_quest"]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "survey_active_station",
+    "metadata": {
+      "title": "Active Research Station",
+      "description": "The station's lights are on and life support is running. You receive a standard automated greeting.",
+      "tags": ["exploration", "trade", "social", "safe"],
+      "enabled": true
+    },
+    "trigger": {
+      "type": "poi_action",
+      "action": "survey",
+      "weight": 0.3,
+      "conditions": {
+        "location": "orbit",
+        "tierMultiplier": { "T0": 0.2, "T1": 0.3, "T2": 0.4, "T3": 0.5 },
+        "riskBonus": { "low": 0.1, "medium": 0, "high": -0.1 }
+      }
+    },
+    "scenario": {
+      "title": "Active Research Station",
+      "description": "Life support is running and you detect crew signatures. The station broadcasts a standard greeting protocol.",
+      "location": "orbital_station",
+      "systemMessage": "[HAIL RECEIVED] Welcome to Research Station Gamma-3. Please state your business."
+    },
+    "branches": [
+      {
+        "id": "trade",
+        "label": "Dock and trade with the station",
+        "challenge": null,
+        "outcomes": [
+          {
+            "weight": 1.0,
+            "type": "trade_opportunity",
+            "narrative": "Station traders available.",
+            "rewards": {
+              "unlocks": ["trade_station_gamma3"]
+            }
+          }
+        ]
+      },
+      {
+        "id": "accept_mission",
+        "label": "Ask if they need assistance",
+        "challenge": null,
+        "outcomes": [
+          {
+            "weight": 0.6,
+            "type": "mission_offered",
+            "narrative": "The station commander mentions they need help retrieving a lost probe. They'll pay well for its recovery.",
+            "rewards": {
+              "unlocks": ["mission_lost_probe"]
+            }
+          },
+          {
+            "weight": 0.4,
+            "type": "no_missions",
+            "narrative": "The station has no current requests, but they thank you for asking.",
+            "rewards": {
+              "credits": 100,
+              "xp": 50
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "survey_alien_artifact",
+    "metadata": {
+      "title": "Ancient Alien Structure",
+      "description": "The structure doesn't match any known human architecture. Its purpose is unclear, but it radiates strange energy signatures.",
+      "tags": ["exploration", "alien", "mystery", "rare", "high-risk"],
+      "enabled": true
+    },
+    "trigger": {
+      "type": "poi_action",
+      "action": "survey",
+      "weight": 0.1,
+      "conditions": {
+        "location": "orbit",
+        "tierMultiplier": { "T0": 0.05, "T1": 0.08, "T2": 0.12, "T3": 0.15 },
+        "riskBonus": { "low": -0.05, "medium": 0, "high": 0.05 }
+      }
+    },
+    "scenario": {
+      "title": "Ancient Alien Structure",
+      "description": "Unknown architecture with strange energy. Your sensors struggle to make sense of the readings.",
+      "location": "alien_structure",
+      "systemMessage": "[WARNING] Unknown structure detected. Energy signature: NON-STANDARD. Recommend caution."
+    },
+    "branches": [
+      {
+        "id": "scan_only",
+        "label": "Perform detailed scan from safe distance",
+        "challenge": null,
+        "outcomes": [
+          {
+            "weight": 1.0,
+            "type": "data_collected",
+            "narrative": "Your sensors collect valuable data about the structure. This information could be worth a fortune to researchers.",
+            "rewards": {
+              "credits": 600,
+              "xp": 150,
+              "items": ["scan_data"],
+              "unlocks": ["alien_research_contact"]
+            }
+          }
+        ]
+      },
+      {
+        "id": "approach",
+        "label": "Approach the structure for closer examination",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "very_hard",
+          "skills": ["science", "intuition"],
+          "baseTarget": 16,
+          "description": "Understanding alien technology requires deep scientific knowledge and strong instincts."
+        },
+        "outcomes": [
+          {
+            "weight": 0.3,
+            "type": "critical_success",
+            "narrative": "You decipher part of the structure's function and recover an intact artifact!",
+            "rewards": {
+              "credits": 2000,
+              "xp": 500,
+              "items": ["alien_artifact", "scan_data"],
+              "unlocks": ["alien_tech_breakthrough"]
+            }
+          },
+          {
+            "weight": 0.7,
+            "type": "critical_failure",
+            "narrative": "The structure's defenses activate! Your ship takes heavy damage before you can retreat!",
+            "rewards": {
+              "credits": -500,
+              "xp": 100,
+              "items": [],
+              "damage": "major"
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

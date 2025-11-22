@@ -1,0 +1,74 @@
+{
+  "events": [
+    {
+      "eventId": "survey_orbital_station",
+      "scenarioId": "derelict_station",
+      "timestamp": "2025-11-21T19:50:54.028Z",
+      "duration": 0,
+      "playerChoice": "investigate",
+      "outcome": "friendly_encounter",
+      "rewards": {
+        "credits": 500,
+        "xp": 200,
+        "items": [
+          "data_core"
+        ],
+        "unlocks": [
+          "scientist_rescued"
+        ]
+      }
+    },
+    {
+      "eventId": "survey_orbital_station",
+      "scenarioId": "active_station",
+      "timestamp": "2025-11-21T19:56:37.912Z",
+      "duration": 0,
+      "playerChoice": "trade",
+      "outcome": "trade_opportunity",
+      "rewards": {
+        "unlocks": [
+          "trade_station_gamma3"
+        ]
+      }
+    },
+    {
+      "eventId": "survey_orbital_station",
+      "scenarioId": "active_station",
+      "timestamp": "2025-11-21T19:58:03.133Z",
+      "duration": 0,
+      "playerChoice": "trade",
+      "outcome": "trade_opportunity",
+      "rewards": {
+        "unlocks": [
+          "trade_station_gamma3"
+        ]
+      }
+    },
+    {
+      "eventId": "survey_orbital_station",
+      "scenarioId": "active_station",
+      "timestamp": "2025-11-21T19:58:21.236Z",
+      "duration": 0,
+      "playerChoice": "trade",
+      "outcome": "trade_opportunity",
+      "rewards": {
+        "unlocks": [
+          "trade_station_gamma3"
+        ]
+      }
+    },
+    {
+      "eventId": "survey_orbital_station",
+      "scenarioId": "alien_artifact",
+      "timestamp": "2025-11-21T19:58:38.059Z",
+      "duration": 0,
+      "playerChoice": "approach",
+      "outcome": "critical_failure",
+      "rewards": {
+        "credits": -500,
+        "xp": 100,
+        "damage": "major"
+      }
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "version": "2.0",
+  "description": "System generation configuration - controls POI placement, sizes, and heliosphere parameters",
+  
+  "constraints": {
+    "maxRadiusAU": 110,
+    "minPOISpacing": 5,
+    "heliosphereBuffer": 10,
+    "heliosphereOvalRatio": 1.3
+  },
+  
+  "poiTypes": {
+    "planet": {
+      "weight": 20,
+      "sizeRange": [8, 20],
+      "minDistance": 5,
+      "maxDistance": 80,
+      "canHaveOrbitals": true,
+      "orbitalProbability": 0.7,
+      "maxOrbitals": 4
+    },
+    "belt": {
+      "weight": 12,
+      "sizeRange": [15, 30],
+      "minDistance": 20,
+      "maxDistance": 100,
+      "canHaveOrbitals": false
+    },
+    "moon": {
+      "weight": 6,
+      "sizeRange": [3, 8],
+      "minDistance": 40,
+      "maxDistance": 90,
+      "canHaveOrbitals": false
+    },
+    "station": {
+      "weight": 5,
+      "sizeRange": [4, 10],
+      "minDistance": 10,
+      "maxDistance": 95,
+      "canHaveOrbitals": false,
+      "isOrbital": true
+    },
+    "habitat": {
+      "weight": 3,
+      "sizeRange": [6, 12],
+      "minDistance": 30,
+      "maxDistance": 85,
+      "canHaveOrbitals": true,
+      "orbitalProbability": 0.4,
+      "maxOrbitals": 2
+    },
+    "anomaly": {
+      "weight": 4,
+      "sizeRange": [5, 15],
+      "minDistance": 15,
+      "maxDistance": 105,
+      "canHaveOrbitals": false
+    }
+  },
+  
+  "orbitalTypes": ["station", "moon"],
+  
+  "starClasses": {
+    "O": { "luminosityRange": [2.4, 3.0], "protection": 1.0, "activity": 0.9 },
+    "B": { "luminosityRange": [2.0, 2.6], "protection": 0.9, "activity": 0.8 },
+    "A": { "luminosityRange": [1.6, 2.2], "protection": 0.75, "activity": 0.7 },
+    "F": { "luminosityRange": [1.2, 1.8], "protection": 0.6, "activity": 0.6 },
+    "G": { "luminosityRange": [0.9, 1.3], "protection": 0.45, "activity": 0.5 },
+    "K": { "luminosityRange": [0.7, 1.1], "protection": 0.3, "activity": 0.4 },
+    "M": { "luminosityRange": [0.3, 0.8], "protection": 0.15, "activity": 0.3 }
+  },
+  
+  "galacticZones": {
+    "Quiet": { "weight": 30, "surgeBase": 5 },
+    "Dark": { "weight": 50, "surgeBase": 20 },
+    "Static": { "weight": 20, "surgeBase": 80 }
+  }
+}

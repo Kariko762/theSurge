@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LoginFrame from './components/LoginFrame'
 import HomebaseTerminal from './components/HomebaseTerminal'
 import ShipCommandConsole from './components/ShipCommandConsole'
 import GalaxyCreator from './components/GalaxyCreator'
+import Login from './components/admin/Login'
+import AdminPanel from './components/admin/AdminPanel'
 import { exampleSeeds } from './lib/systemGenerator'
 
-function App() {
+function GameApp() {
   const [currentFrame, setCurrentFrame] = useState('login')
   const [expeditionSeed, setExpeditionSeed] = useState(exampleSeeds()[0])
   const [spawnPosition, setSpawnPosition] = useState(null) // null = default edge spawn
@@ -62,6 +65,24 @@ function App() {
         )}
       </div>
     </div>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Game Routes */}
+        <Route path="/" element={<GameApp />} />
+        
+        {/* Admin Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/admin" element={<AdminPanel />} />
+        
+        {/* Catch-all redirect */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

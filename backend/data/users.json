@@ -1,0 +1,12 @@
+[
+  {
+    "id": "user_admin",
+    "username": "admin",
+    "email": "admin@surge.game",
+    "passwordHash": "$2b$10$U.k060RcKVRchiRJYB0m8uda5nJdTjGJ6887NNn/uefpcV2ny2P4S",
+    "role": "admin",
+    "active": true,
+    "createdAt": "2025-11-21T17:26:01.808Z",
+    "lastLogin": "2025-11-22T05:58:38.151Z"
+  }
+]

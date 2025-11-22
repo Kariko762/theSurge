@@ -1,0 +1,316 @@
+{
+  "rootEvent": {
+    "id": "survey_orbital_station",
+    "triggerType": "player_action",
+    "metadata": {
+      "title": "Survey Orbital Structure",
+      "description": "You've detected an orbital station or structure. Investigating could yield valuable resources or information.",
+      "tags": ["exploration", "risk", "loot"],
+      "enabled": true,
+      "weight": 1.0
+    },
+    "trigger": {
+      "action": "survey",
+      "requiredLocation": "orbit",
+      "cooldown": 0
+    }
+  },
+  "scenarioPool": [
+    {
+      "id": "derelict_station",
+      "weight": 0.4,
+      "modifiers": {
+        "tierMultiplier": { "T0": 0.5, "T1": 0.4, "T2": 0.3, "T3": 0.2 },
+        "riskBonus": { "low": 0, "medium": 0.1, "high": 0.2 }
+      },
+      "scenario": {
+        "title": "Derelict Space Station",
+        "description": "The station appears abandoned. Life support is offline, but the structure seems intact. You detect faint power signatures from the core.",
+        "location": "orbital_station",
+        "systemMessage": "[SCAN COMPLETE] Orbital structure identified: Research Station Alpha-7. Status: DERELICT. Age: ~15 years. Radiation: Nominal."
+      },
+      "branches": [
+        {
+          "id": "leave",
+          "label": "Leave the station and continue exploration",
+          "outcomes": [
+            {
+              "weight": 1.0,
+              "type": "safe_exit",
+              "narrative": "You mark the station's coordinates for future reference and continue on your way.",
+              "rewards": null,
+              "telemetry": { "choice": "leave", "outcome": "safe_exit" }
+            }
+          ]
+        },
+        {
+          "id": "investigate",
+          "label": "Board the station and investigate",
+          "challenge": {
+            "mode": "skill_check",
+            "difficulty": "medium",
+            "skills": ["perception", "technical"],
+            "baseTarget": 12,
+            "description": "Navigating a derelict station requires both sharp observation and technical know-how."
+          },
+          "subScenarios": [
+            {
+              "id": "nothing_found",
+              "weight": 0.1,
+              "outcomeType": "failure",
+              "narrative": {
+                "title": "Empty Station",
+                "description": "After hours of searching, you find nothing of value. The station was stripped clean long ago.",
+                "systemMessage": "[INVESTIGATION COMPLETE] No salvageable materials detected. Station database corrupted beyond recovery."
+              },
+              "rewards": {
+                "credits": 50,
+                "xp": 25,
+                "items": []
+              },
+              "telemetry": { "choice": "investigate", "outcome": "nothing_found" }
+            },
+            {
+              "id": "abandon_cache",
+              "weight": 0.3,
+              "outcomeType": "success",
+              "narrative": {
+                "title": "Supply Cache Discovered",
+                "description": "You locate an emergency supply cache in the crew quarters. The contents are still sealed and functional.",
+                "systemMessage": "[CACHE LOCATED] Emergency locker E-47 opened. Contents: Medical supplies, rations, spare parts."
+              },
+              "rewards": {
+                "credits": 300,
+                "xp": 100,
+                "items": ["med_kit", "ship_components", "rare_ore"]
+              },
+              "telemetry": { "choice": "investigate", "outcome": "abandon_cache" }
+            },
+            {
+              "id": "trap_raiders",
+              "weight": 0.2,
+              "outcomeType": "failure",
+              "narrative": {
+                "title": "Ambush!",
+                "description": "The station wasn't as abandoned as you thought. Raiders emerge from the shadows, demanding your cargo!",
+                "systemMessage": "[HOSTILE CONTACT] Multiple armed hostiles detected! WARNING: Combat situation imminent!"
+              },
+              "challenge": {
+                "mode": "combat",
+                "difficulty": "hard",
+                "enemyType": "raiders",
+                "enemyCount": 3
+              },
+              "rewards": {
+                "credits": -150,
+                "xp": 75,
+                "items": [],
+                "damage": "minor"
+              },
+              "telemetry": { "choice": "investigate", "outcome": "trap_raiders" }
+            },
+            {
+              "id": "friendly_encounter",
+              "weight": 0.4,
+              "outcomeType": "critical_success",
+              "narrative": {
+                "title": "Unexpected Ally",
+                "description": "You encounter a lone scientist who's been surviving on the station. They share valuable research data in exchange for passage.",
+                "systemMessage": "[CONTACT ESTABLISHED] Dr. Elena Vasquez, Xenobiology Research Lead. Offering data exchange for rescue."
+              },
+              "rewards": {
+                "credits": 500,
+                "xp": 200,
+                "items": ["data_core", "research_notes"],
+                "unlocks": ["scientist_rescued", "xenobiology_quest"]
+              },
+              "telemetry": { "choice": "investigate", "outcome": "friendly_encounter" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "active_station",
+      "weight": 0.3,
+      "modifiers": {
+        "tierMultiplier": { "T0": 0.2, "T1": 0.3, "T2": 0.4, "T3": 0.5 },
+        "riskBonus": { "low": 0.1, "medium": 0, "high": -0.1 }
+      },
+      "scenario": {
+        "title": "Active Research Station",
+        "description": "The station's lights are on and life support is running. You receive a standard automated greeting.",
+        "location": "orbital_station",
+        "systemMessage": "[HAIL RECEIVED] Welcome to Research Station Gamma-3. Please state your business."
+      },
+      "branches": [
+        {
+          "id": "trade",
+          "label": "Dock and trade with the station",
+          "outcomes": [
+            {
+              "weight": 1.0,
+              "type": "trade_opportunity",
+              "narrative": "The station traders offer standard prices for goods and services.",
+              "rewards": {
+                "unlocks": ["trade_station_gamma3"]
+              },
+              "telemetry": { "choice": "trade", "outcome": "trade_opened" }
+            }
+          ]
+        },
+        {
+          "id": "accept_mission",
+          "label": "Ask if they need assistance",
+          "outcomes": [
+            {
+              "weight": 0.6,
+              "type": "mission_offered",
+              "narrative": "The station commander mentions they need help retrieving a lost probe. They'll pay well for its recovery.",
+              "rewards": {
+                "unlocks": ["mission_lost_probe"]
+              },
+              "telemetry": { "choice": "accept_mission", "outcome": "mission_offered" }
+            },
+            {
+              "weight": 0.4,
+              "type": "no_missions",
+              "narrative": "The station has no current requests, but they thank you for asking.",
+              "rewards": {
+                "credits": 100,
+                "xp": 50
+              },
+              "telemetry": { "choice": "accept_mission", "outcome": "no_missions" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "abandoned_mining",
+      "weight": 0.2,
+      "modifiers": {
+        "tierMultiplier": { "T0": 0.4, "T1": 0.3, "T2": 0.2, "T3": 0.1 },
+        "asteroidTypeBonus": { "metallic": 0.2, "silicate": 0.1, "carbonaceous": 0 }
+      },
+      "scenario": {
+        "title": "Abandoned Mining Outpost",
+        "description": "A defunct mining platform orbits a partially-stripped asteroid. The equipment looks old but potentially salvageable.",
+        "location": "mining_platform",
+        "systemMessage": "[SCAN COMPLETE] Mining Platform designation: MP-441. Operations ceased ~8 years ago. Equipment status: UNKNOWN."
+      },
+      "branches": [
+        {
+          "id": "salvage",
+          "label": "Salvage the mining equipment",
+          "challenge": {
+            "mode": "skill_check",
+            "difficulty": "easy",
+            "skills": ["engineering", "salvage"],
+            "baseTarget": 8
+          },
+          "outcomes": [
+            {
+              "weight": 0.7,
+              "type": "success",
+              "narrative": "You successfully extract several functioning components from the mining rig.",
+              "rewards": {
+                "credits": 400,
+                "xp": 120,
+                "items": ["mining_laser", "ship_components", "rare_ore"]
+              },
+              "telemetry": { "choice": "salvage", "outcome": "success" }
+            },
+            {
+              "weight": 0.3,
+              "type": "failure",
+              "narrative": "The equipment is more degraded than it appeared. You manage to salvage only scrap metal.",
+              "rewards": {
+                "credits": 100,
+                "xp": 50,
+                "items": ["scrap_metal"]
+              },
+              "telemetry": { "choice": "salvage", "outcome": "failure" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "alien_artifact",
+      "weight": 0.1,
+      "modifiers": {
+        "tierMultiplier": { "T0": 0.05, "T1": 0.08, "T2": 0.12, "T3": 0.15 },
+        "riskBonus": { "low": -0.05, "medium": 0, "high": 0.05 }
+      },
+      "scenario": {
+        "title": "Ancient Alien Structure",
+        "description": "The structure doesn't match any known human architecture. Its purpose is unclear, but it radiates strange energy signatures.",
+        "location": "alien_structure",
+        "systemMessage": "[WARNING] Unknown structure detected. Energy signature: NON-STANDARD. Recommend caution."
+      },
+      "branches": [
+        {
+          "id": "scan_only",
+          "label": "Perform detailed scan from safe distance",
+          "outcomes": [
+            {
+              "weight": 1.0,
+              "type": "data_collected",
+              "narrative": "Your sensors collect valuable data about the structure. This information could be worth a fortune to researchers.",
+              "rewards": {
+                "credits": 600,
+                "xp": 150,
+                "items": ["scan_data"],
+                "unlocks": ["alien_research_contact"]
+              },
+              "telemetry": { "choice": "scan_only", "outcome": "data_collected" }
+            }
+          ]
+        },
+        {
+          "id": "approach",
+          "label": "Approach the structure for closer examination",
+          "challenge": {
+            "mode": "skill_check",
+            "difficulty": "very_hard",
+            "skills": ["science", "intuition"],
+            "baseTarget": 16
+          },
+          "outcomes": [
+            {
+              "weight": 0.3,
+              "type": "critical_success",
+              "narrative": "You decipher part of the structure's function and recover an intact artifact!",
+              "rewards": {
+                "credits": 2000,
+                "xp": 500,
+                "items": ["alien_artifact", "scan_data"],
+                "unlocks": ["alien_tech_breakthrough"]
+              },
+              "telemetry": { "choice": "approach", "outcome": "critical_success" }
+            },
+            {
+              "weight": 0.7,
+              "type": "critical_failure",
+              "narrative": "The structure's defenses activate! Your ship takes heavy damage before you can retreat!",
+              "rewards": {
+                "credits": -500,
+                "xp": 100,
+                "items": [],
+                "damage": "major"
+              },
+              "telemetry": { "choice": "approach", "outcome": "critical_failure" }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "author": "THE SURGE Dev Team",
+    "created": "2024-01-15",
+    "notes": "Test event demonstrating modular scenario pool architecture with weighted outcomes and sub-scenario branching."
+  }
+}

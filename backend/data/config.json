@@ -1,0 +1,380 @@
+{
+  "difficultyCurve": {
+    "trivial": {
+      "dc": 0
+    },
+    "easy": {
+      "dc": 3
+    },
+    "normal": {
+      "dc": 8
+    },
+    "hard": {
+      "dc": 12
+    },
+    "deadly": {
+      "dc": 16
+    },
+    "impossible": {
+      "dc": 20
+    }
+  },
+  "lootMultipliers": {
+    "criticalSuccess": {
+      "min": 2,
+      "max": 3
+    },
+    "success": {
+      "min": 1,
+      "max": 1.5
+    },
+    "partialSuccess": {
+      "min": 0.5,
+      "max": 0.8
+    },
+    "failure": {
+      "min": 0,
+      "max": 0.2
+    }
+  },
+  "lootTables": {
+    "items": [
+      {
+        "id": "iron_ore",
+        "name": "Iron Ore",
+        "description": "Common metallic ore found in asteroid belts. Used in basic ship repairs and construction.",
+        "category": "resource",
+        "tier": "common",
+        "weight": 5,
+        "size": 1,
+        "maxStack": 100,
+        "value": 15,
+        "tags": ["mining", "common", "metal"]
+      },
+      {
+        "id": "platinum_ore",
+        "name": "Platinum Ore",
+        "description": "Rare precious metal with high market value and advanced manufacturing applications.",
+        "category": "resource",
+        "tier": "rare",
+        "weight": 8,
+        "size": 1,
+        "maxStack": 50,
+        "value": 450,
+        "tags": ["mining", "rare", "precious"]
+      },
+      {
+        "id": "helium3",
+        "name": "Helium-3",
+        "description": "Fusion reactor fuel. Extracted from gas giants and solar winds. Essential for long-range travel.",
+        "category": "consumable",
+        "tier": "uncommon",
+        "weight": 0.5,
+        "size": 2,
+        "maxStack": 200,
+        "value": 80,
+        "tags": ["fuel", "gas", "uncommon"]
+      },
+      {
+        "id": "repair_kit",
+        "name": "Emergency Repair Kit",
+        "description": "Portable repair tools and materials for quick hull breaches and system fixes.",
+        "category": "consumable",
+        "tier": "common",
+        "weight": 3,
+        "size": 2,
+        "maxStack": 10,
+        "value": 120,
+        "tags": ["repair", "emergency", "consumable"]
+      },
+      {
+        "id": "ancient_data_core",
+        "name": "Ancient Data Core",
+        "description": "Pre-Surge data storage containing valuable information. Highly sought after by researchers.",
+        "category": "artifact",
+        "tier": "epic",
+        "weight": 1,
+        "size": 1,
+        "maxStack": 1,
+        "value": 5000,
+        "tags": ["artifact", "data", "pre-surge", "epic"]
+      },
+      {
+        "id": "shield_capacitor",
+        "name": "Advanced Shield Capacitor",
+        "description": "High-efficiency energy storage for shield systems. Increases shield recharge rate.",
+        "category": "component",
+        "tier": "rare",
+        "weight": 4,
+        "size": 3,
+        "maxStack": 5,
+        "value": 850,
+        "tags": ["component", "shield", "upgrade"]
+      }
+    ],
+    "pools": [
+      {
+        "id": "asteroid_mining",
+        "name": "Asteroid Mining Loot",
+        "description": "Common ores and materials found when mining asteroids",
+        "tags": ["mining", "asteroid", "common"],
+        "entries": [
+          {
+            "itemId": "iron_ore",
+            "weight": 70,
+            "minQuantity": 5,
+            "maxQuantity": 15
+          },
+          {
+            "itemId": "platinum_ore",
+            "weight": 20,
+            "minQuantity": 1,
+            "maxQuantity": 5
+          },
+          {
+            "itemId": "repair_kit",
+            "weight": 10,
+            "minQuantity": 1,
+            "maxQuantity": 2
+          }
+        ]
+      },
+      {
+        "id": "derelict_salvage",
+        "name": "Derelict Ship Salvage",
+        "description": "Items recovered from abandoned ships and stations",
+        "tags": ["salvage", "derelict", "rare"],
+        "entries": [
+          {
+            "itemId": "shield_capacitor",
+            "weight": 30,
+            "minQuantity": 1,
+            "maxQuantity": 2
+          },
+          {
+            "itemId": "ancient_data_core",
+            "weight": 10,
+            "minQuantity": 1,
+            "maxQuantity": 1
+          },
+          {
+            "itemId": "repair_kit",
+            "weight": 40,
+            "minQuantity": 2,
+            "maxQuantity": 5
+          },
+          {
+            "itemId": "helium3",
+            "weight": 20,
+            "minQuantity": 10,
+            "maxQuantity": 30
+          }
+        ]
+      }
+    ]
+  },
+  "narrativeLibrary": {
+    "pools": [
+      {
+        "id": "mining_success",
+        "name": "Mining Success Narratives",
+        "description": "Various success messages for mining operations",
+        "category": "mining",
+        "entries": [
+          {
+            "weight": 40,
+            "title": "Rich Vein Discovered",
+            "message": "Your scanners light up as you breach a particularly rich mineral deposit. This is going to be a good haul.",
+            "systemMessage": "Mining efficiency increased by 15%",
+            "tone": "positive"
+          },
+          {
+            "weight": 30,
+            "title": "Standard Operation",
+            "message": "The mining lasers cut through the asteroid surface smoothly. Nothing fancy, but steady work pays off.",
+            "systemMessage": "Mining operation nominal",
+            "tone": "neutral"
+          },
+          {
+            "weight": 20,
+            "title": "Unexpected Find",
+            "message": "Wait... these readings can't be right. There's something else embedded in this rock...",
+            "systemMessage": "Anomalous signature detected",
+            "tone": "mysterious"
+          },
+          {
+            "weight": 10,
+            "title": "Jackpot Strike",
+            "message": "ALERT: High-value mineral concentration detected! Your cargo hold is going to love this.",
+            "systemMessage": "Critical success - maximum yield",
+            "tone": "excited"
+          }
+        ]
+      },
+      {
+        "id": "mining_failure",
+        "name": "Mining Failure Narratives",
+        "description": "Various failure messages for mining operations",
+        "category": "mining",
+        "entries": [
+          {
+            "weight": 50,
+            "title": "Equipment Malfunction",
+            "message": "The mining laser sputters and dies. You'll need to reset the system before trying again.",
+            "systemMessage": "Mining equipment requires maintenance",
+            "tone": "negative"
+          },
+          {
+            "weight": 30,
+            "title": "Unstable Asteroid",
+            "message": "Cracks spiderweb across the asteroid's surface. You pull back before the whole thing fragments.",
+            "systemMessage": "Structural integrity compromised",
+            "tone": "tense"
+          },
+          {
+            "weight": 20,
+            "title": "Pirate Interruption",
+            "message": "Your proximity alarms blare. Three hostile contacts incoming. Looks like someone doesn't want you mining here.",
+            "systemMessage": "Hostile ships detected - combat imminent",
+            "tone": "danger"
+          }
+        ]
+      },
+      {
+        "id": "scan_discovery",
+        "name": "Scan Discovery Narratives",
+        "description": "Revealing what you've discovered during scans",
+        "category": "exploration",
+        "entries": [
+          {
+            "weight": 35,
+            "title": "Type-I Iron Cluster",
+            "message": "Scan complete. Standard iron-rich asteroid cluster. Common, but valuable.",
+            "systemMessage": "Classification: Type-I Ferrous Deposit",
+            "tone": "neutral",
+            "assignDefinition": "type_i_iron"
+          },
+          {
+            "weight": 25,
+            "title": "Type-II Platinum Vein",
+            "message": "Your sensors pick up precious metal signatures. A platinum deposit—rare and extremely valuable.",
+            "systemMessage": "Classification: Type-II Precious Metal Vein",
+            "tone": "positive",
+            "assignDefinition": "type_ii_platinum"
+          },
+          {
+            "weight": 20,
+            "title": "Type-III Volatile Ice",
+            "message": "WARNING: Volatile compounds detected. This asteroid contains explosive ice formations. Proceed with extreme caution.",
+            "systemMessage": "Classification: Type-III Volatile Cluster - HAZARDOUS",
+            "tone": "warning",
+            "assignDefinition": "type_iii_volatile"
+          },
+          {
+            "weight": 15,
+            "title": "Type-IV Rare Earth",
+            "message": "Interesting... rare earth elements in high concentration. These are used in advanced ship components.",
+            "systemMessage": "Classification: Type-IV Rare Earth Deposit",
+            "tone": "curious",
+            "assignDefinition": "type_iv_rare_earth"
+          },
+          {
+            "weight": 5,
+            "title": "Type-V Ancient Core",
+            "message": "This is impossible. These mineral formations predate the Surge by centuries. What were they mining for?",
+            "systemMessage": "Classification: Type-V Pre-Surge Anomaly",
+            "tone": "mysterious",
+            "assignDefinition": "type_v_ancient"
+          }
+        ]
+      },
+      {
+        "id": "station_approach",
+        "name": "Station Approach Narratives",
+        "description": "First contact with stations",
+        "category": "station",
+        "entries": [
+          {
+            "weight": 40,
+            "title": "Active Station Hails",
+            "message": "The station's automated systems acknowledge your approach. Docking clearance granted.",
+            "systemMessage": "Station operational - access granted",
+            "tone": "neutral",
+            "assignDefinition": "operational"
+          },
+          {
+            "weight": 35,
+            "title": "Derelict Silence",
+            "message": "No response to your hails. The station's lights are dark. Looks like it's been abandoned for some time.",
+            "systemMessage": "Station derelict - salvage opportunity",
+            "tone": "eerie",
+            "assignDefinition": "derelict"
+          },
+          {
+            "weight": 15,
+            "title": "Distress Signal",
+            "message": "Emergency beacon active. Life support failing. Someone on that station needs help—fast.",
+            "systemMessage": "Distress signal detected - rescue mission available",
+            "tone": "urgent",
+            "assignDefinition": "distress"
+          },
+          {
+            "weight": 10,
+            "title": "Hostile Lockdown",
+            "message": "WARNING: Weapons lock detected! The station's defense turrets are tracking your ship.",
+            "systemMessage": "Station hostile - combat systems active",
+            "tone": "danger",
+            "assignDefinition": "hostile"
+          }
+        ]
+      }
+    ]
+  },
+  "encounterRates": {
+    "trader": {
+      "weight": 20,
+      "cooldown": 300
+    },
+    "pirate": {
+      "weight": 15,
+      "cooldown": 600
+    },
+    "derelict": {
+      "weight": 10,
+      "cooldown": 900
+    },
+    "anomaly": {
+      "weight": 5,
+      "cooldown": 1200
+    }
+  },
+  "riskCalculation": {
+    "wakeWeight": 40,
+    "locationWeight": 30,
+    "timeWeight": 15,
+    "eventWeight": 10,
+    "missionWeight": 5
+  },
+  "dynamicScheduler": {
+    "lowRisk": {
+      "threshold": 20,
+      "interval": 60
+    },
+    "moderateRisk": {
+      "threshold": 40,
+      "interval": 30
+    },
+    "highRisk": {
+      "threshold": 60,
+      "interval": 15
+    },
+    "criticalRisk": {
+      "threshold": 80,
+      "interval": 5
+    },
+    "extremeRisk": {
+      "threshold": 100,
+      "interval": 2
+    }
+  }
+}
