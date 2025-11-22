@@ -3,6 +3,7 @@ import api from '../../lib/api/client';
 import { CreateIcon, LoadingIcon, EditIcon, DeleteIcon, SearchIcon, FilterIcon } from './HoloIcons';
 import EventForm from './forms/EventForm';
 import '../../styles/AdminGlass.css';
+import '../../styles/AdminCompact.css';
 
 export default function EventEditor() {
   const [events, setEvents] = useState([]);
@@ -119,57 +120,55 @@ export default function EventEditor() {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ color: 'var(--neon-cyan)', margin: 0, fontSize: '1.8rem', textShadow: 'var(--glow-cyan)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        <h2 style={{ color: 'var(--terminal-cyan)', margin: 0, fontSize: 'var(--compact-h2)', textShadow: '0 0 8px var(--terminal-cyan)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
           Event Editor
         </h2>
         <button 
-          className="btn-neon btn-neon-primary" 
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          className="btn-compact primary" 
+          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
           onClick={handleCreate}
         >
-          <CreateIcon size={20} />
-          CREATE NEW EVENT
+          <CreateIcon size={14} />
+          CREATE NEW
         </button>
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="glass-card" style={{
-          padding: '1rem',
-          marginBottom: '1.5rem',
-          borderColor: 'rgba(255, 107, 107, 0.5)',
-          background: 'rgba(255, 0, 0, 0.1)'
+        <div className="glass-card-compact" style={{
+          marginBottom: '0.75rem',
+          borderColor: 'var(--terminal-red)',
+          background: 'rgba(255, 107, 107, 0.1)'
         }}>
-          <span style={{ color: '#ff6b6b', fontSize: '0.9rem' }}>{error}</span>
+          <span style={{ color: 'var(--terminal-red)', fontSize: 'var(--compact-small)' }}>{error}</span>
         </div>
       )}
 
       {/* Search and Filter Bar */}
-      <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+      <div className="glass-card-compact" style={{ marginBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           <div style={{ flex: 1, position: 'relative' }}>
-            <SearchIcon size={20} />
             <input
               type="text"
               placeholder="Search events by ID or title..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-neon"
-              style={{ paddingLeft: '2.5rem' }}
+              className="input-compact"
+              style={{ width: '100%', paddingLeft: '2rem' }}
             />
-            <div style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-              <SearchIcon size={18} />
+            <div style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--terminal-cyan)' }}>
+              <SearchIcon size={14} />
             </div>
           </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <FilterIcon size={20} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <FilterIcon size={14} />
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="input-neon"
-              style={{ width: '200px' }}
+              className="select-compact"
+              style={{ width: '150px' }}
             >
               <option value="all">All Types</option>
               <option value="poi_action">POI Action</option>
@@ -183,119 +182,88 @@ export default function EventEditor() {
         </div>
       </div>
 
-      {/* Events Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
-        {filteredEvents.map(event => (
-          <div key={event.id} className="glass-card" style={{ padding: '1.5rem', position: 'relative' }}>
-            {/* Enabled Status Indicator */}
-            <div style={{
-              position: 'absolute',
-              top: '1rem',
-              right: '1rem',
-              width: '12px',
-              height: '12px',
-              borderRadius: '50%',
-              background: event.metadata?.enabled === false ? '#ff6b6b' : '#00ff88',
-              boxShadow: `0 0 10px ${event.metadata?.enabled === false ? '#ff6b6b' : '#00ff88'}`
-            }} />
-
-            {/* Event Header */}
-            <div style={{ marginBottom: '1rem' }}>
-              <h3 style={{ 
-                color: 'var(--neon-cyan)', 
-                fontSize: '1.1rem', 
-                margin: '0 0 0.5rem 0',
-                fontFamily: 'monospace'
-              }}>
-                {event.id}
-              </h3>
-              <p style={{ color: '#fff', fontSize: '0.95rem', margin: '0 0 0.75rem 0' }}>
-                {event.scenario?.title || 'Untitled Event'}
-              </p>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                {event.metadata?.tags?.map(tag => (
-                  <span key={tag} className="status-badge status-info" style={{ fontSize: '0.7rem', padding: '0.2rem 0.6rem' }}>
-                    {tag}
+      {/* Events Table - Compact View */}
+      {filteredEvents.length > 0 ? (
+        <table className="data-table-compact">
+          <thead>
+            <tr>
+              <th style={{ width: '30px' }}>●</th>
+              <th style={{ width: '180px' }}>EVENT ID</th>
+              <th>TITLE</th>
+              <th style={{ width: '200px' }}>TAGS</th>
+              <th style={{ width: '100px' }}>TRIGGER</th>
+              <th style={{ width: '120px' }}>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredEvents.map(event => (
+              <tr key={event.id} onClick={() => handleEdit(event)}>
+                <td style={{ textAlign: 'center' }}>
+                  <span 
+                    className={`status-dot ${event.metadata?.enabled === false ? 'disabled' : 'enabled'}`}
+                    title={event.metadata?.enabled === false ? 'Disabled' : 'Enabled'}
+                  />
+                </td>
+                <td className="mono-id">{event.id}</td>
+                <td style={{ fontWeight: '500', color: '#fff' }}>
+                  {event.scenario?.title || 'Untitled Event'}
+                </td>
+                <td>
+                  <div className="tag-list">
+                    {event.metadata?.tags?.slice(0, 3).map(tag => (
+                      <span key={tag} className="tag-chip">
+                        {tag}
+                      </span>
+                    ))}
+                    {event.metadata?.tags?.length > 3 && (
+                      <span className="tag-chip" style={{ opacity: 0.6 }}>
+                        +{event.metadata.tags.length - 3}
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td>
+                  <span className="badge-compact primary">
+                    {event.trigger?.type || 'unknown'}
                   </span>
-                ))}
-                <span className="status-badge" style={{ 
-                  fontSize: '0.7rem', 
-                  padding: '0.2rem 0.6rem',
-                  background: 'rgba(0, 204, 255, 0.1)',
-                  borderColor: 'rgba(0, 204, 255, 0.3)',
-                  color: '#00ccff'
-                }}>
-                  {event.trigger?.type || 'unknown'}
-                </span>
-              </div>
-            </div>
-
-            {/* Event Description */}
-            <p style={{ 
-              color: '#888', 
-              fontSize: '0.85rem', 
-              margin: '0 0 1rem 0',
-              lineHeight: '1.5',
-              minHeight: '3rem'
-            }}>
-              {event.scenario?.description || 'No description available.'}
-            </p>
-
-            {/* Action Buttons */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-              <button
-                className="btn-neon"
-                style={{ 
-                  flex: 1, 
-                  padding: '0.6rem', 
-                  fontSize: '0.75rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.4rem'
-                }}
-                onClick={() => handleEdit(event)}
-              >
-                <EditIcon size={16} />
-                EDIT
-              </button>
-              
-              <button
-                className={event.metadata?.enabled === false ? 'btn-neon' : 'btn-neon'}
-                style={{ 
-                  flex: 1, 
-                  padding: '0.6rem', 
-                  fontSize: '0.75rem',
-                  borderColor: event.metadata?.enabled === false ? '#00ff88' : '#ffaa00',
-                  color: event.metadata?.enabled === false ? '#00ff88' : '#ffaa00'
-                }}
-                onClick={() => handleToggleEnabled(event)}
-              >
-                {event.metadata?.enabled === false ? 'ENABLE' : 'DISABLE'}
-              </button>
-              
-              <button
-                className="btn-neon btn-neon-danger"
-                style={{ 
-                  padding: '0.6rem 0.8rem', 
-                  fontSize: '0.75rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem'
-                }}
-                onClick={() => setDeleteConfirm(event.id)}
-              >
-                <DeleteIcon size={16} />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Empty State */}
-      {filteredEvents.length === 0 && (
-        <div className="glass-card" style={{ padding: '4rem', textAlign: 'center' }}>
-          <p style={{ color: '#888', fontSize: '1.1rem' }}>
+                </td>
+                <td onClick={(e) => e.stopPropagation()}>
+                  <div style={{ display: 'flex', gap: '0.3rem' }}>
+                    <button
+                      className="btn-icon"
+                      onClick={(e) => { e.stopPropagation(); handleEdit(event); }}
+                      title="Edit Event"
+                    >
+                      <EditIcon size={12} />
+                    </button>
+                    <button
+                      className="btn-icon"
+                      onClick={(e) => { e.stopPropagation(); handleToggleEnabled(event); }}
+                      title={event.metadata?.enabled === false ? 'Enable' : 'Disable'}
+                      style={{
+                        color: event.metadata?.enabled === false ? 'var(--terminal-green)' : 'var(--terminal-amber)',
+                        borderColor: event.metadata?.enabled === false ? 'var(--terminal-green)' : 'var(--terminal-amber)'
+                      }}
+                    >
+                      {event.metadata?.enabled === false ? '✓' : '○'}
+                    </button>
+                    <button
+                      className="btn-icon"
+                      onClick={(e) => { e.stopPropagation(); setDeleteConfirm(event.id); }}
+                      title="Delete Event"
+                      style={{ color: 'var(--terminal-red)', borderColor: 'var(--terminal-red)' }}
+                    >
+                      <DeleteIcon size={12} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <div className="glass-card-compact" style={{ padding: '3rem', textAlign: 'center' }}>
+          <p style={{ color: '#888', fontSize: '0.9rem' }}>
             {searchTerm || filterType !== 'all' 
               ? 'No events match your search criteria.' 
               : 'No events found. Create your first event!'}
@@ -306,18 +274,23 @@ export default function EventEditor() {
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (
         <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ color: 'var(--neon-cyan)', marginBottom: '1rem' }}>Confirm Deletion</h3>
-            <p style={{ color: '#888', marginBottom: '2rem' }}>
-              Are you sure you want to delete event <strong style={{ color: '#fff' }}>{deleteConfirm}</strong>? 
+          <div className="modal-compact" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Confirm Deletion</h3>
+              <button className="btn-icon" onClick={() => setDeleteConfirm(null)} title="Close">
+                ×
+              </button>
+            </div>
+            <p style={{ color: '#888', marginBottom: '0.75rem', fontSize: 'var(--compact-body)' }}>
+              Are you sure you want to delete event <strong style={{ color: 'var(--terminal-cyan)' }}>{deleteConfirm}</strong>? 
               This action cannot be undone.
             </p>
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-              <button className="btn-neon" onClick={() => setDeleteConfirm(null)}>
+            <div className="modal-footer">
+              <button className="btn-compact" onClick={() => setDeleteConfirm(null)}>
                 CANCEL
               </button>
               <button 
-                className="btn-neon btn-neon-danger" 
+                className="btn-compact danger" 
                 onClick={() => handleDelete(deleteConfirm)}
               >
                 DELETE

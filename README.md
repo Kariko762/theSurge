@@ -267,6 +267,129 @@ space-game/
 - Animated progress modal
 - Yield calculation based on tier
 
+### ✅ Admin UI & Event System (Complete)
+
+A comprehensive **no-code content creation system** for building dynamic narrative events without touching any code. The Admin UI provides a full CRUD interface for creating interactive story moments that appear during gameplay.
+
+![Admin UI - Event List](docs/screenshots/the-surge-admin-ui%20(1).png)
+*Compact table view showing all events with status, triggers, tags, and quick actions*
+
+#### Event System Overview
+
+**Dynamic Event Engine:**
+- **Scheduler-based triggers** - Events fire automatically based on time intervals (5-15s default)
+- **Condition filtering** - Events spawn based on location, POI type, player stats, time of day, visited systems
+- **Weight-based selection** - Each event has a spawn weight affecting appearance probability
+- **Cooldown system** - Prevents events from repeating immediately (configurable per-event)
+- **Three event types**: Dynamic (procedural), Mission (story-driven), POI (location-specific)
+
+**Branching Narratives:**
+- Multiple player choice paths per event
+- Optional skill checks (Engineering, Perception, Combat, Piloting, etc.)
+- Difficulty tiers: Easy/Medium/Hard/Very Hard with configurable DC values
+- d20-based resolution with probability-weighted outcomes
+- Success/failure branches with unique consequences
+
+**Rich Outcome System:**
+- Credits, XP, and inventory item rewards
+- Ship damage and stat modifications
+- Reputation changes and status effects
+- Event chaining for multi-part storylines
+- Custom narrative feedback text
+
+![Admin UI - Event Editor](docs/screenshots/the-surge-admin-ui%20(5).png)
+*Event creation interface with metadata, triggers, and live JSON preview*
+
+#### Admin UI Features
+
+**Visual Event Editor:**
+- Form-based interface - no JSON editing required
+- Real-time validation with error highlighting
+- Live preview of event structure
+- Tabbed organization (Metadata, Trigger, Scenario, Branches)
+- Drag-drop branch reordering
+
+![Admin UI - Branch Editor](docs/screenshots/the-surge-admin-ui%20(6).png)
+*Branch configuration with skill checks, difficulty settings, and outcome management*
+
+**Branch & Outcome Builder:**
+- Visual skill check configuration
+- Difficulty curve modifiers per game phase
+- Multiple outcomes per branch with probability weights
+- Inline reward/consequence configuration
+- Collapsible panels for complex branches
+
+![Admin UI - Outcome Editor](docs/screenshots/the-surge-admin-ui%20(7).png)
+*Outcome configuration with rewards, consequences, and narrative text*
+
+**Import/Export System:**
+- Copy events between JSON files
+- Share event templates across projects
+- Bulk import/export for batch operations
+- Template library for common event patterns
+
+![Admin UI - Import/Export](docs/screenshots/the-surge-admin-ui%20(8).png)
+*Import events from external JSON files with validation*
+
+**Configuration Panel:**
+- Game-wide difficulty curves (Early/Mid/Late game)
+- Loot multipliers (Critical/Success/Failure)
+- XP and credit scaling factors
+- Event scheduler timing controls
+- Pause/resume event system
+
+![Admin UI - Config Editor](docs/screenshots/the-surge-admin-ui%20(9).png)
+*Global game configuration with difficulty curves and reward multipliers*
+
+**Search & Filter:**
+- Filter by event ID, tags, trigger type
+- Quick enable/disable toggles
+- Batch operations (delete, export selected)
+- Sort by metadata fields
+
+![Admin UI - Event List Filters](docs/screenshots/the-surge-admin-ui%20(12).png)
+*Advanced filtering and search capabilities*
+
+#### Example Workflow
+
+1. **Create Event**: Click "Create New Event" button
+2. **Set Metadata**: Add ID, title, tags, enable/disable toggle
+3. **Configure Trigger**: Choose POI type, location, time window, spawn weight
+4. **Write Scenario**: Add title, description, location flavor text
+5. **Add Branches**: Create player choice options
+   - Add skill check (optional): Engineering DC 16 (Hard)
+   - Configure outcomes: Success (60% - find 300cr + items) vs Failure (40% - hull damage)
+6. **Test & Save**: Preview in JSON, save to events file
+7. **Live Update**: Event immediately available in-game without restart
+
+![Admin UI - Complete Event](docs/screenshots/the-surge-admin-ui%20(13).png)
+*Fully configured event with multiple branches and outcomes*
+
+#### Technical Details
+
+**Data Storage:**
+- Events stored as JSON in `backend/data/events_*.json`
+- Hot-reload support - changes apply immediately
+- Version control friendly (human-readable JSON)
+- No database required
+
+**Validation System:**
+- Schema validation for all event properties
+- Circular dependency detection for event chains
+- Probability weight validation (outcomes must sum to 1.0)
+- DC range validation per difficulty tier
+
+**Integration:**
+- Events trigger from `eventTriggerService.js`
+- Outcomes processed by `eventOutcomeProcessor.js`
+- Linked to ship state, inventory, and DRE systems
+- Telemetry logging for event analytics
+
+![Admin UI - Validation](docs/screenshots/the-surge-admin-ui%20(14).png)
+*Real-time validation with error messages and warnings*
+
+
+
 ### ✅ Dice Resolution Engine (DRE) (Complete)
 
 **Core System**
