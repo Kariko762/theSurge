@@ -11,8 +11,10 @@ import { TIME_SCALES } from '../lib/timeScalePresets.js'
 import GlobalSettingsMenu from './GlobalSettingsMenu.jsx'
 import ActionsPanel from './ActionsPanel.jsx'
 import TerminalModal from './TerminalModal.jsx'
+import InventoryModal from './InventoryModal.jsx'
 import TerminalFeed from './TerminalFeed.jsx'
 import { executeDREAction, executeAsteroidScan, executeAsteroidMine, executeAsteroidRecovery } from '../lib/dre/engine.js'
+import eventEngine from '../lib/eventEngine.js'
 
 /**
  * TimeControlBar - Minimal time control integrated into ship console
@@ -194,8 +196,14 @@ function TimeControlBar() {
         </button>
       </div>
 
-      {/* Time display */}
-      <div style={{ opacity: isPaused ? 0.5 : 1 }}>
+      {/* Time display - fixed width to prevent layout shifts */}
+      <div style={{ 
+        opacity: isPaused ? 0.5 : 1,
+        minWidth: '140px',
+        textAlign: 'center',
+        fontVariantNumeric: 'tabular-nums',
+        fontFamily: 'monospace'
+      }}>
         {currentTime}
       </div>
     </div>
@@ -271,6 +279,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
   const [pendingMovement, setPendingMovement] = useState(null); // {target, angle, callback, distance, fuelNeeded}
   const [miningInProgress, setMiningInProgress] = useState(null); // {clusterId, poiId, progress: 0-100, startTime}
   const [showInventoryWithTerminal, setShowInventoryWithTerminal] = useState(false); // Show inventory alongside terminal for drag-drop
+  const [showInventoryModal, setShowInventoryModal] = useState(false); // Show inventory modal
   const [currentLootItems, setCurrentLootItems] = useState([]); // Loot from current mining operation
   const [terminalInteractive, setTerminalInteractive] = useState(false); // Terminal modal interactive mode
   const [terminalChoices, setTerminalChoices] = useState([]); // Interactive choices for terminal modal
@@ -286,6 +295,20 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
   // Ship state manager (singleton)
   const shipState = getShipState();
   const [shipStateVersion, setShipStateVersion] = useState(0); // Force re-render on state changes
+  
+  // Animation ticker - force re-renders while scanning/mining is in progress
+  const [animationTick, setAnimationTick] = useState(0);
+  
+  useEffect(() => {
+    // Only run animation loop if scanning or mining is active
+    if (!scanningInProgress && !miningInProgress) return;
+    
+    const interval = setInterval(() => {
+      setAnimationTick(t => t + 1);
+    }, 100); // 10 FPS for progress animations
+    
+    return () => clearInterval(interval);
+  }, [scanningInProgress, miningInProgress]);
   
   // Get current ship state
   const currentShipState = shipState.getState();
@@ -926,13 +949,183 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
   // NOTE: Belt POI scanning is now triggered from POI Actions panel (Scan Cluster)
   // Mining operations are triggered after successful scan via terminal modal
   
-  const handleScanCluster = (poiId, poi) => {
+  const handleScanCluster = async (poiId, poi) => {
     console.log('[MINING] === Scan Cluster Initiated ===');
     console.log('[MINING] POI ID:', poiId);
     console.log('[MINING] POI Name:', poi.name);
     console.log('[MINING] POI Type:', poi.type);
     console.log('[MINING] System Tier:', currentGalaxySystem?.tier || 1.0);
     console.log('[MINING] Galactic Zone:', currentGalaxySystem?.zone || 'periphery');
+    
+    // Try event engine first
+    try {
+      // Build systems object from installed components (event engine expects this format)
+      // For now, assume all installed components are at 100% health
+      const systems = {};
+      if (installedComponents.includes('SENSORS_SHORT') || installedComponents.includes('SENSORS_LONG')) {
+        systems.sensors = { health: 100 };
+      }
+      if (installedComponents.includes('ENGINE_ION') || installedComponents.includes('ENGINE_PLASMA')) {
+        systems.engines = { health: 100 };
+      }
+      if (installedComponents.includes('NAV_BASIC') || installedComponents.includes('NAV_ADVANCED')) {
+        systems.navigation = { health: 100 };
+      }
+      // Mining laser is checked for mining actions (not survey)
+      // systems.mining_laser = { health: 100 }; // Not needed for survey
+      
+      const eventShipState = {
+        systems,
+        experience: currentShipState.experience || 0,
+        credits: currentShipState.credits || 0
+      };
+      
+      const currentClusterData = shipState.getClusterByPOI(poiId) || {
+        scanned: false,
+        registered: false,
+        asteroidsRemaining: 0
+      };
+      
+      console.log('[EVENT ENGINE] Current cluster data:', JSON.stringify(currentClusterData, null, 2));
+      console.log('[EVENT ENGINE] Requesting trigger for:', { poiType: 'BELT', action: 'survey' });
+      
+      const eventTrigger = await eventEngine.triggerPOIAction({
+        poiType: 'BELT',
+        action: 'survey',
+        shipState: eventShipState,
+        clusterData: currentClusterData
+      });
+      
+      console.log('[EVENT ENGINE] Trigger result:', {
+        triggered: eventTrigger.triggered,
+        eventId: eventTrigger.event?.id,
+        message: eventTrigger.message,
+        fullResult: eventTrigger
+      });
+      
+      if (eventTrigger.triggered) {
+        console.log('[EVENT ENGINE] Survey event triggered:', eventTrigger.event.id);
+        
+        // Add initiating message using event scenario
+        const conversational = [`"${eventTrigger.scenario.description}"`];
+        const stream = [`> ${eventTrigger.scenario.title.toUpperCase()}`, `> TARGET: ${poi.name}`, `> ${eventTrigger.scenario.systemMessage}`];
+        
+        setTerminalEvents(prev => [...prev, {
+          id: `evt_cluster_survey_start_${Date.now()}`,
+          type: 'survey',
+          timestamp: Date.now(),
+          conversational,
+          stream,
+          meta: { poiId, title: 'SURVEY INITIATED' }
+        }]);
+        
+        // Pan to cluster
+        setPanTransition(true);
+        const r = (poi.distanceAU / system.heliosphere.radiusAU) * 0.92 * zoom;
+        const offsetX = -r * Math.cos(poi.angleRad);
+        const offsetY = -r * Math.sin(poi.angleRad);
+        setPanOffset({ x: offsetX, y: offsetY });
+        
+        // Start scanning progress
+        setTimeout(async () => {
+          setPanTransition(false);
+          
+          const scheduler = getScheduler();
+          const scanStart = getUniverseTime().getTime();
+          setScanningInProgress({
+            poiId,
+            progress: 0,
+            startTime: scanStart
+          });
+          
+          // Schedule scan completion
+          const completeScanEvent = async () => {
+            try {
+              const branch = eventTrigger.branches[0]; // First branch
+              const result = await eventEngine.executeBranch({
+                branchId: branch.id,
+                shipState: currentShipState,
+                clusterData: currentClusterData
+              });
+              
+              console.log('[EVENT ENGINE] Scan result:', result);
+              
+              if (result.outcome.narrative) {
+                const narrative = result.outcome.narrative;
+                
+                // Add POI to scanned list
+                setScanProgress(prev => [...prev, poiId]);
+                shipState.scanPOI(poiId);
+                
+                // If cluster data was registered, store it
+                if (result.changes.clusterData?.registered) {
+                  const poiDef = result.changes.clusterData.poiDefinition || 'type_i_iron';
+                  
+                  // Parse POI definition to extract stats (simplified for now)
+                  const typeMatch = poiDef.match(/type_([iv]+)_(\w+)/i);
+                  const tier = typeMatch ? typeMatch[1].length : 1;
+                  
+                  shipState.registerCluster(poiId, {
+                    type: narrative.title || 'Standard Cluster',
+                    maxAsteroids: 3 + tier,
+                    currentAsteroids: 3 + tier,
+                    compositionBonus: tier * 5,
+                    recoveryRate: 7 - tier,
+                    miningRate: 10 - tier,
+                    scannedAt: Date.now(),
+                    poiDefinition: poiDef
+                  });
+                  
+                  setShipStateVersion(v => v + 1);
+                }
+                
+                // Build conversational output
+                const conversational = [
+                  `"${narrative.title}"`,
+                  `"${narrative.message}"`
+                ];
+                
+                const stream = [
+                  `> SCAN COMPLETE`,
+                  `> ${narrative.systemMessage}`,
+                  `> `,
+                  `> Mining systems ready.`
+                ];
+                
+                setTerminalEvents(prev => [...prev, {
+                  id: `evt_scan_complete_${Date.now()}`,
+                  type: 'survey',
+                  timestamp: Date.now(),
+                  conversational,
+                  stream,
+                  meta: { poiId, title: 'SCAN COMPLETE', tone: narrative.tone }
+                }]);
+              }
+              
+              setScanningInProgress(null);
+            } catch (error) {
+              console.error('[EVENT ENGINE] Scan execution failed, using fallback:', error);
+              completeScanLegacy(poiId, poi);
+              setScanningInProgress(null);
+            }
+          };
+          
+          scheduler.on(`scan_complete_${poiId}`, completeScanEvent);
+          scheduler.schedule(`scan_complete_${poiId}`, 3.0);
+        }, 1000);
+        
+        return; // Event engine handled it
+      }
+    } catch (error) {
+      console.log('[EVENT ENGINE] Not available or failed, using legacy system:', error);
+    }
+    
+    // Fallback to legacy system
+    handleScanClusterLegacy(poiId, poi);
+  };
+  
+  const handleScanClusterLegacy = (poiId, poi) => {
+    console.log('[MINING] Using legacy scan system');
     
     // Add initiating message to terminal
     const conversational = [`"Initiating deep survey of ${poi.name}, analyzing cluster composition..."`];
@@ -968,7 +1161,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
       
       // Schedule scan completion in 3 universe seconds
       const completeScanEvent = () => {
-        completeScan(poiId, poi);
+        completeScanLegacy(poiId, poi);
         setScanningInProgress(null);
       };
       
@@ -977,7 +1170,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
     }, 1000); // Wait 1s for pan to complete
   };
   
-  const completeScan = (poiId, poi) => {
+  const completeScanLegacy = (poiId, poi) => {
     console.log('[MINING] === Scan Complete - Executing DRE ===');
     
     const scanContext = {
@@ -1091,6 +1284,216 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
     }
   };
   
+  const handleMineCluster = async (poiId, poi, cluster) => {
+    console.log('[MINING] === Mine Cluster Initiated ===');
+    console.log('[MINING] POI ID:', poiId);
+    console.log('[MINING] POI Name:', poi.name);
+    console.log('[MINING] Cluster Type:', cluster.type);
+    console.log('[MINING] Asteroids Remaining:', cluster.currentAsteroids);
+    
+    // Check if cluster has asteroids
+    if (cluster.currentAsteroids === 0) {
+      const conversational = [
+        `"Cluster depleted. No asteroids available for extraction."`,
+        `"Recovery rate: ${cluster.recoveryDays} days per asteroid. Recommend waiting or relocating."`
+      ];
+      
+      const stream = [
+        `> CLUSTER DEPLETED`,
+        `> Current asteroids: 0/${cluster.maxAsteroids}`,
+        `> Recovery rate: ${cluster.recoveryDays} day(s) per asteroid`,
+        `> `,
+        `> Recommend moving to another cluster or waiting for recovery.`
+      ];
+      
+      setTerminalEvents(prev => [...prev, {
+        id: `evt_mining_depleted_${Date.now()}`,
+        type: 'mining',
+        timestamp: Date.now(),
+        conversational,
+        stream,
+        meta: { poiId, title: 'CLUSTER DEPLETED' }
+      }]);
+      return;
+    }
+    
+    // Try event engine first
+    try {
+      // Build systems object from installed components
+      const systems = {};
+      if (installedComponents.includes('SENSORS_SHORT') || installedComponents.includes('SENSORS_LONG')) {
+        systems.sensors = { health: 100 };
+      }
+      if (installedComponents.includes('ENGINE_ION') || installedComponents.includes('ENGINE_PLASMA')) {
+        systems.engines = { health: 100 };
+      }
+      if (installedComponents.includes('NAV_BASIC') || installedComponents.includes('NAV_ADVANCED')) {
+        systems.navigation = { health: 100 };
+      }
+      // Add mining laser (assume operational if mining is possible)
+      systems.mining_laser = { health: 100 };
+      
+      const eventShipState = {
+        systems,
+        experience: currentShipState.experience || 0,
+        credits: currentShipState.credits || 0
+      };
+      
+      const currentClusterData = {
+        scanned: true,
+        registered: true,
+        asteroidsRemaining: cluster.currentAsteroids,
+        type: cluster.type,
+        compositionBonus: cluster.compositionBonus
+      };
+      
+      console.log('[EVENT ENGINE] Current cluster data:', JSON.stringify(currentClusterData, null, 2));
+      console.log('[EVENT ENGINE] Requesting trigger for:', { poiType: 'BELT', action: 'mine' });
+      
+      const eventTrigger = await eventEngine.triggerPOIAction({
+        poiType: 'BELT',
+        action: 'mine',
+        shipState: eventShipState,
+        clusterData: currentClusterData
+      });
+      
+      console.log('[EVENT ENGINE] Trigger result:', {
+        triggered: eventTrigger.triggered,
+        eventId: eventTrigger.event?.id,
+        message: eventTrigger.message,
+        fullResult: eventTrigger
+      });
+      
+      if (eventTrigger.triggered) {
+        console.log('[EVENT ENGINE] Mining event triggered:', eventTrigger.event.id);
+        
+        // Add initiating message using event scenario
+        const conversational = [`"${eventTrigger.scenario.description}"`];
+        const stream = [`> ${eventTrigger.scenario.title.toUpperCase()}`, `> TARGET: ${poi.name}`, `> ${eventTrigger.scenario.systemMessage}`];
+        
+        setTerminalEvents(prev => [...prev, {
+          id: `evt_mining_start_${Date.now()}`,
+          type: 'mining',
+          timestamp: Date.now(),
+          conversational,
+          stream,
+          meta: { poiId, title: 'MINING INITIATED' }
+        }]);
+        
+        // Start mining operation with event engine
+        const scheduler = getScheduler();
+        const miningStart = getUniverseTime().getTime();
+        
+        setMiningInProgress({
+          poiId,
+          progress: 0,
+          startTime: miningStart,
+          duration: cluster.miningRate
+        });
+        
+        const completeMiningEvent = async () => {
+          try {
+            console.log('[EVENT ENGINE] Executing mining branch...');
+            
+            // executeBranch uses eventEngine.activeEvent which was set during triggerPOIAction
+            const miningResult = await eventEngine.executeBranch({
+              branchId: 'extract_minerals',
+              shipState: eventShipState,
+              clusterData: currentClusterData
+            });
+            
+            console.log('[EVENT ENGINE] Mining result:', miningResult);
+            
+            if (miningResult.success && miningResult.outcome) {
+              const outcome = miningResult.outcome;
+              
+              // Convert loot to inventory format
+              const lootItems = (outcome.items || []).map(item => ({
+                itemId: item.itemId,
+                item: item.name,
+                quantity: item.quantity,
+                category: item.category || 'resource'
+              }));
+              
+              // Build conversational output
+              const conversational = [
+                `"${outcome.narrative.message}"`,
+                lootItems.length > 0 ? `"Resources secured and ready for transfer."` : `"Extraction complete."`
+              ];
+              
+              // Build data stream output
+              const stream = [
+                `> ${outcome.narrative.title.toUpperCase()}`,
+                `> `,
+                `> ${outcome.narrative.message}`,
+                `> `
+              ];
+              
+              // Add loot details to stream
+              if (lootItems.length > 0) {
+                stream.push(`> === EXTRACTED RESOURCES ===`);
+                lootItems.forEach(item => {
+                  stream.push(`> ${item.quantity}x ${item.item}`);
+                });
+                stream.push(`> `);
+                stream.push(`> Awaiting transfer confirmation...`);
+              }
+              
+              const eventId = `evt_mining_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+              
+              setTerminalEvents(prev => [...prev, {
+                id: eventId,
+                type: 'mining',
+                timestamp: Date.now(),
+                conversational,
+                stream,
+                meta: { 
+                  poiId, 
+                  loot: lootItems, 
+                  title: 'MINING REPORT', 
+                  pendingTransfer: lootItems.length > 0, 
+                  eventId 
+                }
+              }]);
+              
+              // Store loot items for user to decide
+              if (lootItems.length > 0) {
+                setCurrentLootItems(lootItems);
+                setCurrentMiningPOI(poiId);
+              }
+              
+              // Always consume asteroid after mining (success or failure)
+              // The backend already decremented asteroidsRemaining in changes.clusterData
+              shipState.mineClusterAsteroid(shipState.getAllClusters().find(c => c.poiId === poiId)?.id);
+              
+              setMiningInProgress(null);
+              setShipStateVersion(v => v + 1);
+            } else {
+              console.error('[EVENT ENGINE] Mining execution failed, using fallback');
+              completeMiningLegacy(poiId, cluster);
+              setMiningInProgress(null);
+            }
+          } catch (error) {
+            console.error('[EVENT ENGINE] Mining execution failed, using fallback:', error);
+            completeMiningLegacy(poiId, cluster);
+            setMiningInProgress(null);
+          }
+        };
+        
+        const miningEventKey = `mining_complete_${poiId}_${Date.now()}`;
+        scheduler.on(miningEventKey, completeMiningEvent);
+        scheduler.schedule(miningEventKey, cluster.miningRate);
+        
+        return; // Event engine handled it
+      }
+    } catch (error) {
+      console.log('[EVENT ENGINE] Not available or failed, using legacy system:', error);
+    }
+    
+    // Fallback to legacy system
+    startMining(poiId);
+  };
+  
   const handleMiningOptions = (poiId, cluster) => {
     if (cluster.currentAsteroids === 0) {
       const conversational = [
@@ -1182,7 +1585,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
     });
     
     const completeMiningEvent = () => {
-      completeMining(poiId, cluster);
+      completeMiningLegacy(poiId, cluster);
       setMiningInProgress(null);
     };
     
@@ -1190,7 +1593,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
     scheduler.schedule(`mining_complete_${poiId}`, cluster.miningRate);
   };
   
-  const completeMining = (poiId, cluster) => {
+  const completeMiningLegacy = (poiId, cluster) => {
     console.log('[MINING] === Mining Complete - Executing DRE ===');
     console.log('[MINING] Cluster Type:', cluster.type);
     console.log('[MINING] Composition Bonus:', cluster.compositionBonus);
@@ -1303,10 +1706,11 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
     // Add all loot items to ship inventory
     lootItems.forEach(loot => {
       shipState.addInventoryItem({
-        itemId: loot.itemId,
+        id: loot.itemId,
+        type: loot.category || INVENTORY_TYPES.RESOURCE,
         name: loot.item,
         quantity: loot.quantity,
-        category: loot.category,
+        stackable: true,
         addedAt: Date.now()
       });
     });
@@ -1329,15 +1733,17 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
     setContextualMenu({ targetId, targetType });
   };
   
-  const closeContextualMenu = () => {
+  const closeContextualMenu = (clearSelection = false) => {
     setContextualMenu(null);
     setChildContextualMenu(null);
     setLockedSelection(false);
-    // Clear both parent and child POI selections
-    setSelectedPOI(null);
-    setSelectedChildPOI(null);
-    // Close expanded POI menus
-    setExpandedPOIs(new Set());
+    // Only clear selections if explicitly requested (e.g., clicking outside)
+    if (clearSelection) {
+      setSelectedPOI(null);
+      setSelectedChildPOI(null);
+      // Close expanded POI menus
+      setExpandedPOIs(new Set());
+    }
   };
   
   const handleContextualAction = (action) => {
@@ -1374,7 +1780,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
         if (target && target.type === 'BELT') {
             const cluster = shipState.getClusterByPOI(target.id);
             if (cluster) {
-              handleMiningOptions(target.id, cluster);
+              handleMineCluster(target.id, target, cluster);
             } else {
               setTerminalLog(prev => [...prev, `> ARIA: Cluster not registered. Survey required before mining.`]);
             }
@@ -1412,7 +1818,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
         break;
     }
 
-    closeContextualMenu();
+    // Don't close the menu after actions - let user perform multiple actions
+    // Menu only closes when clicking blank space or the close button
   };
 
   const shipVitals = {
@@ -2330,19 +2737,22 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
           </div>
           
           {/* Left 2/3: Map Canvas */}
-          <div className="map-fullscreen-left" style={{ paddingTop: '91px' }}>
+          <div className="map-fullscreen-left" style={{ paddingTop: '91px', paddingLeft: '16px', paddingRight: '8px' }}>
             <div ref={mapCanvasRef} className="map-fullscreen-canvas" style={{ 
               flex: 1,
               position: 'relative',
               backgroundImage: 'url(/src/assets/media/solar_system_bg.jpg)',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat'
+              backgroundRepeat: 'no-repeat',
+              border: '3px solid rgba(52,224,255,0.7)',
+              boxShadow: '0 0 20px rgba(52,224,255,0.4), inset 0 0 40px rgba(52,224,255,0.05)'
             }}
             onClick={(e) => {
               // Deselect POI if clicking directly on the map background (not on a POI)
               if (e.target === e.currentTarget || e.target.classList.contains('map-grid')) {
                 setSelectedPOI(null);
+                closeContextualMenu(true);
               }
             }}
             >
@@ -2545,7 +2955,32 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                 const velocityScale = velocityPercent / 100; // 0 to 1
                 const enginePulse = isTraveling ? basePulse * velocityScale : 0;
                 
-                const shipMarker = showShip ? (
+                // Check if ship is at any POI location (to hide ship marker when menu is shown)
+                const isShipAtPOI = (() => {
+                  // Check all parent POIs
+                  const allPOIsToCheck = system.pois || [];
+                  return allPOIsToCheck.some(poi => {
+                    const poiDist = Math.sqrt(
+                      Math.pow(poi.distanceAU * Math.cos(poi.angleRad) - shipPosition.x, 2) + 
+                      Math.pow(poi.distanceAU * Math.sin(poi.angleRad) - shipPosition.y, 2)
+                    );
+                    if (poiDist < 0.05) return true;
+                    
+                    // Also check orbital children if they exist
+                    if (poi.orbitals && poi.orbitals.length > 0) {
+                      return poi.orbitals.some(orbital => {
+                        const orbitalDist = Math.sqrt(
+                          Math.pow(orbital.distanceAU * Math.cos(orbital.angleRad) - shipPosition.x, 2) + 
+                          Math.pow(orbital.distanceAU * Math.sin(orbital.angleRad) - shipPosition.y, 2)
+                        );
+                        return orbitalDist < 0.05;
+                      });
+                    }
+                    return false;
+                  });
+                })();
+                
+                const shipMarker = showShip && !isShipAtPOI ? (
                   <div
                     style={{
                       ...shipPos,
@@ -3120,13 +3555,9 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                   const p = group.parent;
                   const groupMarkers = [];
                   
-                  // Overlap handling: offset POI slightly if overlapping ship position
+                  // Check if ship is at this POI location (will show selection menu above)
                   const shipDist = Math.sqrt(Math.pow(p.distanceAU * Math.cos(p.angleRad) - shipPosition.x, 2) + Math.pow(p.distanceAU * Math.sin(p.angleRad) - shipPosition.y, 2));
-                  let overlapTransform = '';
-                  if (shipDist < 0.05) { // threshold AU
-                    const offsetPx = 14; // outward offset in px
-                    overlapTransform = `translate(${Math.cos(p.angleRad)*offsetPx}px, ${Math.sin(p.angleRad)*offsetPx}px)`;
-                  }
+                  const shipAtPOI = shipDist < 0.05; // threshold AU
                   
                   // Render parent POI and orbitals in a container
                   const renderPOICircle = (poi, size, iconSz, xOffset = 0) => (
@@ -3233,8 +3664,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                     </div>
                   );
                   
-                  const isExpanded = expandedPOIs.has(p.id);
-                  const hasChildren = group.children.length > 0;
+                  const isExpanded = expandedPOIs.has(p.id) || shipAtPOI; // Auto-expand if ship is here
+                  const hasChildren = group.children.length > 0 || shipAtPOI; // Has children if orbitals OR ship present
                   
                   // Main container for parent + children (children positioned absolutely below parent)
                   groupMarkers.push(
@@ -3243,7 +3674,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                       style={{
                         ...xy,
                         position: 'absolute',
-                        transform: `translate(-50%, -50%) ${overlapTransform}`,
+                        transform: 'translate(-50%, -50%)',
                         transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none',
                         cursor: 'pointer'
                       }}
@@ -3252,7 +3683,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                       onClick={(e) => { 
                         e.stopPropagation();
                         
-                        // If clicking same parent again
+                        // If clicking same parent again (and ship is NOT selected)
                         if (selectedPOI === p.id) {
                           // Close child menu and deselect child
                           setSelectedChildPOI(null);
@@ -3271,17 +3702,23 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                             });
                           }
                         } else {
-                          // New parent selected - clear all previous states
+                          // New parent selected (or reselecting parent after ship was selected)
                           setSelectedPOI(p.id);
                           setSelectedChildPOI(null);
                           setChildContextualMenu(null);
-                          setExpandedPOIs(new Set()); // Close all expanded POIs
-                          openContextualMenu(p.id, 'poi');
                           
-                          // If this POI has children, expand it
-                          if (hasChildren) {
+                          // If ship was previously selected at this POI, keep it expanded
+                          if (shipAtPOI && hasChildren) {
                             setExpandedPOIs(new Set([p.id]));
+                          } else {
+                            setExpandedPOIs(new Set()); // Close all expanded POIs
+                            // If this POI has children, expand it
+                            if (hasChildren) {
+                              setExpandedPOIs(new Set([p.id]));
+                            }
                           }
+                          
+                          openContextualMenu(p.id, 'poi');
                         }
                       }}
                       onContextMenu={(e) => {
@@ -3292,8 +3729,164 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                       }}
                     >
                       {/* Parent POI - anchored at exact position */}
-                      <div style={{ position: 'relative' }}>
+                      <div style={{ 
+                        position: 'relative', 
+                        // High z-index when this POI is selected OR when ship at this POI is selected
+                        zIndex: (selectedPOI === p.id || (selectedPOI === 'SHIP' && shipAtPOI)) ? 30000 : 1000
+                      }}>
                         {renderPOICircle(p, poiSize, iconSize, 0)}
+                        
+                        {/* Ship/POI Selection Menu - appears ABOVE POI when ship is at this location */}
+                        {shipAtPOI && (() => {
+                          const menuWidth = poiSize * 1.2; // Match child POI menu width
+                          const itemHeight = Math.max(36, poiSize * 0.7); // Match child menu item height
+                          const notchRadius = poiSize / 2; // Match parent circle radius exactly (same as child menu)
+                          const menuHeight = notchRadius + (itemHeight * 2) + 16; // Curve + 2x item height + padding
+                          const contentStartY = 4; // Reduced padding from top
+                          
+                          // Calculate responsive offset that accounts for POI size clamping
+                          // Perfect at 160%+, needs less offset at lower zoom
+                          const baseOffset = poiSize * 0.4; // Proportional base offset
+                          const sizeRatio = (poiSize - 60) / (140 - 60); // 0 at min size, 1 at max size
+                          // Use exponential curve for better low-zoom behavior
+                          const clampAdjustment = Math.pow(sizeRatio, 0.5) * 8; // More aggressive at lower sizes
+                          const finalOffset = baseOffset + clampAdjustment + 5; // Reduced base fine-tune
+                          
+                          return (
+                            <div 
+                              style={{
+                                position: 'absolute',
+                                left: '50%',
+                                bottom: `${poiSize / 2 - finalOffset}px`, // Dynamic offset accounting for size clamping
+                                transform: 'translateX(-50%)',
+                                width: `${menuWidth}px`,
+                                height: `${menuHeight}px`,
+                                pointerEvents: 'none', // Don't block clicks to POI
+                                zIndex: 40000,
+                                opacity: 0,
+                                animation: 'slideUp 0.2s ease-out forwards'
+                              }}
+                            >
+                              {/* SVG background with holographic frame */}
+                              <svg
+                                width={menuWidth}
+                                height={menuHeight}
+                                style={{ position: 'absolute', top: 0, left: 0 }}
+                              >
+                                <defs>
+                                  <filter id="glow-ship-menu">
+                                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                                    <feMerge>
+                                      <feMergeNode in="coloredBlur"/>
+                                      <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                  </filter>
+                                </defs>
+                              <path
+                                d={`
+                                  M 0,0
+                                  L ${menuWidth},0
+                                  L ${menuWidth},${menuHeight - notchRadius}
+                                  A ${notchRadius},${notchRadius} 0 0 0 0,${menuHeight - notchRadius}
+                                  Z
+                                `}
+                                fill="rgba(0, 15, 25, 0.9)"
+                                stroke="rgba(52, 224, 255, 0.6)"
+                                strokeWidth="2"
+                                filter="url(#glow-ship-menu)"
+                              />
+                              </svg>
+                              
+                              {/* Menu content */}
+                              <div style={{
+                                position: 'absolute',
+                                top: `${contentStartY}px`,
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                width: '100%',
+                                padding: '8px 6px'
+                              }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                  {/* Ship Item */}
+                                  <div
+                                    title="SS-ARKOSE"
+                                    style={{
+                                      height: `${itemHeight}px`,
+                                      padding: '4px',
+                                      background: selectedPOI === 'SHIP'
+                                        ? 'rgba(52, 224, 255, 0.35)'
+                                        : 'rgba(52, 224, 255, 0.08)',
+                                      border: `1px solid ${selectedPOI === 'SHIP'
+                                        ? 'rgba(52, 224, 255, 0.9)' 
+                                        : 'rgba(52, 224, 255, 0.3)'}`,
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.15s',
+                                      boxShadow: selectedPOI === 'SHIP'
+                                        ? '0 0 16px rgba(52, 224, 255, 0.8), inset 0 0 10px rgba(52, 224, 255, 0.3)'
+                                        : 'none',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      gap: '2px',
+                                      pointerEvents: 'auto' // Make ship button clickable
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.background = 'rgba(52, 224, 255, 0.25)';
+                                      e.currentTarget.style.border = '1px solid rgba(52, 224, 255, 0.9)';
+                                      e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 224, 255, 0.6)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (selectedPOI !== 'SHIP') {
+                                        e.currentTarget.style.background = 'rgba(52, 224, 255, 0.08)';
+                                        e.currentTarget.style.border = '1px solid rgba(52, 224, 255, 0.3)';
+                                        e.currentTarget.style.boxShadow = 'none';
+                                      }
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedPOI('SHIP');
+                                      openContextualMenu('SHIP', 'ship');
+                                    }}
+                                  >
+                                    {/* Ship Icon */}
+                                    <svg width="28" height="28" viewBox="0 0 24 24" style={{
+                                      color: '#34e0ff',
+                                      filter: 'drop-shadow(0 0 8px rgba(52, 224, 255, 0.8))'
+                                    }}>
+                                      <polygon points="12,2 4,22 12,18 20,22" fill="currentColor" stroke="currentColor" strokeWidth="1"/>
+                                    </svg>
+                                    
+                                    {/* Ship Name */}
+                                    <div style={{
+                                      fontSize: `${Math.max(7, poiSize * 0.11)}px`,
+                                      color: '#34e0ff',
+                                      textAlign: 'center',
+                                      whiteSpace: 'nowrap',
+                                      textShadow: '0 0 6px rgba(52, 224, 255, 0.8)'
+                                    }}>
+                                      SS-ARKOSE
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <style>{`
+                                @keyframes slideUp {
+                                  from {
+                                    opacity: 0;
+                                    transform: translateX(-50%) translateY(10px);
+                                  }
+                                  to {
+                                    opacity: 1;
+                                    transform: translateX(-50%) translateY(0);
+                                  }
+                                }
+                              `}</style>
+                            </div>
+                          );
+                        })()}
                         
                         {/* POI Name - below the icon (only visible at 150% zoom or higher) */}
                         {showPOINames && zoom >= 1.5 && (
@@ -3345,12 +3938,15 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                       
                       {/* Orbital POIs Menu - contextual menu style sliding from under parent */}
                       {isExpanded && group.children.length > 0 && (() => {
+                        // Build menu items array
+                        const menuItems = [...group.children];
+                        
                         const menuWidth = poiSize * 1.2; // Match highlightSelectedCircle width (poiSize * 1.2)
                         const itemHeight = Math.max(36, poiSize * 0.7); // Smaller item height
                         const notchRadius = poiSize / 2; // Match parent circle radius exactly
                         const contentStartY = notchRadius + itemHeight; // Start content 1 button height below the top
-                        const menuHeight = contentStartY + (group.children.length * itemHeight) + (group.children.length - 1) * 6 + 10; // Total height including curve space + items + 10px extra
-                        const startY = poiSize / 2 - (itemHeight * 0.75); // Drop down by removing the -8 offset
+                        const menuHeight = contentStartY + (menuItems.length * itemHeight) + (menuItems.length - 1) * 6 + 10; // Total height including curve space + items + 10px extra
+                        const startY = poiSize / 2 - (itemHeight * 0.75) + 2; // Move down 2px for visual separation
                         
                         return (
                           <div
@@ -3362,9 +3958,32 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                               width: `${menuWidth}px`,
                               height: `${menuHeight + 12}px`, // Total container height
                               pointerEvents: 'auto',
-                              zIndex: 20000
+                              zIndex: 40000
                             }}
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              // Check if click is in the concave area (top notch where POI circle is)
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const clickX = e.clientX - rect.left;
+                              const clickY = e.clientY - rect.top;
+                              
+                              // If click is in the top notchRadius height (concave area)
+                              if (clickY < notchRadius) {
+                                // Calculate distance from center of notch
+                                const centerX = menuWidth / 2;
+                                const distFromCenter = Math.abs(clickX - centerX);
+                                
+                                // If click is within the circular notch area, don't stop propagation
+                                // This allows the click to reach the POI circle below
+                                const maxDistAtThisY = Math.sqrt(notchRadius * notchRadius - clickY * clickY);
+                                if (distFromCenter <= maxDistAtThisY) {
+                                  // Click is in the concave notch area - let it pass through to POI
+                                  return;
+                                }
+                              }
+                              
+                              // Otherwise, stop propagation (click is on the menu itself)
+                              e.stopPropagation();
+                            }}
                           >
                             {/* SVG with concave top cutout */}
                             <svg
@@ -3417,7 +4036,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                             }}>
                               {/* Child POI Items */}
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                {group.children.map((orbital, idx) => {
+                                {menuItems.map((orbital, idx) => {
                                 const isHovered = hoveredChildPOI === orbital.id;
                                 const isSelected = selectedChildPOI === orbital.id;
                                 const childIconSize = Math.max(20, poiSize * 0.35); // Smaller icon size
@@ -3467,7 +4086,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                                       // Parent stays selected and expanded
                                     }}
                                   >
-                                    {/* Icon only - no circle */}
+                                    {/* Orbital Icon */}
                                     <div style={{
                                       color: '#34e0ff',
                                       filter: isHovered ? 'drop-shadow(0 0 8px rgba(52, 224, 255, 0.8))' : 'none',
@@ -4119,10 +4738,12 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
           </div>
 
           {/* Right Panel replaced with persistent Terminal Feed */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingTop: '0px', marginTop: '103px', marginBottom: '16px' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingTop: '0px', marginTop: '103px', marginBottom: '16px', marginRight: '16px' }}>
             <TerminalFeed 
               events={terminalEvents} 
-              legacyEntries={terminalLog} 
+              legacyEntries={terminalLog}
+              showInventory={rightPanelTab === 'inventory'}
+              onCloseInventory={() => setRightPanelTab('pois')}
               onStartMining={(eventId, poiId) => {
                 // Start mining operation
                 startMining(poiId);
@@ -4139,9 +4760,16 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                 setCurrentMiningPOI(null);
               }}
               onTransferLoot={(eventId, items) => {
+                console.log('[TRANSFER] Transferring items:', items);
                 // Transfer selected items to inventory
                 items.forEach(item => {
-                  shipState.addToInventory(item.itemId, item.quantity);
+                  shipState.addInventoryItem({
+                    itemId: item.itemId,
+                    name: item.item || item.name,
+                    quantity: item.quantity,
+                    category: item.category || 'resource',
+                    addedAt: Date.now()
+                  });
                 });
                 setShipStateVersion(v => v + 1);
                 // Update event to remove pending transfer flag
@@ -4329,7 +4957,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
               
               {/* Close button */}
               <button
-                onClick={closeContextualMenu}
+                onClick={() => closeContextualMenu(true)}
                 style={{
                   width: '100%',
                   padding: '8px',
@@ -4492,6 +5120,12 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
             showInventory={showInventoryWithTerminal}
           />
         )}
+
+        {/* Inventory Modal */}
+        <InventoryModal
+          isOpen={showInventoryModal}
+          onClose={() => setShowInventoryModal(false)}
+        />
 
         {/* Action Selection Menu for Sequence Waypoints */}
         {showActionMenu && (
