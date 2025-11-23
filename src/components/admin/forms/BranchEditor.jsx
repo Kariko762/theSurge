@@ -189,6 +189,51 @@ export default function BranchEditor({ branch, config, onSave, onCancel, onDelet
     }
   };
 
+  const addFactionReputation = (index) => {
+    if (hasChallenge) {
+      const current = formData.subScenarios[index].rewards?.factionReputation || [];
+      updateOutcomeNested(index, 'rewards.factionReputation', [
+        ...current,
+        {
+          factionId: '',
+          change: 0,
+          condition: null
+        }
+      ]);
+    }
+  };
+
+  const removeFactionReputation = (index, repIndex) => {
+    if (hasChallenge) {
+      const current = formData.subScenarios[index].rewards?.factionReputation || [];
+      updateOutcomeNested(index, 'rewards.factionReputation', current.filter((_, i) => i !== repIndex));
+    }
+  };
+
+  const updateFactionReputation = (outcomeIndex, repIndex, field, value) => {
+    if (hasChallenge) {
+      const current = formData.subScenarios[outcomeIndex].rewards?.factionReputation || [];
+      const updated = current.map((rep, i) => 
+        i === repIndex ? { ...rep, [field]: value } : rep
+      );
+      updateOutcomeNested(outcomeIndex, 'rewards.factionReputation', updated);
+    }
+  };
+
+  const updateFactionReputationCondition = (outcomeIndex, repIndex, conditionField, value) => {
+    if (hasChallenge) {
+      const current = formData.subScenarios[outcomeIndex].rewards?.factionReputation || [];
+      const updated = current.map((rep, i) => {
+        if (i !== repIndex) return rep;
+        return {
+          ...rep,
+          condition: rep.condition ? { ...rep.condition, [conditionField]: value } : { [conditionField]: value }
+        };
+      });
+      updateOutcomeNested(outcomeIndex, 'rewards.factionReputation', updated);
+    }
+  };
+
   const validate = () => {
     if (!formData.id || formData.id.trim() === '') {
       alert('Branch ID is required');
@@ -211,6 +256,21 @@ export default function BranchEditor({ branch, config, onSave, onCancel, onDelet
   const availableItems = ['med_kit', 'ship_components', 'rare_ore', 'data_core', 'research_notes', 'scan_data', 'alien_artifact', 'scrap_metal'];
   const difficulties = ['trivial', 'easy', 'medium', 'hard', 'very_hard', 'extreme'];
   const outcomeTypes = ['success', 'failure', 'critical_success', 'critical_failure'];
+  
+  const conditionTypes = [
+    { value: null, label: 'Always Apply (No Condition)' },
+    { value: 'combat_target', label: 'If Combat Target Has Faction' },
+    { value: 'encounter_faction', label: 'If Encounter Has Faction' },
+    { value: 'poi_owner', label: 'If POI Has Owner Faction' },
+    { value: 'dynamic_faction', label: 'Use Dynamic Faction from Context' }
+  ];
+  
+  const contextSources = [
+    { value: 'target.factionId', label: 'Combat Target Faction' },
+    { value: 'encounter.factionId', label: 'Encounter Faction' },
+    { value: 'poi.ownerFaction', label: 'POI Owner Faction' },
+    { value: 'event.involvedFactions[0]', label: 'First Involved Faction' }
+  ];
 
   const outcomes = hasChallenge ? formData.subScenarios : formData.outcomes;
 
@@ -652,6 +712,208 @@ export default function BranchEditor({ branch, config, onSave, onCancel, onDelet
                           )}
                         </div>
                       )}
+
+                      {/* Faction Reputation Section */}
+                      <div className="form-group" style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                          <label style={{ margin: 0, color: '#fa0', fontSize: '0.95rem', fontWeight: 'bold' }}>🤝 Faction Reputation Changes</label>
+                          <button
+                            className="btn-neon"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              addFactionReputation(index);
+                            }}
+                            style={{ fontSize: '0.75rem', padding: '0.3rem 0.75rem' }}
+                          >
+                            <CreateIcon size={12} /> Add Faction Rep
+                          </button>
+                        </div>
+
+                        {(!outcome.rewards?.factionReputation || outcome.rewards.factionReputation.length === 0) && (
+                          <div style={{ padding: '1rem', textAlign: 'center', color: '#666', fontSize: '0.85rem', background: 'rgba(0, 0, 0, 0.3)', borderRadius: '4px' }}>
+                            No faction reputation changes. Click "Add Faction Rep" to add one.
+                          </div>
+                        )}
+
+                        {(outcome.rewards?.factionReputation || []).map((rep, repIndex) => (
+                          <div key={repIndex} className="glass-card" style={{ padding: '1rem', marginBottom: '0.75rem', background: 'rgba(0, 20, 40, 0.4)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                              <span style={{ color: '#fa0', fontWeight: 'bold', fontSize: '0.85rem' }}>Reputation Change #{repIndex + 1}</span>
+                              <button
+                                className="btn-neon"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  removeFactionReputation(index, repIndex);
+                                }}
+                                style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem', borderColor: '#f66', color: '#f66' }}
+                              >
+                                <DeleteIcon size={12} /> Remove
+                              </button>
+                            </div>
+
+                            {/* Condition Type Selection */}
+                            <div className="form-group">
+                              <label style={{ fontSize: '0.8rem' }}>Condition Type</label>
+                              <select
+                                className="input-neon"
+                                value={rep.condition?.type || ''}
+                                onChange={(e) => {
+                                  const conditionType = e.target.value || null;
+                                  if (!conditionType) {
+                                    updateFactionReputation(index, repIndex, 'condition', null);
+                                  } else {
+                                    updateFactionReputation(index, repIndex, 'condition', {
+                                      type: conditionType,
+                                      source: 'target.factionId',
+                                      operator: 'exists'
+                                    });
+                                  }
+                                }}
+                                style={{ fontSize: '0.8rem' }}
+                              >
+                                {conditionTypes.map(ct => (
+                                  <option key={ct.value || 'none'} value={ct.value || ''}>{ct.label}</option>
+                                ))}
+                              </select>
+                              <small style={{ color: '#666', fontSize: '0.7rem', display: 'block', marginTop: '0.25rem' }}>
+                                {!rep.condition && 'This reputation change will always apply'}
+                                {rep.condition?.type === 'combat_target' && 'Only applies if player attacked a faction ship'}
+                                {rep.condition?.type === 'encounter_faction' && 'Only applies if encounter has a faction'}
+                                {rep.condition?.type === 'poi_owner' && 'Only applies if POI has an owner faction'}
+                                {rep.condition?.type === 'dynamic_faction' && 'Uses faction from event context dynamically'}
+                              </small>
+                            </div>
+
+                            {/* Faction Selection (Static) or Context Source (Dynamic) */}
+                            {!rep.condition && (
+                              <div className="form-group">
+                                <label style={{ fontSize: '0.8rem' }}>Faction</label>
+                                <select
+                                  className="input-neon"
+                                  value={rep.factionId || ''}
+                                  onChange={(e) => updateFactionReputation(index, repIndex, 'factionId', e.target.value)}
+                                  style={{ fontSize: '0.8rem' }}
+                                >
+                                  <option value="">Select faction...</option>
+                                  {(config?.factions || []).map(faction => (
+                                    <option key={faction.id} value={faction.id}>
+                                      {faction.iconEmoji} {faction.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            )}
+
+                            {rep.condition && (
+                              <>
+                                <div className="form-group">
+                                  <label style={{ fontSize: '0.8rem' }}>Get Faction From</label>
+                                  <select
+                                    className="input-neon"
+                                    value={rep.condition.source || 'target.factionId'}
+                                    onChange={(e) => updateFactionReputationCondition(index, repIndex, 'source', e.target.value)}
+                                    style={{ fontSize: '0.8rem' }}
+                                  >
+                                    {contextSources.map(cs => (
+                                      <option key={cs.value} value={cs.value}>{cs.label}</option>
+                                    ))}
+                                  </select>
+                                  <small style={{ color: '#0cf', fontSize: '0.7rem', display: 'block', marginTop: '0.25rem' }}>
+                                    💡 Dynamic: Reputation applies to whatever faction is found at: <code style={{ background: 'rgba(0, 0, 0, 0.5)', padding: '0.1rem 0.3rem', borderRadius: '2px' }}>{rep.condition.source}</code>
+                                  </small>
+                                </div>
+
+                                <div className="form-group">
+                                  <label style={{ fontSize: '0.8rem' }}>Condition Operator</label>
+                                  <select
+                                    className="input-neon"
+                                    value={rep.condition.operator || 'exists'}
+                                    onChange={(e) => updateFactionReputationCondition(index, repIndex, 'operator', e.target.value)}
+                                    style={{ fontSize: '0.8rem' }}
+                                  >
+                                    <option value="exists">Exists (faction must be present)</option>
+                                    <option value="equals">Equals (specific faction ID)</option>
+                                    <option value="not_equals">Not Equals (exclude specific faction)</option>
+                                  </select>
+                                </div>
+
+                                {(rep.condition.operator === 'equals' || rep.condition.operator === 'not_equals') && (
+                                  <div className="form-group">
+                                    <label style={{ fontSize: '0.8rem' }}>Compare To Faction</label>
+                                    <select
+                                      className="input-neon"
+                                      value={rep.condition.value || ''}
+                                      onChange={(e) => updateFactionReputationCondition(index, repIndex, 'value', e.target.value)}
+                                      style={{ fontSize: '0.8rem' }}
+                                    >
+                                      <option value="">Select faction...</option>
+                                      {(config?.factions || []).map(faction => (
+                                        <option key={faction.id} value={faction.id}>
+                                          {faction.iconEmoji} {faction.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                )}
+                              </>
+                            )}
+
+                            {/* Reputation Change Value */}
+                            <div className="form-group">
+                              <label style={{ fontSize: '0.8rem' }}>Reputation Change</label>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.5rem', alignItems: 'center' }}>
+                                <input
+                                  type="range"
+                                  min="-100"
+                                  max="100"
+                                  step="5"
+                                  value={rep.change || 0}
+                                  onChange={(e) => updateFactionReputation(index, repIndex, 'change', parseInt(e.target.value))}
+                                  style={{
+                                    width: '100%',
+                                    accentColor: rep.change >= 0 ? '#0f8' : '#f66'
+                                  }}
+                                />
+                                <span style={{
+                                  color: rep.change >= 0 ? '#0f8' : '#f66',
+                                  fontSize: '1.1rem',
+                                  fontWeight: 'bold',
+                                  minWidth: '60px',
+                                  textAlign: 'right'
+                                }}>
+                                  {rep.change >= 0 ? '+' : ''}{rep.change}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.65rem', color: '#666' }}>
+                                <span>Hostile</span>
+                                <span>Neutral</span>
+                                <span>Allied</span>
+                              </div>
+                            </div>
+
+                            {/* Preview */}
+                            <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'rgba(0, 255, 170, 0.05)', border: '1px solid rgba(0, 255, 170, 0.2)', borderRadius: '4px' }}>
+                              <div style={{ color: '#0fa', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.35rem' }}>Preview Logic:</div>
+                              <div style={{ color: '#aaa', fontSize: '0.7rem', fontFamily: 'monospace', lineHeight: 1.4 }}>
+                                {!rep.condition && rep.factionId && (
+                                  <>
+                                    <span style={{ color: '#fa0' }}>ALWAYS:</span> {config?.factions?.find(f => f.id === rep.factionId)?.name || rep.factionId} {rep.change >= 0 ? '+' : ''}{rep.change}
+                                  </>
+                                )}
+                                {!rep.condition && !rep.factionId && (
+                                  <span style={{ color: '#f66' }}>⚠️ No faction selected</span>
+                                )}
+                                {rep.condition && (
+                                  <>
+                                    <span style={{ color: '#fa0' }}>IF</span> <span style={{ color: '#0cf' }}>{rep.condition.source}</span> {rep.condition.operator === 'exists' ? 'exists' : rep.condition.operator === 'equals' ? `== "${rep.condition.value}"` : `!= "${rep.condition.value}"`}<br />
+                                    <span style={{ color: '#fa0' }}>THEN</span> [<span style={{ color: '#0cf' }}>Dynamic Faction</span>] {rep.change >= 0 ? '+' : ''}{rep.change}
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </>
                   ) : (
                     <>

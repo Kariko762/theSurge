@@ -235,7 +235,7 @@ export default function UserManagement() {
 
   // USER LIST
   return (
-    <div>
+    <div style={{ paddingTop: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h2 style={{ color: 'var(--neon-cyan)', margin: 0, fontSize: '1.8rem', textShadow: 'var(--glow-cyan)' }}>
           User Management

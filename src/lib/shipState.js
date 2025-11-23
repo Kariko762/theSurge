@@ -122,11 +122,18 @@ export class ShipStateManager {
 
   // Add item to inventory
   addInventoryItem(item) {
-    const existing = this.state.inventory.find(i => i.id === item.id);
-    if (existing && item.stackable) {
-      existing.quantity += item.quantity || 1;
+    // Handle both 'id' and 'itemId' properties for compatibility
+    const itemId = item.id || item.itemId;
+    const existing = this.state.inventory.find(i => (i.id || i.itemId) === itemId);
+    if (existing && (item.stackable !== false)) {
+      existing.quantity = (existing.quantity || 1) + (item.quantity || 1);
     } else {
-      this.state.inventory.push({ ...item });
+      // Normalize to use 'id' property
+      const normalizedItem = { ...item, id: itemId };
+      if (item.itemId && !item.id) {
+        delete normalizedItem.itemId;
+      }
+      this.state.inventory.push(normalizedItem);
     }
   }
 

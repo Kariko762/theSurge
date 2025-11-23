@@ -4,7 +4,8 @@ import { SaveIcon, LoadingIcon, WarningIcon, CreateIcon, EditIcon, DeleteIcon, I
 import BranchEditor from './BranchEditor';
 import '../../../styles/AdminGlass.css';
 
-export default function EventForm({ event, config, onSave, onCancel }) {
+export default function EventForm({ event, config, factions = [], onSave, onCancel }) {
+  const [pois, setPOIs] = useState([]);
   const [formData, setFormData] = useState({
     id: '',
     metadata: {
@@ -22,6 +23,7 @@ export default function EventForm({ event, config, onSave, onCancel }) {
       location: '',
       systemMessage: ''
     },
+    involvedFactions: [],
     branches: [
       {
         id: 'default',
@@ -43,9 +45,24 @@ export default function EventForm({ event, config, onSave, onCancel }) {
 
   useEffect(() => {
     if (event) {
-      setFormData(event);
+      setFormData({
+        ...event,
+        involvedFactions: event.involvedFactions || []
+      });
     }
   }, [event]);
+
+  // Load POIs from POI Library
+  useEffect(() => {
+    const storedPOIs = localStorage.getItem('poi_library');
+    if (storedPOIs) {
+      try {
+        setPOIs(JSON.parse(storedPOIs));
+      } catch (err) {
+        console.error('Failed to load POI library:', err);
+      }
+    }
+  }, []);
 
   const handleChange = (path, value) => {
     setFormData(prev => {
@@ -423,6 +440,53 @@ export default function EventForm({ event, config, onSave, onCancel }) {
                     Disabled events will not trigger in-game
                   </small>
                 </div>
+
+                <div className="form-group">
+                  <label>Involved Factions</label>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                    {formData.involvedFactions.map(factionId => {
+                      const faction = factions.find(f => f.id === factionId);
+                      if (!faction) return null;
+                      return (
+                        <span 
+                          key={factionId}
+                          className="status-badge"
+                          style={{ 
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            background: faction.colors?.primary || '#0cf',
+                            color: '#000'
+                          }}
+                          onClick={() => handleChange('involvedFactions', formData.involvedFactions.filter(id => id !== factionId))}
+                        >
+                          {faction.iconEmoji} {faction.name} <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>×</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                  <select
+                    className="input-neon"
+                    onChange={(e) => {
+                      const factionId = e.target.value;
+                      if (factionId && !formData.involvedFactions.includes(factionId)) {
+                        handleChange('involvedFactions', [...formData.involvedFactions, factionId]);
+                      }
+                      e.target.value = '';
+                    }}
+                  >
+                    <option value="">+ Add Faction</option>
+                    {factions.filter(f => !formData.involvedFactions.includes(f.id)).map(faction => (
+                      <option key={faction.id} value={faction.id}>
+                        {faction.iconEmoji} {faction.name}
+                      </option>
+                    ))}
+                  </select>
+                  <small style={{ color: '#666', fontSize: '0.8rem', display: 'block', marginTop: '0.5rem' }}>
+                    Which factions are involved in this event (affects encounter dynamics and honor changes)
+                  </small>
+                </div>
               </div>
 
               {/* Help Panel */}
@@ -555,14 +619,18 @@ export default function EventForm({ event, config, onSave, onCancel }) {
                         })}
                       >
                         <option value="">Any POI</option>
-                        <option value="asteroid">Asteroid</option>
-                        <option value="station">Station</option>
-                        <option value="derelict">Derelict Ship</option>
-                        <option value="anomaly">Anomaly</option>
-                        <option value="debris">Debris Field</option>
+                        {pois.map(poi => {
+                          const parentPOI = poi.parentId ? pois.find(p => p.id === poi.parentId) : null;
+                          return (
+                            <option key={poi.id} value={poi.id}>
+                              {poi.name} ({poi.type.toLowerCase()})
+                              {parentPOI && ` - Child of ${parentPOI.name}`}
+                            </option>
+                          );
+                        })}
                       </select>
                       <small style={{ color: '#666', fontSize: '0.8rem' }}>
-                        Which type of POI triggers this event
+                        Which POI triggers this event (from POI Library)
                       </small>
                     </div>
 
@@ -1047,7 +1115,13 @@ export default function EventForm({ event, config, onSave, onCancel }) {
             </h3>
             <div className="code-preview">
               <pre style={{ fontSize: '0.85rem' }}>
-                {JSON.stringify(formData, null, 2)}
+                {(() => {
+                  try {
+                    return JSON.stringify(formData, null, 2);
+                  } catch (err) {
+                    return `Error serializing JSON: ${err.message}\n\nThis usually means there's circular references or invalid data in the form.`;
+                  }
+                })()}
               </pre>
             </div>
           </div>

@@ -1,1 +1,896 @@
-[]
+[
+  {
+    "id": "evt_terrestrial_planet_scan",
+    "metadata": {
+      "title": "Terrestrial Planet Survey",
+      "description": "Scan a rocky planet with atmosphere to detect surface features and potential landing sites",
+      "tags": ["planet", "survey", "exploration"],
+      "enabled": true,
+      "author": "system",
+      "created": "2025-11-22T12:00:00.000Z"
+    },
+    "trigger": {
+      "type": "poi_action",
+      "weight": 1.0,
+      "conditions": {
+        "poiType": "POI_PLANET_001",
+        "action": "survey"
+      }
+    },
+    "scenario": {
+      "title": "Planetary Scan Initiated",
+      "description": "Your sensors sweep across the planet's surface. Cloud patterns shift, revealing continents and oceans beneath. There's something unusual in the northern hemisphere...",
+      "location": "planet_orbit",
+      "systemMessage": "[PLANETARY SCAN] Atmosphere: 78% N2, 21% O2. Surface temperature: 15°C average. Detecting anomalous structures..."
+    },
+    "branches": [
+      {
+        "id": "standard_scan",
+        "label": "Complete standard survey scan",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "easy",
+          "skills": ["sensors"],
+          "baseTarget": 8,
+          "description": "Perform a routine planetary survey"
+        },
+        "outcomes": [
+          {
+            "weight": 0.7,
+            "type": "success",
+            "narrative": "Survey complete. You've mapped the major geographical features and confirmed the atmosphere is breathable. No signs of intelligent life detected.",
+            "rewards": {
+              "credits": 200,
+              "xp": 100,
+              "items": ["survey_data"]
+            }
+          },
+          {
+            "weight": 0.2,
+            "type": "critical_success",
+            "narrative": "Remarkable discovery! Your sensors detect ruins of an ancient civilization in the northern mountains. This data could be extremely valuable to archaeologists.",
+            "rewards": {
+              "credits": 800,
+              "xp": 250,
+              "items": ["survey_data", "archaeological_data"],
+              "unlocks": ["ancient_ruins_location"]
+            }
+          },
+          {
+            "weight": 0.1,
+            "type": "failure",
+            "narrative": "Intense magnetic interference from the planet's core scrambles your sensors. The scan is incomplete and your sensor array needs recalibration.",
+            "rewards": {
+              "credits": 50,
+              "xp": 30,
+              "damage": "minor"
+            }
+          }
+        ]
+      },
+      {
+        "id": "deep_scan",
+        "label": "Perform deep penetration scan (risky)",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "hard",
+          "skills": ["sensors", "science"],
+          "baseTarget": 14,
+          "description": "Push your sensors to maximum power to scan beneath the surface"
+        },
+        "outcomes": [
+          {
+            "weight": 0.4,
+            "type": "critical_success",
+            "narrative": "Extraordinary! Your deep scan reveals massive underground cave systems with artificial structures. This planet was inhabited - and may still be.",
+            "rewards": {
+              "credits": 1500,
+              "xp": 400,
+              "items": ["survey_data", "archaeological_data", "subterranean_map"],
+              "unlocks": ["underground_civilization"]
+            }
+          },
+          {
+            "weight": 0.4,
+            "type": "success",
+            "narrative": "The scan reveals rich mineral deposits deep beneath the crust. Not as exciting as ruins, but mining companies will pay handsomely for this data.",
+            "rewards": {
+              "credits": 600,
+              "xp": 200,
+              "items": ["survey_data", "mineral_data"]
+            }
+          },
+          {
+            "weight": 0.2,
+            "type": "critical_failure",
+            "narrative": "Your sensor array overloads from the strain! Sparks fly across the bridge as power conduits burn out. You'll need significant repairs.",
+            "rewards": {
+              "credits": -300,
+              "xp": 50,
+              "damage": "major"
+            }
+          }
+        ]
+      },
+      {
+        "id": "skip_scan",
+        "label": "Record basic data and move on",
+        "challenge": null,
+        "outcomes": [
+          {
+            "weight": 1.0,
+            "type": "safe_exit",
+            "narrative": "You log the planet's coordinates and basic atmospheric readings for future reference.",
+            "rewards": {
+              "credits": 50,
+              "xp": 20
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "evt_gas_giant_approach",
+    "metadata": {
+      "title": "Gas Giant Encounter",
+      "description": "Approach a massive gas giant and investigate its unique atmospheric phenomena",
+      "tags": ["planet", "gas_giant", "exploration", "science"],
+      "enabled": true,
+      "author": "system",
+      "created": "2025-11-22T12:00:00.000Z"
+    },
+    "trigger": {
+      "type": "poi_action",
+      "weight": 1.0,
+      "conditions": {
+        "poiType": "POI_PLANET_002",
+        "action": "approach"
+      }
+    },
+    "scenario": {
+      "title": "Gas Giant Approach",
+      "description": "The massive planet looms before you, its swirling bands of color mesmerizing. Storms the size of continents rage in the upper atmosphere. Your ship shudders from the intense gravitational pull.",
+      "location": "gas_giant_orbit",
+      "systemMessage": "[GRAVITATIONAL WARNING] Approaching Gas Giant. Mass: 318 Earth masses. Recommend maintaining safe distance."
+    },
+    "branches": [
+      {
+        "id": "skim_atmosphere",
+        "label": "Skim the upper atmosphere for gas samples",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "hard",
+          "skills": ["piloting", "navigation"],
+          "baseTarget": 14,
+          "description": "Navigate through intense gravity and turbulence to collect atmospheric samples"
+        },
+        "outcomes": [
+          {
+            "weight": 0.5,
+            "type": "critical_success",
+            "narrative": "Perfect execution! You skim through the colorful cloud bands, collecting pristine samples of rare helium-3 and exotic compounds. Research stations will pay top credits for this!",
+            "rewards": {
+              "credits": 1200,
+              "xp": 350,
+              "items": ["helium3_sample", "exotic_gas", "atmospheric_data"]
+            }
+          },
+          {
+            "weight": 0.3,
+            "type": "success",
+            "narrative": "You successfully collect atmospheric samples, though the turbulence made it challenging. The samples are valuable, but not pristine quality.",
+            "rewards": {
+              "credits": 500,
+              "xp": 200,
+              "items": ["atmospheric_data", "gas_sample"]
+            }
+          },
+          {
+            "weight": 0.2,
+            "type": "critical_failure",
+            "narrative": "The gravity well catches you! Your ship plunges deeper than planned, hull groaning under the pressure. You burn hard to escape, but not before sustaining serious damage.",
+            "rewards": {
+              "credits": -400,
+              "xp": 100,
+              "damage": "major",
+              "items": ["corrupted_sample"]
+            }
+          }
+        ]
+      },
+      {
+        "id": "study_storms",
+        "label": "Study the massive storm systems from orbit",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "medium",
+          "skills": ["science", "sensors"],
+          "baseTarget": 11,
+          "description": "Analyze the complex atmospheric dynamics"
+        },
+        "outcomes": [
+          {
+            "weight": 0.6,
+            "type": "success",
+            "narrative": "Your sensors capture incredible data on the storm formations. The patterns are unlike anything in the scientific databases - this could advance meteorological science significantly.",
+            "rewards": {
+              "credits": 700,
+              "xp": 250,
+              "items": ["storm_data", "scientific_discovery"],
+              "unlocks": ["meteorology_research"]
+            }
+          },
+          {
+            "weight": 0.4,
+            "type": "minor_success",
+            "narrative": "You collect solid data on the storm patterns. Nothing groundbreaking, but valuable for weather prediction models.",
+            "rewards": {
+              "credits": 300,
+              "xp": 150,
+              "items": ["atmospheric_data"]
+            }
+          }
+        ]
+      },
+      {
+        "id": "scan_moons",
+        "label": "Search for undiscovered moons",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "medium",
+          "skills": ["sensors"],
+          "baseTarget": 12,
+          "description": "Scan the orbital space around the gas giant"
+        },
+        "outcomes": [
+          {
+            "weight": 0.3,
+            "type": "critical_success",
+            "narrative": "Incredible! Your sensors detect a previously unknown moon in a distant orbit. Naming rights alone could make you famous, not to mention the scientific value!",
+            "rewards": {
+              "credits": 2000,
+              "xp": 500,
+              "items": ["moon_discovery_data"],
+              "unlocks": ["moon_discovery_rights", "POI_MOON_001"]
+            }
+          },
+          {
+            "weight": 0.5,
+            "type": "success",
+            "narrative": "You catalog several known moons and confirm their orbital data. Standard survey work, but the navigation databases will appreciate the updated information.",
+            "rewards": {
+              "credits": 400,
+              "xp": 150,
+              "items": ["orbital_data"]
+            }
+          },
+          {
+            "weight": 0.2,
+            "type": "failure",
+            "narrative": "The intense radiation from the planet's magnetosphere interferes with your scans. You can't get clean readings.",
+            "rewards": {
+              "credits": 100,
+              "xp": 50
+            }
+          },
+          {
+            "weight": 0.1,
+            "type": "encounter",
+            "narrative": "Your sensor sweep triggers a military patrol beacon! A naval ship emerges from the planet's shadow, hailing you for identification.",
+            "encounter": {
+              "disposition": "neutral",
+              "tags": ["military", "patrol"]
+            },
+            "rewards": {
+              "xp": 75
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "evt_ice_moon_landing",
+    "metadata": {
+      "title": "Ice Moon Expedition",
+      "description": "Land on a frozen moon to investigate surface features and subsurface ocean",
+      "tags": ["moon", "landing", "exploration", "science"],
+      "enabled": true,
+      "author": "system",
+      "created": "2025-11-22T12:00:00.000Z"
+    },
+    "trigger": {
+      "type": "poi_action",
+      "weight": 1.0,
+      "conditions": {
+        "poiType": "POI_MOON_001",
+        "action": "land"
+      }
+    },
+    "scenario": {
+      "title": "Ice Moon Surface",
+      "description": "Your ship settles onto the frozen crust with a gentle thud. The surface is pristine white ice, fractured by massive crevasses that glow blue in the depths. Below the ice, your sensors detect a vast subsurface ocean.",
+      "location": "ice_moon_surface",
+      "systemMessage": "[LANDING SUCCESSFUL] Surface temperature: -180°C. Ice depth: 15km. Liquid water ocean detected beneath crust."
+    },
+    "branches": [
+      {
+        "id": "drill_ice",
+        "label": "Deploy drilling equipment to sample the subsurface ocean",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "very_hard",
+          "skills": ["engineering", "science"],
+          "baseTarget": 16,
+          "description": "Drill through 15km of ice without contaminating the pristine ocean below"
+        },
+        "outcomes": [
+          {
+            "weight": 0.2,
+            "type": "critical_success",
+            "narrative": "Breakthrough! Your drill reaches the ocean and extracts water samples. Analysis reveals LIVING MICROORGANISMS! You've discovered extraterrestrial life! This will change everything!",
+            "rewards": {
+              "credits": 5000,
+              "xp": 1000,
+              "items": ["life_sample", "ocean_water", "historic_discovery"],
+              "unlocks": ["alien_life_discovery", "scientific_fame"]
+            }
+          },
+          {
+            "weight": 0.3,
+            "type": "success",
+            "narrative": "You successfully drill through and extract pristine water samples. No life detected, but the chemical composition is fascinating and valuable to researchers.",
+            "rewards": {
+              "credits": 800,
+              "xp": 300,
+              "items": ["ocean_water", "chemical_data"]
+            }
+          },
+          {
+            "weight": 0.3,
+            "type": "failure",
+            "narrative": "The drill bit breaks halfway through the ice. You retrieve what you can, but the samples are incomplete.",
+            "rewards": {
+              "credits": 200,
+              "xp": 100,
+              "items": ["ice_sample"],
+              "damage": "minor"
+            }
+          },
+          {
+            "weight": 0.2,
+            "type": "encounter",
+            "narrative": "While drilling, your communications array picks up a faint distress signal from the other side of the moon! Another expedition is stranded and requesting rescue.",
+            "encounter": {
+              "disposition": "positive",
+              "tags": ["rescue", "distress", "expedition"]
+            },
+            "rewards": {
+              "xp": 150,
+              "items": ["ice_sample"]
+            }
+          },
+          {
+            "weight": 0.1,
+            "type": "critical_failure",
+            "narrative": "Catastrophe! The drill triggers a massive ice quake. Geysers of water erupt around your ship as the crust fractures. You barely escape before the landing site collapses!",
+            "rewards": {
+              "credits": -500,
+              "xp": 150,
+              "damage": "major"
+            }
+          }
+        ]
+      },
+      {
+        "id": "explore_crevasse",
+        "label": "Explore the nearby ice crevasse on foot",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "medium",
+          "skills": ["exploration", "survival"],
+          "baseTarget": 11,
+          "description": "Navigate treacherous ice formations and extreme cold"
+        },
+        "outcomes": [
+          {
+            "weight": 0.4,
+            "type": "success",
+            "narrative": "You discover fascinating ice crystal formations and manage to collect pristine samples. The ice structure tells a story millions of years old.",
+            "rewards": {
+              "credits": 400,
+              "xp": 200,
+              "items": ["crystal_sample", "geological_data"]
+            }
+          },
+          {
+            "weight": 0.4,
+            "type": "minor_success",
+            "narrative": "You explore the crevasse safely and take some impressive photographs. Nothing groundbreaking, but the tourist boards might pay for the images.",
+            "rewards": {
+              "credits": 200,
+              "xp": 100,
+              "items": ["ice_photos"]
+            }
+          },
+          {
+            "weight": 0.2,
+            "type": "failure",
+            "narrative": "The ice gives way beneath your feet! You tumble into a deeper crevasse, your suit taking damage before you can climb back out.",
+            "rewards": {
+              "credits": 50,
+              "xp": 75,
+              "damage": "minor"
+            }
+          }
+        ]
+      },
+      {
+        "id": "quick_survey",
+        "label": "Conduct a quick surface survey and return to orbit",
+        "challenge": null,
+        "outcomes": [
+          {
+            "weight": 1.0,
+            "type": "safe_exit",
+            "narrative": "You collect basic surface readings and geological samples, then return to your ship. A routine but successful landing.",
+            "rewards": {
+              "credits": 250,
+              "xp": 80,
+              "items": ["surface_sample"]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "evt_belt_mining",
+    "metadata": {
+      "title": "Asteroid Belt Mining",
+      "description": "Mine valuable minerals from a dense asteroid field",
+      "tags": ["belt", "mining", "resources"],
+      "enabled": true,
+      "author": "system",
+      "created": "2025-11-22T12:00:00.000Z"
+    },
+    "trigger": {
+      "type": "poi_action",
+      "weight": 1.0,
+      "conditions": {
+        "poiType": "POI_BELT_001",
+        "action": "mining"
+      }
+    },
+    "scenario": {
+      "title": "Mining Operation",
+      "description": "Thousands of asteroids tumble through space around you, ranging from pebbles to mountains. Your scanners highlight several promising targets rich in valuable ores.",
+      "location": "asteroid_belt",
+      "systemMessage": "[MINING SENSORS ACTIVE] Detecting high concentrations of iron, nickel, and rare earth elements."
+    },
+    "branches": [
+      {
+        "id": "standard_mining",
+        "label": "Target medium-sized asteroids (standard operation)",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "medium",
+          "skills": ["mining_laser"],
+          "baseTarget": 10,
+          "description": "Mine asteroids efficiently without damaging equipment"
+        },
+        "outcomes": [
+          {
+            "weight": 0.6,
+            "type": "success",
+            "narrative": "Clean extraction! Your mining lasers carve through the asteroids efficiently. Your cargo hold fills with valuable ores - a profitable operation.",
+            "rewards": {
+              "credits": 600,
+              "xp": 150,
+              "items": ["iron_ore", "nickel_ore", "rare_metals"]
+            }
+          },
+          {
+            "weight": 0.3,
+            "type": "minor_success",
+            "narrative": "You extract a decent haul, though some of the asteroids proved tougher than expected. Not your best work, but profitable nonetheless.",
+            "rewards": {
+              "credits": 350,
+              "xp": 100,
+              "items": ["iron_ore", "nickel_ore"]
+            }
+          },
+          {
+            "weight": 0.1,
+            "type": "failure",
+            "narrative": "Your laser overheats from the extended operation. The equipment shuts down for safety, and you only managed to mine a small amount before the failure.",
+            "rewards": {
+              "credits": 150,
+              "xp": 50,
+              "items": ["iron_ore"],
+              "damage": "minor"
+            }
+          }
+        ]
+      },
+      {
+        "id": "high_risk_mining",
+        "label": "Target the large asteroid with rare ore signatures (risky)",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "very_hard",
+          "skills": ["mining_laser", "piloting"],
+          "baseTarget": 16,
+          "description": "Mine a massive, unstable asteroid without causing a catastrophic fracture"
+        },
+        "outcomes": [
+          {
+            "weight": 0.3,
+            "type": "critical_success",
+            "narrative": "Masterful work! You extract enormous quantities of platinum and iridium from the massive asteroid. This single haul is worth more than a month of standard mining!",
+            "rewards": {
+              "credits": 2500,
+              "xp": 500,
+              "items": ["platinum_ore", "iridium_ore", "rare_metals", "crystalline_structures"]
+            }
+          },
+          {
+            "weight": 0.3,
+            "type": "success",
+            "narrative": "You successfully mine the large asteroid, though it was nerve-wracking work. The rare ores make it worthwhile.",
+            "rewards": {
+              "credits": 1200,
+              "xp": 300,
+              "items": ["platinum_ore", "rare_metals"]
+            }
+          },
+          {
+            "weight": 0.3,
+            "type": "critical_failure",
+            "narrative": "Disaster! Your laser destabilizes the asteroid's internal structure. It explodes in a shower of debris, pelting your ship with high-velocity fragments. Major damage sustained!",
+            "rewards": {
+              "credits": -600,
+              "xp": 150,
+              "damage": "major",
+              "items": ["damaged_ore_fragments"]
+            }
+          },
+          {
+            "weight": 0.1,
+            "type": "encounter",
+            "narrative": "Disaster! The asteroid explodes - and worse, the debris cloud attracts opportunistic scavengers! A pirate ship emerges from the belt, eager to finish off your damaged vessel and claim the wreckage!",
+            "encounter": {
+              "disposition": "hostile",
+              "tags": ["pirate", "scavenger", "opportunistic"]
+            },
+            "rewards": {
+              "xp": 100,
+              "damage": "major"
+            }
+          }
+        ]
+      },
+      {
+        "id": "claim_asteroids",
+        "label": "Place claim beacons instead of mining now",
+        "challenge": null,
+        "outcomes": [
+          {
+            "weight": 1.0,
+            "type": "safe_exit",
+            "narrative": "You deploy claim beacons on the most valuable asteroids. You can return to mine them later, or sell the claims to mining corporations.",
+            "rewards": {
+              "credits": 200,
+              "xp": 50,
+              "items": ["mining_claims"],
+              "unlocks": ["belt_claims_POI_BELT_001"]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "evt_abandoned_station",
+    "metadata": {
+      "title": "Abandoned Station Investigation",
+      "description": "Board and investigate a derelict orbital station",
+      "tags": ["station", "derelict", "exploration", "mystery"],
+      "enabled": true,
+      "author": "system",
+      "created": "2025-11-22T12:00:00.000Z"
+    },
+    "trigger": {
+      "type": "poi_action",
+      "weight": 1.0,
+      "conditions": {
+        "poiType": "POI_ORBITAL_001",
+        "action": "docking"
+      }
+    },
+    "scenario": {
+      "title": "Derelict Station",
+      "description": "Your ship docks with the abandoned station. The airlock cycles open with a hiss of stale air. Emergency lights flicker in the corridors beyond. Everything is eerily silent.",
+      "location": "orbital_station",
+      "systemMessage": "[DOCKING COMPLETE] Station ID: Research Outpost Theta. Last log entry: 3 years ago. Warning: Life support minimal."
+    },
+    "branches": [
+      {
+        "id": "investigate_command",
+        "label": "Head to the command center",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "medium",
+          "skills": ["technical", "hacking"],
+          "baseTarget": 12,
+          "description": "Access the station's computer systems"
+        },
+        "outcomes": [
+          {
+            "weight": 0.3,
+            "type": "critical_success",
+            "narrative": "You successfully access the command terminal and download the station logs. The data reveals the location of a secret research facility with valuable experimental technology!",
+            "rewards": {
+              "credits": 1800,
+              "xp": 400,
+              "items": ["station_logs", "research_data", "facility_coordinates"],
+              "unlocks": ["secret_research_facility"]
+            }
+          },
+          {
+            "weight": 0.5,
+            "type": "success",
+            "narrative": "You recover the station's database. It contains scientific research and navigation data - valuable, but nothing extraordinary.",
+            "rewards": {
+              "credits": 700,
+              "xp": 200,
+              "items": ["station_logs", "research_data"]
+            }
+          },
+          {
+            "weight": 0.2,
+            "type": "failure",
+            "narrative": "The computer system is too corrupted. You trigger a security lockdown and barely escape the command center before blast doors seal it off.",
+            "rewards": {
+              "credits": 100,
+              "xp": 100,
+              "items": ["corrupted_data"]
+            }
+          }
+        ]
+      },
+      {
+        "id": "search_cargo",
+        "label": "Search the cargo bays for supplies",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "easy",
+          "skills": ["perception"],
+          "baseTarget": 8,
+          "description": "Locate valuable salvage in the cargo areas"
+        },
+        "outcomes": [
+          {
+            "weight": 0.7,
+            "type": "success",
+            "narrative": "You find intact cargo containers with medical supplies, spare parts, and rations. The previous crew left in a hurry.",
+            "rewards": {
+              "credits": 500,
+              "xp": 150,
+              "items": ["med_kit", "ship_components", "rations"]
+            }
+          },
+          {
+            "weight": 0.2,
+            "type": "critical_success",
+            "narrative": "Jackpot! Hidden behind false panels, you discover a smuggling compartment containing military-grade weapons and rare technological components!",
+            "rewards": {
+              "credits": 1500,
+              "xp": 350,
+              "items": ["military_weapons", "advanced_components", "contraband"]
+            }
+          },
+          {
+            "weight": 0.1,
+            "type": "encounter",
+            "narrative": "You're not alone! Pirates have been using this station as a hideout. They emerge from hiding, weapons drawn, demanding you leave everything and go!",
+            "encounter": {
+              "disposition": "hostile",
+              "tags": ["pirate", "hideout", "ambush"]
+            },
+            "rewards": {
+              "xp": 200
+            }
+          }
+        ]
+      },
+      {
+        "id": "emergency_exit",
+        "label": "Something feels wrong - leave immediately",
+        "challenge": null,
+        "outcomes": [
+          {
+            "weight": 0.8,
+            "type": "safe_exit",
+            "narrative": "You trust your instincts and return to your ship. As you undock, you notice movement in the station windows. You made the right call.",
+            "rewards": {
+              "credits": 0,
+              "xp": 50
+            }
+          },
+          {
+            "weight": 0.2,
+            "type": "lucky_escape",
+            "narrative": "Just as you reach your ship, explosions rock the station! An automated self-destruct must have been triggered. You escape just in time, watching the station break apart behind you.",
+            "rewards": {
+              "credits": 100,
+              "xp": 150
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "evt_quantum_anomaly",
+    "metadata": {
+      "title": "Quantum Anomaly Study",
+      "description": "Investigate a mysterious spacetime distortion",
+      "tags": ["anomaly", "science", "mystery", "dangerous"],
+      "enabled": true,
+      "author": "system",
+      "created": "2025-11-22T12:00:00.000Z"
+    },
+    "trigger": {
+      "type": "poi_action",
+      "weight": 1.0,
+      "conditions": {
+        "poiType": "POI_ANOMALY_001",
+        "action": "scanning"
+      }
+    },
+    "scenario": {
+      "title": "Quantum Distortion",
+      "description": "Space itself seems wrong here. Your instruments fluctuate wildly. Time feels... stretched. The anomaly pulses with energy that shouldn't exist according to known physics.",
+      "location": "quantum_anomaly",
+      "systemMessage": "[WARNING] Spacetime distortion detected. Quantum fluctuations: EXTREME. Recommend extreme caution."
+    },
+    "branches": [
+      {
+        "id": "distant_scan",
+        "label": "Scan from maximum safe distance",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "medium",
+          "skills": ["sensors", "science"],
+          "baseTarget": 11,
+          "description": "Analyze the anomaly without getting too close"
+        },
+        "outcomes": [
+          {
+            "weight": 0.7,
+            "type": "success",
+            "narrative": "Your sensors collect fascinating data. The anomaly appears to be a quantum singularity - extremely rare and valuable to physics researchers.",
+            "rewards": {
+              "credits": 800,
+              "xp": 250,
+              "items": ["quantum_data", "anomaly_readings"]
+            }
+          },
+          {
+            "weight": 0.3,
+            "type": "minor_success",
+            "narrative": "You gather some basic data, but the readings are too unstable for detailed analysis. Still worth something to scientists.",
+            "rewards": {
+              "credits": 300,
+              "xp": 100,
+              "items": ["anomaly_readings"]
+            }
+          }
+        ]
+      },
+      {
+        "id": "close_approach",
+        "label": "Approach the anomaly for detailed study (DANGEROUS)",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "very_hard",
+          "skills": ["piloting", "science"],
+          "baseTarget": 17,
+          "description": "Navigate close to the quantum distortion without being pulled in"
+        },
+        "outcomes": [
+          {
+            "weight": 0.2,
+            "type": "critical_success",
+            "narrative": "Incredible! You collect unprecedented data on quantum mechanics and spacetime manipulation. This discovery could revolutionize faster-than-light travel!",
+            "rewards": {
+              "credits": 5000,
+              "xp": 1000,
+              "items": ["quantum_breakthrough_data", "exotic_particles", "anomaly_sample"],
+              "unlocks": ["quantum_research", "scientific_breakthrough"]
+            }
+          },
+          {
+            "weight": 0.3,
+            "type": "success",
+            "narrative": "You successfully gather detailed readings before pulling away. The data is extraordinary - universities will compete to buy this!",
+            "rewards": {
+              "credits": 2000,
+              "xp": 500,
+              "items": ["quantum_data", "exotic_particles"]
+            }
+          },
+          {
+            "weight": 0.3,
+            "type": "failure",
+            "narrative": "The anomaly's pull is stronger than expected! Your ship is buffeted by quantum forces. You escape, but your ship systems are scrambled and damaged.",
+            "rewards": {
+              "credits": 200,
+              "xp": 150,
+              "damage": "major",
+              "items": ["corrupted_quantum_data"]
+            }
+          },
+          {
+            "weight": 0.2,
+            "type": "critical_failure",
+            "narrative": "You're pulled into the anomaly! Reality fractures around you. When you emerge, your ship's chronometer shows three days have passed, but you experienced only minutes. Your ship is severely damaged and your mind reels from the experience.",
+            "rewards": {
+              "credits": -500,
+              "xp": 200,
+              "damage": "critical",
+              "items": ["temporal_displacement_record"],
+              "unlocks": ["time_anomaly_survivor"]
+            }
+          }
+        ]
+      },
+      {
+        "id": "deploy_probe",
+        "label": "Deploy an unmanned probe to study it",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "easy",
+          "skills": ["technical"],
+          "baseTarget": 8,
+          "description": "Program and launch a probe"
+        },
+        "outcomes": [
+          {
+            "weight": 0.6,
+            "type": "success",
+            "narrative": "The probe transmits valuable data before being destroyed by the quantum forces. You recover the telemetry safely.",
+            "rewards": {
+              "credits": 600,
+              "xp": 180,
+              "items": ["quantum_data", "probe_telemetry"]
+            }
+          },
+          {
+            "weight": 0.3,
+            "type": "minor_success",
+            "narrative": "The probe malfunctions before reaching optimal distance. You get partial data, but nothing spectacular.",
+            "rewards": {
+              "credits": 250,
+              "xp": 80,
+              "items": ["partial_readings"]
+            }
+          },
+          {
+            "weight": 0.1,
+            "type": "unexpected",
+            "narrative": "The probe is pulled into the anomaly... then RETURNS, modified! It now contains technology that shouldn't exist. This is unprecedented!",
+            "rewards": {
+              "credits": 3000,
+              "xp": 600,
+              "items": ["modified_probe", "impossible_technology", "quantum_data"],
+              "unlocks": ["probe_transformation_mystery"]
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

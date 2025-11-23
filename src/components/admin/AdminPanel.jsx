@@ -8,13 +8,14 @@ import UserManagement from './UserManagement';
 import APIDocumentation from './APIDocumentation';
 import EventSystemGuide from './EventSystemGuide';
 import TelemetryDashboard from './TelemetryDashboard';
-import EventSystemTest from '../EventSystemTest';
+import SimulationPanel from './SimulationPanel';
+import EncounterManager from './EncounterManager';
 import { EventsIcon, MissionsIcon, ConfigIcon, UsersIcon, APIIcon, LogoutIcon, LoadingIcon, InfoIcon, WarningIcon, TestIcon } from './HoloIcons';
 import '../../styles/AdminGlass.css';
 
 export default function AdminPanel() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('guide');
+  const [activeTab, setActiveTab] = useState('telemetry');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -81,13 +82,14 @@ export default function AdminPanel() {
   }
 
   const allTabs = [
-    { id: 'guide', label: 'System Guide', Icon: InfoIcon, minRole: 'viewer' },
     { id: 'telemetry', label: 'Telemetry', Icon: WarningIcon, minRole: 'viewer' },
-    { id: 'test', label: 'Event Test', Icon: TestIcon, minRole: 'viewer' },
     { id: 'events', label: 'Events', Icon: EventsIcon, minRole: 'editor' },
+    { id: 'encounters', label: 'Encounters', Icon: ({ size }) => <span style={{ fontSize: `${size}px` }}>👾</span>, minRole: 'editor' },
     { id: 'missions', label: 'Missions', Icon: MissionsIcon, minRole: 'editor' },
+    { id: 'simulation', label: 'Simulation', Icon: TestIcon, minRole: 'viewer' },
     { id: 'config', label: 'Config', Icon: ConfigIcon, minRole: 'editor' },
     { id: 'users', label: 'Users', Icon: UsersIcon, minRole: 'admin' },
+    { id: 'guide', label: 'System Guide', Icon: InfoIcon, minRole: 'viewer' },
     { id: 'api', label: 'API Docs', Icon: APIIcon, minRole: 'viewer' }
   ];
 
@@ -97,6 +99,8 @@ export default function AdminPanel() {
     return api.auth.hasRole(tab.minRole);
   });
 
+  const isCompactView = isModalOpen || activeTab === 'config';
+
   return (
     <div className="admin-container">
       {/* Header */}
@@ -104,19 +108,19 @@ export default function AdminPanel() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: isModalOpen ? '0.75rem 2rem' : undefined,
-        minHeight: isModalOpen ? 'auto' : undefined,
+        padding: isCompactView ? '0.75rem 2rem' : undefined,
+        minHeight: isCompactView ? 'auto' : undefined,
         transition: 'all 0.3s ease'
       }}>
         <div>
           <h1 className="admin-title" style={{
-            fontSize: isModalOpen ? '1.2rem' : undefined,
-            marginBottom: isModalOpen ? '0' : undefined,
+            fontSize: isCompactView ? '1.2rem' : undefined,
+            marginBottom: isCompactView ? '0' : undefined,
             transition: 'all 0.3s ease'
           }}>
             THE SURGE
           </h1>
-          {!isModalOpen && (
+          {!isCompactView && (
             <p className="admin-subtitle">Event Engine Configuration System</p>
           )}
         </div>
@@ -155,7 +159,7 @@ export default function AdminPanel() {
       {/* Content Area */}
       <main style={{
         flex: 1,
-        padding: '2rem',
+        padding: '0 2rem 2rem 2rem',
         overflowY: 'auto',
         overflowX: 'hidden',
         position: 'relative',
@@ -164,8 +168,9 @@ export default function AdminPanel() {
       }}>
         {activeTab === 'guide' && <EventSystemGuide />}
         {activeTab === 'telemetry' && <TelemetryDashboard />}
-        {activeTab === 'test' && <EventSystemTest />}
+        {activeTab === 'simulation' && <SimulationPanel />}
         {activeTab === 'events' && <EventEditor />}
+        {activeTab === 'encounters' && <EncounterManager />}
         {activeTab === 'missions' && <MissionEditor />}
         {activeTab === 'config' && <ConfigEditor />}
         {activeTab === 'users' && <UserManagement />}

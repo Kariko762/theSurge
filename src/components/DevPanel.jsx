@@ -66,6 +66,30 @@ const DevPanel = ({ onNavigate, onCreateGalaxy, onLaunch, setExpeditionSeed }) =
       ]
     },
     {
+      title: 'ENCOUNTERS',
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2"/>
+          <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" stroke="currentColor" strokeWidth="2"/>
+          <path d="M8 8l-2-2M16 8l2-2M12 4V2" stroke="currentColor" strokeWidth="2"/>
+        </svg>
+      ),
+      actions: [
+        { 
+          label: 'Trigger Hostile Encounter', 
+          onClick: () => { console.log('Hostile encounter triggered!'); /* TODO */ } 
+        },
+        { 
+          label: 'Trigger Neutral Encounter', 
+          onClick: () => { console.log('Neutral encounter triggered!'); /* TODO */ } 
+        },
+        { 
+          label: 'Trigger Positive Encounter', 
+          onClick: () => { console.log('Positive encounter triggered!'); /* TODO */ } 
+        },
+      ]
+    },
+    {
       title: 'GALAXY MAP',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">

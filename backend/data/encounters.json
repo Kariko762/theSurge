@@ -1,0 +1,286 @@
+[
+  {
+    "id": "enc_pirate_ambush_001",
+    "name": "Pirate Ambush - Scavenger Crew",
+    "disposition": "hostile",
+    "description": "A small pirate vessel drops out of stealth, weapons hot. They're demanding your cargo.",
+    "shipClass": "Light Corvette",
+    "faction": "Independent Pirates",
+    "weight": 1.5,
+    "enabled": true,
+    "tags": ["pirate", "combat", "hostile", "stealth"],
+    "triggerConditions": {
+      "wake": { "min": 0.4, "max": 1.0 },
+      "locations": ["asteroid_belt", "deep_space", "dark_zone"],
+      "reputation": { "min": -100, "max": 100 }
+    },
+    "dialogue": {
+      "initial": "Well, well... what do we have here? Nice ship. Shame if something happened to it.",
+      "hostile": "Wrong answer, friend. Weapons hot!",
+      "friendly": "Smart move. Drop your cargo and we'll let you live.",
+      "neutral": "You got guts, I'll give you that. Maybe we can work something out."
+    },
+    "options": {
+      "trade": {
+        "enabled": true,
+        "inventory": [
+          { "itemId": "salvaged_components", "quantity": 5, "price": 200 },
+          { "itemId": "stolen_data", "quantity": 1, "price": 500 }
+        ]
+      },
+      "combat": {
+        "enabled": true,
+        "difficulty": "medium",
+        "shipStats": {
+          "hull": 80,
+          "shields": 60,
+          "weapons": "Light Plasma Cannons"
+        }
+      },
+      "diplomacy": {
+        "enabled": true,
+        "outcomes": [
+          { "choice": "bribe", "cost": 500, "success": "They take your credits and vanish into the void." },
+          { "choice": "threaten", "skill": "intimidation", "dc": 12, "success": "They back off, recognizing you're not worth the trouble." },
+          { "choice": "negotiate", "skill": "persuasion", "dc": 14, "success": "You strike a deal - information for safe passage." }
+        ]
+      }
+    },
+    "rewards": {
+      "credits": { "min": 200, "max": 800 },
+      "items": [
+        { "itemId": "pirate_bounty", "quantity": 1, "chance": 0.7 },
+        { "itemId": "salvaged_weapons", "quantity": 1, "chance": 0.3 }
+      ],
+      "reputation": -5
+    },
+    "created": "2025-11-22T00:00:00.000Z",
+    "modified": "2025-11-22T00:00:00.000Z"
+  },
+  {
+    "id": "enc_trader_independent_001",
+    "name": "Independent Trader - The Star Runner",
+    "disposition": "neutral",
+    "description": "A well-worn merchant vessel hails you. Their captain seems friendly enough.",
+    "shipClass": "Merchant Freighter",
+    "faction": "Independent Traders Guild",
+    "weight": 2.0,
+    "enabled": true,
+    "tags": ["trader", "merchant", "neutral", "peaceful"],
+    "triggerConditions": {
+      "wake": { "min": 0.1, "max": 0.6 },
+      "locations": ["trade_route", "station_vicinity", "quiet_zone"],
+      "reputation": { "min": -20, "max": 100 }
+    },
+    "dialogue": {
+      "initial": "Greetings, traveler! Captain Mara of the Star Runner. Looking to trade?",
+      "hostile": "Whoa, whoa! No need for that. I'm just a trader!",
+      "friendly": "Excellent! I've got some quality goods. Take a look.",
+      "neutral": "Fair enough. If you change your mind, I'll be around for a bit."
+    },
+    "options": {
+      "trade": {
+        "enabled": true,
+        "inventory": [
+          { "itemId": "fuel_cells", "quantity": 10, "price": 50 },
+          { "itemId": "repair_kits", "quantity": 5, "price": 120 },
+          { "itemId": "food_supplies", "quantity": 20, "price": 15 },
+          { "itemId": "advanced_scanner", "quantity": 1, "price": 2000 }
+        ]
+      },
+      "combat": {
+        "enabled": false
+      },
+      "diplomacy": {
+        "enabled": true,
+        "outcomes": [
+          { "choice": "ask_info", "cost": 0, "success": "She shares rumors about nearby systems and potential opportunities." },
+          { "choice": "ask_news", "cost": 0, "success": "Recent pirate activity in the dark zones. Station Alpha-7 is offering bounties." }
+        ]
+      }
+    },
+    "rewards": {
+      "credits": { "min": 0, "max": 0 },
+      "items": [],
+      "reputation": 2
+    },
+    "created": "2025-11-22T00:00:00.000Z",
+    "modified": "2025-11-22T00:00:00.000Z"
+  },
+  {
+    "id": "enc_rescue_distress_001",
+    "name": "Distress Signal - Stranded Survey Team",
+    "disposition": "positive",
+    "description": "A weak distress beacon leads you to a damaged research vessel. Life support is failing.",
+    "shipClass": "Research Vessel",
+    "faction": "Scientific Expedition",
+    "weight": 0.8,
+    "enabled": true,
+    "tags": ["rescue", "distress", "positive", "science"],
+    "triggerConditions": {
+      "wake": { "min": 0.0, "max": 0.5 },
+      "locations": ["asteroid_field", "anomaly_zone", "deep_space"],
+      "reputation": { "min": 0, "max": 100 }
+    },
+    "dialogue": {
+      "initial": "*static* ...requesting assistance... life support at 12%... please respond...",
+      "hostile": "Wait... you're not here to help? You monster!",
+      "friendly": "Thank the stars! We've been drifting for three days. Can you spare supplies?",
+      "neutral": "We understand. If you can at least relay our position to the nearest station..."
+    },
+    "options": {
+      "trade": {
+        "enabled": false
+      },
+      "combat": {
+        "enabled": false
+      },
+      "diplomacy": {
+        "enabled": true,
+        "outcomes": [
+          { 
+            "choice": "rescue_full", 
+            "cost": 200, 
+            "items": [{ "itemId": "repair_kits", "quantity": 2 }],
+            "success": "You transfer supplies and repair their critical systems. They're deeply grateful and share valuable research data."
+          },
+          { 
+            "choice": "rescue_minimal", 
+            "cost": 50, 
+            "success": "You provide basic supplies. It's not much, but it'll keep them alive until help arrives."
+          },
+          { 
+            "choice": "relay_signal", 
+            "cost": 0, 
+            "success": "You boost their distress signal and transmit coordinates to nearby stations. They thank you profusely."
+          }
+        ]
+      }
+    },
+    "rewards": {
+      "credits": { "min": 500, "max": 1500 },
+      "items": [
+        { "itemId": "research_data", "quantity": 1, "chance": 0.8 },
+        { "itemId": "rare_sample", "quantity": 1, "chance": 0.4 }
+      ],
+      "reputation": 15
+    },
+    "created": "2025-11-22T00:00:00.000Z",
+    "modified": "2025-11-22T00:00:00.000Z"
+  },
+  {
+    "id": "enc_military_patrol_001",
+    "name": "Military Patrol - Sector Defense Fleet",
+    "disposition": "neutral",
+    "description": "A military patrol vessel scans your ship. They're checking for contraband.",
+    "shipClass": "Patrol Frigate",
+    "faction": "Sector Defense Force",
+    "weight": 1.2,
+    "enabled": true,
+    "tags": ["military", "authority", "neutral", "inspection"],
+    "triggerConditions": {
+      "wake": { "min": 0.2, "max": 0.8 },
+      "locations": ["patrol_route", "station_vicinity", "trade_route"],
+      "reputation": { "min": -100, "max": 100 }
+    },
+    "dialogue": {
+      "initial": "This is Sector Patrol Delta-Nine. Transmit your ID and manifest for inspection.",
+      "hostile": "Hostile action detected! All units, weapons free!",
+      "friendly": "Manifest clear. Proceed on your heading, citizen. Stay safe out there.",
+      "neutral": "We'll be monitoring your transponder. Don't cause trouble."
+    },
+    "options": {
+      "trade": {
+        "enabled": false
+      },
+      "combat": {
+        "enabled": true,
+        "difficulty": "hard",
+        "shipStats": {
+          "hull": 120,
+          "shields": 100,
+          "weapons": "Military-Grade Railguns"
+        }
+      },
+      "diplomacy": {
+        "enabled": true,
+        "outcomes": [
+          { "choice": "comply", "cost": 0, "success": "They scan your ship, find nothing suspicious, and let you go." },
+          { "choice": "bribe", "cost": 1000, "success": "The officer accepts the 'administrative fee' and looks the other way." },
+          { "choice": "resist", "skill": "deception", "dc": 16, "success": "You convince them your encryption is classified research. They grudgingly accept." }
+        ]
+      }
+    },
+    "rewards": {
+      "credits": { "min": 0, "max": 0 },
+      "items": [],
+      "reputation": 0
+    },
+    "created": "2025-11-22T00:00:00.000Z",
+    "modified": "2025-11-22T00:00:00.000Z"
+  },
+  {
+    "id": "enc_derelict_mystery_001",
+    "name": "Derelict Vessel - Unknown Origin",
+    "disposition": "neutral",
+    "description": "A dark, silent ship drifts through space. No life signs, no power signature. Just... waiting.",
+    "shipClass": "Unknown Configuration",
+    "faction": "Unknown",
+    "weight": 0.5,
+    "enabled": true,
+    "tags": ["derelict", "mystery", "exploration", "danger"],
+    "triggerConditions": {
+      "wake": { "min": 0.3, "max": 0.9 },
+      "locations": ["deep_space", "dark_zone", "void"],
+      "reputation": { "min": -100, "max": 100 }
+    },
+    "dialogue": {
+      "initial": "...",
+      "hostile": "ERROR: No response",
+      "friendly": "ERROR: No response",
+      "neutral": "Your sensors detect faint energy readings deep within the hull..."
+    },
+    "options": {
+      "trade": {
+        "enabled": false
+      },
+      "combat": {
+        "enabled": false
+      },
+      "diplomacy": {
+        "enabled": true,
+        "outcomes": [
+          { 
+            "choice": "board_ship", 
+            "skill": "technical", 
+            "dc": 12, 
+            "success": "You dock and enter carefully. The ship is ancient, pre-Surge. You find valuable artifacts and data cores.",
+            "failure": "As you breach the airlock, automated defenses activate! You barely escape with minor damage."
+          },
+          { 
+            "choice": "scan_deep", 
+            "skill": "perception", 
+            "dc": 14, 
+            "success": "Your scans reveal hidden compartments with rare xenotech components."
+          },
+          { 
+            "choice": "leave", 
+            "cost": 0, 
+            "success": "You mark the coordinates and move on. Sometimes discretion is the better part of valor."
+          }
+        ]
+      }
+    },
+    "rewards": {
+      "credits": { "min": 800, "max": 3000 },
+      "items": [
+        { "itemId": "xenotech_fragment", "quantity": 1, "chance": 0.5 },
+        { "itemId": "ancient_data_core", "quantity": 1, "chance": 0.6 },
+        { "itemId": "advanced_component", "quantity": 2, "chance": 0.7 }
+      ],
+      "reputation": 0
+    },
+    "created": "2025-11-22T00:00:00.000Z",
+    "modified": "2025-11-22T00:00:00.000Z"
+  }
+]

@@ -3,6 +3,12 @@ import api from '../../lib/api/client';
 import { SaveIcon, LoadingIcon, WarningIcon, SuccessIcon } from './HoloIcons';
 import LootManager from './LootManager';
 import NarrativeLibrary from './NarrativeLibrary';
+import POILibrary from './POILibrary';
+import AICrewManager from './AICrewManager';
+import PlayerSkillsManager from './PlayerSkillsManager';
+import CoreMechanicsViewer from './CoreMechanicsViewer';
+import ShipsManager from './ShipsManager';
+import FactionsManager from './FactionsManager';
 import '../../styles/AdminGlass.css';
 
 export default function ConfigEditor() {
@@ -11,7 +17,7 @@ export default function ConfigEditor() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [activeSection, setActiveSection] = useState('difficulty');
+  const [activeSection, setActiveSection] = useState('mechanics');
 
   useEffect(() => {
     loadConfig();
@@ -103,74 +109,23 @@ export default function ConfigEditor() {
   }
 
   const sections = [
+    { id: 'mechanics', label: 'Core Mechanics' },
+    { id: 'ships', label: 'Ships' },
+    { id: 'factions', label: 'Factions' },
+    { id: 'ai', label: 'AI Crew' },
+    { id: 'skills', label: 'Player Skills' },
     { id: 'difficulty', label: 'Difficulty Curves' },
     { id: 'loot', label: 'Loot Tables' },
     { id: 'narratives', label: 'Narrative Library' },
+    { id: 'pois', label: 'POI Library' },
     { id: 'risk', label: 'Risk Weights' },
     { id: 'scheduler', label: 'Event Scheduler' }
   ];
 
   return (
     <div>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ color: 'var(--neon-cyan)', margin: 0, fontSize: '1.8rem', textShadow: 'var(--glow-cyan)' }}>
-          Configuration Editor
-        </h2>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button 
-            className="btn-neon btn-neon-danger" 
-            onClick={handleReset}
-            style={{ fontSize: '0.85rem' }}
-          >
-            RESET TO DEFAULTS
-          </button>
-          <button 
-            className="btn-neon btn-neon-primary" 
-            onClick={handleSave}
-            disabled={saving}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-          >
-            {saving ? <LoadingIcon size={18} /> : <SaveIcon size={20} />}
-            {saving ? 'SAVING...' : 'SAVE CHANGES'}
-          </button>
-        </div>
-      </div>
-
-      {/* Success Message */}
-      {successMessage && (
-        <div className="glass-card" style={{
-          padding: '1rem',
-          marginBottom: '1.5rem',
-          borderColor: 'rgba(0, 255, 136, 0.5)',
-          background: 'rgba(0, 255, 136, 0.1)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem'
-        }}>
-          <SuccessIcon size={20} />
-          <span style={{ color: '#00ff88', fontSize: '0.9rem' }}>{successMessage}</span>
-        </div>
-      )}
-
-      {/* Error Message */}
-      {error && (
-        <div className="glass-card" style={{
-          padding: '1rem',
-          marginBottom: '1.5rem',
-          borderColor: 'rgba(255, 107, 107, 0.5)',
-          background: 'rgba(255, 0, 0, 0.1)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem'
-        }}>
-          <WarningIcon size={20} />
-          <span style={{ color: '#ff6b6b', fontSize: '0.9rem' }}>{error}</span>
-        </div>
-      )}
-
-      {/* Section Tabs */}
-      <div className="tab-container" style={{ marginBottom: '2rem' }}>
+      {/* Section Tabs - First level sub-menu */}
+      <div className="tab-container-sub">
         {sections.map(section => (
           <button
             key={section.id}
@@ -181,6 +136,69 @@ export default function ConfigEditor() {
           </button>
         ))}
       </div>
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="glass-card" style={{
+          padding: '0.75rem 1rem',
+          marginBottom: '1rem',
+          marginTop: '1rem',
+          marginLeft: '2rem',
+          marginRight: '2rem',
+          borderColor: 'rgba(0, 255, 136, 0.5)',
+          background: 'rgba(0, 255, 136, 0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem'
+        }}>
+          <SuccessIcon size={18} />
+          <span style={{ color: '#00ff88', fontSize: '0.85rem' }}>{successMessage}</span>
+        </div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div className="glass-card" style={{
+          padding: '0.75rem 1rem',
+          marginBottom: '1rem',
+          marginTop: successMessage ? '0' : '1rem',
+          marginLeft: '2rem',
+          marginRight: '2rem',
+          borderColor: 'rgba(255, 107, 107, 0.5)',
+          background: 'rgba(255, 0, 0, 0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem'
+        }}>
+          <WarningIcon size={18} />
+          <span style={{ color: '#ff6b6b', fontSize: '0.85rem' }}>{error}</span>
+        </div>
+      )}
+
+      {/* CORE MECHANICS SECTION */}
+      {activeSection === 'mechanics' && (
+        <CoreMechanicsViewer />
+      )}
+
+      {/* SHIPS SECTION */}
+      {activeSection === 'ships' && (
+        <ShipsManager />
+      )}
+
+      {/* FACTIONS SECTION */}
+      {activeSection === 'factions' && (
+        <FactionsManager />
+      )}
+
+      {/* AI CREW SECTION */}
+      {activeSection === 'ai' && (
+        <AICrewManager />
+      )}
+
+      {/* PLAYER SKILLS SECTION */}
+      {activeSection === 'skills' && (
+        <PlayerSkillsManager />
+      )}
 
       {/* DIFFICULTY CURVES SECTION */}
       {activeSection === 'difficulty' && config.difficultyCurves && (
@@ -259,6 +277,11 @@ export default function ConfigEditor() {
       {/* NARRATIVE LIBRARY SECTION */}
       {activeSection === 'narratives' && (
         <NarrativeLibrary config={config} updateConfig={updateConfig} />
+      )}
+
+      {/* POI LIBRARY SECTION */}
+      {activeSection === 'pois' && (
+        <POILibrary />
       )}
 
       {/* RISK WEIGHTS SECTION */}

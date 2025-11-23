@@ -8,6 +8,7 @@ import '../../styles/AdminCompact.css';
 export default function EventEditor() {
   const [events, setEvents] = useState([]);
   const [config, setConfig] = useState(null);
+  const [factions, setFactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,7 +38,9 @@ export default function EventEditor() {
   const loadConfig = async () => {
     try {
       const response = await api.config.get();
-      setConfig(response.config || response);
+      const cfg = response.config || response;
+      setConfig(cfg);
+      setFactions(cfg?.factions || []);
     } catch (err) {
       console.error('Failed to load config:', err);
     }
@@ -111,6 +114,7 @@ export default function EventEditor() {
       <EventForm 
         event={editingEvent}
         config={config}
+        factions={factions}
         onSave={handleSave} 
         onCancel={handleCancel} 
       />
@@ -118,7 +122,7 @@ export default function EventEditor() {
   }
 
   return (
-    <div>
+    <div style={{ paddingTop: '2rem' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
         <h2 style={{ color: 'var(--terminal-cyan)', margin: 0, fontSize: 'var(--compact-h2)', textShadow: '0 0 8px var(--terminal-cyan)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>

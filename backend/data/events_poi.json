@@ -81,22 +81,23 @@
           {
             "id": "trap_raiders",
             "weight": 0.2,
-            "outcomeType": "failure",
+            "outcomeType": "encounter",
             "narrative": {
               "title": "Ambush!",
-              "description": "The station wasn't as abandoned as you thought. Raiders emerge from the shadows, demanding your cargo!",
+              "description": "The station wasn't as abandoned as you thought. Raiders emerge from the shadows!",
               "systemMessage": "[HOSTILE CONTACT] Multiple armed hostiles detected! WARNING: Combat situation imminent!"
             },
+            "encounter": {
+              "disposition": "hostile",
+              "tags": ["pirate", "ambush"]
+            },
             "rewards": {
-              "credits": -150,
-              "xp": 75,
-              "items": [],
-              "damage": "minor"
+              "xp": 75
             }
           },
           {
             "id": "friendly_encounter",
-            "weight": 0.4,
+            "weight": 0.2,
             "outcomeType": "critical_success",
             "narrative": {
               "title": "Unexpected Ally",
@@ -108,6 +109,23 @@
               "xp": 200,
               "items": ["data_core", "research_notes"],
               "unlocks": ["scientist_rescued", "xenobiology_quest"]
+            }
+          },
+          {
+            "id": "trader_encounter",
+            "weight": 0.2,
+            "outcomeType": "encounter",
+            "narrative": {
+              "title": "Scavenger Ship",
+              "description": "Another ship was already docked at the station - a scavenger trader picking over the remains. They hail you with a trade offer.",
+              "systemMessage": "[HAIL RECEIVED] Greetings, friend. Looking to trade? I've got salvage from across the sector."
+            },
+            "encounter": {
+              "disposition": "neutral",
+              "tags": ["trader", "scavenger"]
+            },
+            "rewards": {
+              "xp": 100
             }
           }
         ]
@@ -254,6 +272,208 @@
               "xp": 100,
               "items": [],
               "damage": "major"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "survey_asteroid_belt",
+    "metadata": {
+      "title": "Survey Asteroid Belt",
+      "description": "Perform a detailed scan of an asteroid cluster to identify mineral composition and mining potential",
+      "tags": ["mining", "survey", "scanning"],
+      "enabled": true,
+      "author": "system",
+      "created": "2025-11-22T00:00:00.000Z"
+    },
+    "trigger": {
+      "type": "poi_action",
+      "action": "survey",
+      "weight": 1.0,
+      "conditions": {
+        "poiType": "BELT",
+        "notScanned": true,
+        "requiresSystem": "sensors"
+      }
+    },
+    "scenario": {
+      "title": "Asteroid Cluster Scan",
+      "description": "Your sensors power up, sweeping the asteroid cluster with detection arrays. The data streaming in will reveal what lies within...",
+      "location": "asteroid_belt",
+      "systemMessage": "[SENSORS ONLINE] Initiating full-spectrum analysis of asteroid cluster..."
+    },
+    "branches": [
+      {
+        "id": "scan_cluster",
+        "label": "Initiate Sensor Scan",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "easy",
+          "skills": ["sensors"],
+          "baseTarget": 8,
+          "description": "A basic sensor sweep to analyze the asteroid composition."
+        },
+        "subScenarios": [
+          {
+            "id": "scan_success",
+            "weight": 0.85,
+            "outcomeType": "success",
+            "narrativePool": "scan_discovery",
+            "systemMessage": "Sensor scan complete. Cluster data registered to ship computer.",
+            "rewards": {
+              "xp": 50,
+              "effects": {
+                "clusterData": {
+                  "register": true
+                }
+              }
+            }
+          },
+          {
+            "id": "scan_failure",
+            "weight": 0.10,
+            "outcomeType": "failure",
+            "narrative": {
+              "title": "Sensor Malfunction",
+              "description": "The asteroid cluster's composition creates interference, scrambling your sensor readings. The scan fails to produce usable data.",
+              "systemMessage": "[SENSOR ERROR] Mineral interference detected. Scan inconclusive. Minor system damage sustained."
+            },
+            "rewards": {
+              "xp": 15,
+              "damage": "minor",
+              "effects": {
+                "damage": {
+                  "system": "sensors",
+                  "amount": 5
+                }
+              }
+            }
+          },
+          {
+            "id": "scan_distress",
+            "weight": 0.05,
+            "outcomeType": "encounter",
+            "narrative": {
+              "title": "Distress Signal Detected",
+              "description": "Your sensors pick up a faint distress beacon from within the asteroid field. A damaged ship requests assistance.",
+              "systemMessage": "[DISTRESS SIGNAL] ...life support failing... requesting immediate assistance... coordinates attached..."
+            },
+            "encounter": {
+              "disposition": "positive",
+              "tags": ["rescue", "distress"]
+            },
+            "rewards": {
+              "xp": 25,
+              "effects": {
+                "clusterData": {
+                  "register": true
+                }
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mine_asteroid_belt",
+    "metadata": {
+      "title": "Mine Asteroid Belt",
+      "description": "Extract valuable minerals from a scanned asteroid cluster using mining lasers",
+      "tags": ["mining", "extraction", "resources"],
+      "enabled": true,
+      "author": "system",
+      "created": "2025-11-22T00:00:00.000Z"
+    },
+    "trigger": {
+      "type": "poi_action",
+      "action": "mine",
+      "weight": 1.0,
+      "conditions": {
+        "poiType": "BELT",
+        "clusterRegistered": true,
+        "asteroidsAvailable": true,
+        "requiresSystem": "mining_laser"
+      }
+    },
+    "scenario": {
+      "title": "Mining Operation",
+      "description": "Mining lasers lock onto the target asteroid. Power systems divert to extraction protocols. This could be profitable... or dangerous.",
+      "location": "asteroid_belt",
+      "systemMessage": "[MINING LASER ARMED] Target locked. Commencing extraction sequence..."
+    },
+    "branches": [
+      {
+        "id": "extract_minerals",
+        "label": "Begin Mining Operation",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "normal",
+          "skills": ["mining_laser"],
+          "baseTarget": 10,
+          "description": "Careful laser control is required to extract minerals without destabilizing the asteroid."
+        },
+        "subScenarios": [
+          {
+            "id": "mining_success",
+            "weight": 0.65,
+            "outcomeType": "success",
+            "narrativePool": "mining_success",
+            "systemMessage": "Mining operation successful. Resources transferred to cargo hold.",
+            "rewards": {
+              "lootPool": "asteroid_mining",
+              "xp": 100,
+              "effects": {
+                "asteroidConsumed": true,
+                "experience": {
+                  "skill": "mining_laser",
+                  "amount": 10
+                }
+              }
+            }
+          },
+          {
+            "id": "mining_failure",
+            "weight": 0.25,
+            "outcomeType": "failure",
+            "narrativePool": "mining_failure",
+            "systemMessage": "Mining operation failed. Equipment damage sustained.",
+            "rewards": {
+              "xp": 30,
+              "damage": "minor",
+              "effects": {
+                "asteroidConsumed": true,
+                "damage": {
+                  "system": "mining_laser",
+                  "amount": 10
+                },
+                "experience": {
+                  "skill": "mining_laser",
+                  "amount": 3
+                }
+              }
+            }
+          },
+          {
+            "id": "mining_ambush",
+            "weight": 0.10,
+            "outcomeType": "encounter",
+            "narrative": {
+              "title": "Pirate Ambush",
+              "description": "Your mining laser signature attracted unwanted attention! Pirate ships emerge from behind nearby asteroids, weapons hot!",
+              "systemMessage": "[ALERT] Hostile contacts detected! Multiple ships closing fast - they want your haul!"
+            },
+            "encounter": {
+              "disposition": "hostile",
+              "tags": ["pirate", "ambush"]
+            },
+            "rewards": {
+              "xp": 50,
+              "effects": {
+                "asteroidConsumed": true
+              }
             }
           }
         ]

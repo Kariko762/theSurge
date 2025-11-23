@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Check Ship Inventory</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0e27;
+            color: #00ffff;
+            padding: 20px;
+        }
+        h1 {
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        pre {
+            background: rgba(0, 20, 40, 0.6);
+            padding: 15px;
+            border: 1px solid #00ffff;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        .item {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0, 255, 255, 0.1);
+            border-left: 3px solid #00ff88;
+        }
+        .empty {
+            color: #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Ship Inventory Check</h1>
+    <div id="output"></div>
+
+    <script>
+        const output = document.getElementById('output');
+        
+        // Check all possible localStorage keys
+        const allKeys = Object.keys(localStorage);
+        console.log('All localStorage keys:', allKeys);
+        
+        // Try to find ship state
+        let shipState = null;
+        let foundKey = null;
+        
+        // Common keys to check
+        const keysToCheck = [
+            'shipState',
+            'ship_state',
+            'currentShipState',
+            'SS-ARKOSE',
+            'gameState',
+            'surge_ship_state'
+        ];
+        
+        for (const key of keysToCheck) {
+            const data = localStorage.getItem(key);
+            if (data) {
+                try {
+                    shipState = JSON.parse(data);
+                    foundKey = key;
+                    break;
+                } catch (e) {
+                    console.error(`Failed to parse ${key}:`, e);
+                }
+            }
+        }
+        
+        // Also check all keys in localStorage
+        if (!shipState) {
+            for (const key of allKeys) {
+                const data = localStorage.getItem(key);
+                if (data && data.includes('inventory')) {
+                    try {
+                        const parsed = JSON.parse(data);
+                        if (parsed.inventory) {
+                            shipState = parsed;
+                            foundKey = key;
+                            break;
+                        }
+                    } catch (e) {
+                        // Not JSON, skip
+                    }
+                }
+            }
+        }
+        
+        if (shipState && shipState.inventory) {
+            output.innerHTML = `
+                <h2>✅ Ship State Found!</h2>
+                <p><strong>Storage Key:</strong> ${foundKey}</p>
+                <p><strong>Ship Name:</strong> ${shipState.name || 'Unknown'}</p>
+                <p><strong>Ship Class:</strong> ${shipState.class || 'Unknown'}</p>
+                <p><strong>Credits:</strong> ${shipState.credits || 0}</p>
+                <p><strong>Fuel Pellets:</strong> ${shipState.fuelPellets || 0} / ${shipState.maxFuelPellets || 0}</p>
+                
+                <h3>📦 Inventory (${shipState.inventory.length} items)</h3>
+                ${shipState.inventory.length === 0 ? 
+                    '<p class="empty">No items in inventory</p>' : 
+                    shipState.inventory.map(item => `
+                        <div class="item">
+                            <strong>${item.name || item.id}</strong> 
+                            (${item.id})
+                            <br>
+                            Type: ${item.type || 'unknown'} | 
+                            Quantity: ${item.quantity || 1} | 
+                            Stackable: ${item.stackable ? 'Yes' : 'No'}
+                        </div>
+                    `).join('')
+                }
+                
+                <h3>⛏️ Asteroid Clusters</h3>
+                <pre>${JSON.stringify(shipState.asteroidClusters || [], null, 2)}</pre>
+                
+                <h3>📊 Full Ship State</h3>
+                <pre>${JSON.stringify(shipState, null, 2)}</pre>
+            `;
+        } else {
+            output.innerHTML = `
+                <h2 class="empty">❌ Ship State Not Found</h2>
+                <p>No ship state found in localStorage.</p>
+                <h3>Available localStorage keys:</h3>
+                <pre>${allKeys.join('\n')}</pre>
+                <p><em>Make sure you have the game open in another tab and have logged in.</em></p>
+            `;
+        }
+    </script>
+</body>
+</html>

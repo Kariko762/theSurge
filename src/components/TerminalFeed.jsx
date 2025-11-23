@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { getShipState } from '../lib/shipState.js';
 
 /**
  * TerminalFeed - Holographic terminal with chamfered corners and nested tile layout
@@ -14,7 +15,16 @@ const classify = (line) => {
   return 'normal';
 };
 
-const TerminalFeed = ({ events = [], legacyEntries = [], onStartMining, onCancelMining, onTransferLoot, onLeaveLoot }) => {
+const TerminalFeed = ({ 
+  events = [], 
+  legacyEntries = [], 
+  showInventory = false,
+  onCloseInventory,
+  onStartMining, 
+  onCancelMining, 
+  onTransferLoot, 
+  onLeaveLoot 
+}) => {
   const containerRef = useRef(null);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const scrollTimeoutRef = useRef(null);
@@ -22,6 +32,51 @@ const TerminalFeed = ({ events = [], legacyEntries = [], onStartMining, onCancel
   const prevEventsLengthRef = useRef(events.length);
   const prevLegacyLengthRef = useRef(legacyEntries.length);
   const hasScrolledManually = useRef(false);
+  const savedScrollTop = useRef(0); // Preserve scroll position across re-renders
+  
+  // Inventory state
+  const [inventory, setInventory] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
+  
+  // Load inventory when showing
+  useEffect(() => {
+    if (showInventory) {
+      const shipState = getShipState();
+      const state = shipState.getState();
+      setInventory(state.inventory || []);
+    }
+  }, [showInventory]);
+
+  // Track user scroll behavior
+  const handleScroll = () => {
+    if (!containerRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 10; // 10px tolerance
+    
+    // Save current scroll position
+    savedScrollTop.current = scrollTop;
+    
+    // If user scrolls to bottom, re-enable auto-scroll
+    if (isAtBottom) {
+      hasScrolledManually.current = false;
+      lastScrollTop.current = scrollTop;
+    } else if (scrollTop < lastScrollTop.current - 10) {
+      // User scrolled up significantly - disable auto-scroll
+      hasScrolledManually.current = true;
+      lastScrollTop.current = scrollTop;
+    }
+  };
+
+  // Preserve scroll position on re-renders (e.g., when focus changes)
+  useLayoutEffect(() => {
+    if (!containerRef.current) return;
+    
+    // Restore saved scroll position after render
+    if (savedScrollTop.current > 0) {
+      containerRef.current.scrollTop = savedScrollTop.current;
+    }
+  });
 
   // Auto-scroll to bottom ONLY when new data is actually added
   useEffect(() => {
@@ -50,28 +105,11 @@ const TerminalFeed = ({ events = [], legacyEntries = [], onStartMining, onCancel
         if (containerRef.current) {
           containerRef.current.scrollTop = containerRef.current.scrollHeight;
           lastScrollTop.current = containerRef.current.scrollHeight;
+          savedScrollTop.current = containerRef.current.scrollHeight;
         }
       });
     }
   }, [events, legacyEntries]);
-
-  // Track user scroll behavior
-  const handleScroll = () => {
-    if (!containerRef.current) return;
-    
-    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-    const isAtBottom = scrollHeight - scrollTop - clientHeight < 10; // 10px tolerance
-    
-    // If user scrolls to bottom, re-enable auto-scroll
-    if (isAtBottom) {
-      hasScrolledManually.current = false;
-      lastScrollTop.current = scrollTop;
-    } else if (scrollTop < lastScrollTop.current - 10) {
-      // User scrolled up significantly - disable auto-scroll
-      hasScrolledManually.current = true;
-      lastScrollTop.current = scrollTop;
-    }
-  };
 
   // Chamfered corner SVG clip path
   const SquareBox = ({ children, style }) => (
@@ -180,7 +218,10 @@ const TerminalFeed = ({ events = [], legacyEntries = [], onStartMining, onCancel
       </div>
 
       {/* Scrollable tile container */}
-      <div ref={containerRef} style={{
+      <div 
+        ref={containerRef}
+        onScroll={handleScroll}
+        style={{
         flex: 1,
         overflowY: 'auto',
         overflowX: 'hidden',
@@ -567,6 +608,249 @@ const TerminalFeed = ({ events = [], legacyEntries = [], onStartMining, onCancel
             </div>
           );
         })}
+        
+        {/* Inventory Report Card - shown at bottom when inventory view is active */}
+        {showInventory && (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            paddingBottom: '16px',
+            marginTop: '16px',
+            borderTop: '1px solid rgba(0,255,255,0.15)'
+          }}>
+            {/* Inventory Report Box */}
+            <div style={{ position: 'relative' }}>
+              <div style={{
+                position: 'relative',
+                padding: '12px 16px',
+                border: '2px solid rgba(0,255,255,0.6)',
+                borderRadius: '8px',
+                boxShadow: '0 0 10px rgba(0,255,255,0.25), inset 0 0 16px rgba(0,255,255,0.1)',
+                background: 'rgba(0,15,25,0.85)',
+                fontFamily: 'Consolas, monospace',
+                color: '#00ffff'
+              }}>
+                {/* Inner frame */}
+                <div style={{
+                  position: 'absolute',
+                  inset: '6px',
+                  border: '1px solid rgba(0,255,255,0.3)',
+                  borderRadius: '5px',
+                  pointerEvents: 'none'
+                }} />
+                
+                {/* Header Section - Title + Buttons */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '12px',
+                  position: 'relative',
+                  zIndex: 1
+                }}>
+                  {/* Title */}
+                  <div style={{
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    color: '#00ffff',
+                    letterSpacing: '1px',
+                    textShadow: '0 0 8px rgba(0,255,255,0.8)'
+                  }}>
+                    INVENTORY REPORT
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div style={{
+                    display: 'flex',
+                    gap: '6px',
+                    marginLeft: 'auto'
+                  }}>
+                    {['JETTISON', 'SALVAGE', 'LOCK'].map(label => (
+                      <button
+                        key={label}
+                        style={{
+                          padding: '4px 8px',
+                          background: 'rgba(0, 20, 30, 0.6)',
+                          border: '1px solid rgba(52, 224, 255, 0.5)',
+                          borderRadius: '3px',
+                          color: 'rgba(52, 224, 255, 0.7)',
+                          fontSize: '9px',
+                          fontWeight: '600',
+                          letterSpacing: '0.8px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          opacity: selectedItem ? 1 : 0.4,
+                          pointerEvents: selectedItem ? 'auto' : 'none'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (selectedItem) {
+                            e.currentTarget.style.background = 'rgba(52, 224, 255, 0.15)';
+                            e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.9)';
+                            e.currentTarget.style.color = '#34e0ff';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'rgba(0, 20, 30, 0.6)';
+                          e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.5)';
+                          e.currentTarget.style.color = 'rgba(52, 224, 255, 0.7)';
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                    <button
+                      onClick={onCloseInventory}
+                      style={{
+                        padding: '4px 8px',
+                        background: 'rgba(255, 80, 80, 0.1)',
+                        border: '1px solid rgba(255, 80, 80, 0.5)',
+                        borderRadius: '3px',
+                        color: '#ff5050',
+                        fontSize: '9px',
+                        fontWeight: '600',
+                        letterSpacing: '0.8px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 80, 80, 0.25)';
+                        e.currentTarget.style.borderColor = 'rgba(255, 80, 80, 0.9)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 80, 80, 0.1)';
+                        e.currentTarget.style.borderColor = 'rgba(255, 80, 80, 0.5)';
+                      }}
+                    >
+                      CLOSE
+                    </button>
+                  </div>
+                </div>
+
+                {/* Content Container - Different background like mining report */}
+                <div style={{
+                  border: '1px solid rgba(0,255,255,0.35)',
+                  borderRadius: '4px',
+                  padding: '10px 12px',
+                  background: 'rgba(0,25,40,0.5)',
+                  boxShadow: 'inset 0 0 10px rgba(0,255,255,0.2)',
+                  position: 'relative',
+                  zIndex: 1
+                }}>
+                  {/* Inventory Grid */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(6, 1fr)',
+                    gap: '6px'
+                  }}>
+                    {Array.from({ length: 24 }, (_, index) => {
+                      const item = inventory[index] || null;
+                      return (
+                        <div
+                          key={index}
+                          onClick={() => item && setSelectedItem(selectedItem?.index === index ? null : { ...item, index })}
+                          style={{
+                            background: item 
+                              ? 'linear-gradient(135deg, rgba(0, 40, 60, 0.8) 0%, rgba(0, 60, 90, 0.9) 100%)'
+                              : 'rgba(0, 20, 35, 0.5)',
+                            border: selectedItem?.index === index
+                              ? '2px solid rgba(52, 224, 255, 1)'
+                              : item
+                              ? '1px solid rgba(52, 224, 255, 0.3)'
+                              : '1px solid rgba(52, 224, 255, 0.15)',
+                            borderRadius: '3px',
+                            cursor: item ? 'pointer' : 'default',
+                            transition: 'all 0.2s ease',
+                            position: 'relative',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '8px 4px',
+                            minHeight: '70px',
+                            boxShadow: item 
+                              ? '0 0 6px rgba(52, 224, 255, 0.3), inset 0 1px 0 rgba(52, 224, 255, 0.2)'
+                              : 'inset 0 0 5px rgba(0, 0, 0, 0.5)',
+                            overflow: 'hidden'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (item) {
+                              e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.7)';
+                              e.currentTarget.style.transform = 'scale(1.05)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (item && selectedItem?.index !== index) {
+                              e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.3)';
+                              e.currentTarget.style.transform = 'scale(1)';
+                            }
+                          }}
+                        >
+                          {item ? (
+                            <>
+                              {/* Item Icon */}
+                              <div style={{
+                                fontSize: '24px',
+                                color: 'rgba(52, 224, 255, 0.7)',
+                                textShadow: '0 0 6px rgba(52, 224, 255, 0.8)',
+                                marginBottom: '4px'
+                              }}>
+                                {getItemIcon(item)}
+                              </div>
+                              
+                              {/* Item Name */}
+                              <div style={{
+                                fontSize: '8px',
+                                color: 'rgba(52, 224, 255, 0.9)',
+                                fontWeight: '600',
+                                textAlign: 'center',
+                                textShadow: '0 0 4px rgba(52, 224, 255, 0.6)',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                width: '100%',
+                                lineHeight: '1.2'
+                              }}>
+                                {item.name}
+                              </div>
+                              
+                              {/* Quantity Badge */}
+                              {item.quantity > 1 && (
+                                <div style={{
+                                  position: 'absolute',
+                                  top: '4px',
+                                  right: '4px',
+                                  background: 'rgba(52, 224, 255, 0.3)',
+                                  border: '1px solid rgba(52, 224, 255, 0.6)',
+                                  borderRadius: '2px',
+                                  padding: '2px 4px',
+                                  fontSize: '9px',
+                                  fontWeight: 'bold',
+                                  color: '#34e0ff',
+                                  lineHeight: '1',
+                                  boxShadow: '0 0 4px rgba(52, 224, 255, 0.5)'
+                                }}>
+                                  x{item.quantity}
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            <div style={{
+                              fontSize: '20px',
+                              color: 'rgba(52, 224, 255, 0.15)'
+                            }}>
+                              ·
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Scrollbar styling */}
@@ -589,6 +873,32 @@ const TerminalFeed = ({ events = [], legacyEntries = [], onStartMining, onCancel
       `}</style>
     </SquareBox>
   );
+};
+
+// Get appropriate icon for item type
+const getItemIcon = (item) => {
+  const type = item.type || item.category || 'unknown';
+  
+  switch(type.toLowerCase()) {
+    case 'ore':
+    case 'mineral':
+    case 'resource':
+      return '⬢'; // Hexagon for ore/minerals
+    case 'fragment':
+    case 'component':
+      return '⚙'; // Gear for components
+    case 'artifact':
+    case 'rare':
+      return '◆'; // Diamond for artifacts
+    case 'fuel':
+    case 'energy':
+      return '⚡'; // Lightning for fuel/energy
+    case 'data':
+    case 'intel':
+      return '▣'; // Square for data
+    default:
+      return '■'; // Square for unknown
+  }
 };
 
 export default TerminalFeed;

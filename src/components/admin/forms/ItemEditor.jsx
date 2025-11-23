@@ -2,17 +2,19 @@ import { useState, useEffect } from 'react';
 import { SaveIcon, CloseIcon, WarningIcon } from '../HoloIcons';
 import '../../../styles/AdminGlass.css';
 
-export default function ItemEditor({ item, onSave, onCancel }) {
+export default function ItemEditor({ item, factions = [], onSave, onCancel }) {
   const [formData, setFormData] = useState({
     id: '',
     name: '',
     description: '',
     category: 'resource',
+    subcategory: '',
     tier: 'common',
     weight: 1,
     size: 1,
     maxStack: 1,
     value: 0,
+    faction: null,
     tags: [],
     properties: {}
   });
@@ -32,11 +34,13 @@ export default function ItemEditor({ item, onSave, onCancel }) {
         name: item.name || '',
         description: item.description || '',
         category: item.category || 'resource',
+        subcategory: item.subcategory || '',
         tier: item.tier || 'common',
         weight: item.weight || 1,
         size: item.size || 1,
         maxStack: item.maxStack || 1,
         value: item.value || 0,
+        faction: item.faction || null,
         tags: item.tags || [],
         properties: item.properties || {}
       });
@@ -45,13 +49,40 @@ export default function ItemEditor({ item, onSave, onCancel }) {
 
   const categories = [
     { value: 'resource', label: 'Resource', desc: 'Raw materials, minerals, gases' },
-    { value: 'equipment', label: 'Equipment', desc: 'Ship modules, weapons, upgrades' },
+    { value: 'weapon', label: 'Weapon', desc: 'Ship weapons and armaments' },
+    { value: 'subsystem', label: 'Subsystem', desc: 'Ship subsystems and modules' },
+    { value: 'equipment', label: 'Equipment', desc: 'General ship upgrades' },
     { value: 'consumable', label: 'Consumable', desc: 'Fuel, repair kits, ammo' },
-    { value: 'component', label: 'Component', desc: 'Crafting materials, parts' },
     { value: 'artifact', label: 'Artifact', desc: 'Rare discoveries, relics' },
     { value: 'data', label: 'Data', desc: 'Information, blueprints, logs' },
     { value: 'contraband', label: 'Contraband', desc: 'Illegal or restricted items' }
   ];
+
+  const subcategories = {
+    weapon: [
+      { value: 'laser', label: 'Laser Weapons' },
+      { value: 'missile', label: 'Missile Weapons' },
+      { value: 'kinetic', label: 'Kinetic Weapons' },
+      { value: 'rail', label: 'Railgun Weapons' },
+      { value: 'thermal', label: 'Thermal Weapons' },
+      { value: 'plasma', label: 'Plasma Weapons' }
+    ],
+    subsystem: [
+      { value: 'ecm', label: 'ECM (Electronic Countermeasures)' },
+      { value: 'sensor', label: 'Sensors & Targeting' },
+      { value: 'power', label: 'Power Management' },
+      { value: 'shield', label: 'Shield Systems' },
+      { value: 'hull', label: 'Hull Reinforcement' },
+      { value: 'cargo', label: 'Cargo Systems' },
+      { value: 'lifesupport', label: 'Life Support' }
+    ],
+    equipment: [
+      { value: 'engine', label: 'Engine' },
+      { value: 'reactor', label: 'Reactor' },
+      { value: 'ftl', label: 'FTL Drive' },
+      { value: 'misc', label: 'Miscellaneous' }
+    ]
+  };
 
   const tiers = [
     { value: 'common', label: 'Common', color: '#888' },
@@ -234,7 +265,10 @@ export default function ItemEditor({ item, onSave, onCancel }) {
                 <select
                   className="input-neon"
                   value={formData.category}
-                  onChange={(e) => handleChange('category', e.target.value)}
+                  onChange={(e) => {
+                    handleChange('category', e.target.value);
+                    handleChange('subcategory', ''); // Reset subcategory when category changes
+                  }}
                 >
                   {categories.map(cat => (
                     <option key={cat.value} value={cat.value}>
@@ -243,6 +277,25 @@ export default function ItemEditor({ item, onSave, onCancel }) {
                   ))}
                 </select>
               </div>
+
+              {/* Subcategory - Only show if category has subcategories */}
+              {subcategories[formData.category] && (
+                <div className="form-group">
+                  <label>Subcategory</label>
+                  <select
+                    className="input-neon"
+                    value={formData.subcategory}
+                    onChange={(e) => handleChange('subcategory', e.target.value)}
+                  >
+                    <option value="">-- Select Subcategory --</option>
+                    {subcategories[formData.category].map(sub => (
+                      <option key={sub.value} value={sub.value}>
+                        {sub.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div className="form-group">
                 <label>Tier / Rarity</label>
@@ -257,6 +310,22 @@ export default function ItemEditor({ item, onSave, onCancel }) {
                 >
                   {tiers.map(tier => (
                     <option key={tier.value} value={tier.value}>{tier.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Faction / Manufacturer</label>
+                <select
+                  className="input-neon"
+                  value={formData.faction || ''}
+                  onChange={(e) => handleChange('faction', e.target.value || null)}
+                >
+                  <option value="">-- No Faction --</option>
+                  {factions.map(faction => (
+                    <option key={faction.id} value={faction.id}>
+                      {faction.iconEmoji} {faction.name}
+                    </option>
                   ))}
                 </select>
               </div>

@@ -69,6 +69,785 @@
         "xp": 100,
         "damage": "major"
       }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T07:11:23.791Z",
+      "duration": 2,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T07:17:03.017Z",
+      "duration": 1,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T07:18:45.528Z",
+      "duration": 3,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T07:19:46.056Z",
+      "duration": 2,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T07:27:51.229Z",
+      "duration": 2,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T07:32:07.111Z",
+      "duration": 2,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T07:32:30.999Z",
+      "duration": 1,
+      "playerChoice": "extract_minerals",
+      "outcome": "failure",
+      "rewards": {
+        "items": [],
+        "xp": 30,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T07:32:43.712Z",
+      "duration": 2,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T07:32:50.408Z",
+      "duration": 3,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T07:36:26.512Z",
+      "duration": 2,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T07:36:41.597Z",
+      "duration": 1,
+      "playerChoice": "extract_minerals",
+      "outcome": "failure",
+      "rewards": {
+        "items": [],
+        "xp": 30,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T07:37:10.502Z",
+      "duration": 0,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T07:37:17.034Z",
+      "duration": 2,
+      "playerChoice": "extract_minerals",
+      "outcome": "failure",
+      "rewards": {
+        "items": [],
+        "xp": 30,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T07:37:30.667Z",
+      "duration": 44,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T07:37:30.702Z",
+      "duration": 81,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T07:43:51.905Z",
+      "duration": 2,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T07:43:55.813Z",
+      "duration": 5,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T07:44:04.918Z",
+      "duration": 4,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T07:44:04.922Z",
+      "duration": 6,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T07:48:32.459Z",
+      "duration": 1,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T07:48:41.959Z",
+      "duration": 3,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [
+          {
+            "itemId": "iron_ore",
+            "name": "iron_ore",
+            "quantity": 7,
+            "category": "resource",
+            "rarity": "common",
+            "value": 0
+          }
+        ],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T07:48:57.059Z",
+      "duration": 4,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [
+          {
+            "itemId": "iron_ore",
+            "name": "iron_ore",
+            "quantity": 10,
+            "category": "resource",
+            "rarity": "common",
+            "value": 0
+          }
+        ],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T07:48:57.062Z",
+      "duration": 6,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [
+          {
+            "itemId": "iron_ore",
+            "name": "iron_ore",
+            "quantity": 11,
+            "category": "resource",
+            "rarity": "common",
+            "value": 0
+          },
+          {
+            "itemId": "repair_kit",
+            "name": "repair_kit",
+            "quantity": 2,
+            "category": "resource",
+            "rarity": "common",
+            "value": 0
+          }
+        ],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T07:52:50.558Z",
+      "duration": 1,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T07:52:58.164Z",
+      "duration": 2,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [
+          {
+            "itemId": "iron_ore",
+            "name": "iron_ore",
+            "quantity": 9,
+            "category": "resource",
+            "rarity": "common",
+            "value": 0
+          }
+        ],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T07:53:34.866Z",
+      "duration": 1,
+      "playerChoice": "extract_minerals",
+      "outcome": "failure",
+      "rewards": {
+        "items": [],
+        "xp": 30,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T07:53:42.364Z",
+      "duration": 4,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T07:53:52.866Z",
+      "duration": 2,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T08:55:36.417Z",
+      "duration": 2,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T08:56:13.213Z",
+      "duration": 4,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [
+          {
+            "itemId": "iron_ore",
+            "name": "iron_ore",
+            "quantity": 11,
+            "category": "resource",
+            "rarity": "common",
+            "value": 0
+          },
+          {
+            "itemId": "platinum_ore",
+            "name": "platinum_ore",
+            "quantity": 3,
+            "category": "resource",
+            "rarity": "common",
+            "value": 0
+          }
+        ],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T08:56:34.417Z",
+      "duration": 4,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [
+          {
+            "itemId": "iron_ore",
+            "name": "iron_ore",
+            "quantity": 13,
+            "category": "resource",
+            "rarity": "common",
+            "value": 0
+          }
+        ],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T09:18:23.822Z",
+      "duration": 2,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T09:20:31.718Z",
+      "duration": 1,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T09:20:42.126Z",
+      "duration": 3,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [
+          {
+            "itemId": "iron_ore",
+            "name": "iron_ore",
+            "quantity": 6,
+            "category": "resource",
+            "rarity": "common",
+            "value": 0
+          }
+        ],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T09:21:00.833Z",
+      "duration": 5,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [
+          {
+            "itemId": "platinum_ore",
+            "name": "platinum_ore",
+            "quantity": 2,
+            "category": "resource",
+            "rarity": "common",
+            "value": 0
+          }
+        ],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T09:21:08.033Z",
+      "duration": 2,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [
+          {
+            "itemId": "platinum_ore",
+            "name": "platinum_ore",
+            "quantity": 1,
+            "category": "resource",
+            "rarity": "common",
+            "value": 0
+          }
+        ],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T09:22:43.607Z",
+      "duration": 1,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T09:22:46.815Z",
+      "duration": 4,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [
+          {
+            "itemId": "iron_ore",
+            "name": "iron_ore",
+            "quantity": 12,
+            "category": "resource",
+            "rarity": "common",
+            "value": 0
+          }
+        ],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T09:39:07.419Z",
+      "duration": 1,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T09:39:16.118Z",
+      "duration": 2,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [
+          {
+            "itemId": "platinum_ore",
+            "name": "platinum_ore",
+            "quantity": 4,
+            "category": "resource",
+            "rarity": "common",
+            "value": 0
+          }
+        ],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T09:39:32.420Z",
+      "duration": 1,
+      "playerChoice": "extract_minerals",
+      "outcome": "failure",
+      "rewards": {
+        "items": [],
+        "xp": 30,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T09:39:37.531Z",
+      "duration": 3,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [
+          {
+            "itemId": "iron_ore",
+            "name": "iron_ore",
+            "quantity": 11,
+            "category": "resource",
+            "rarity": "common",
+            "value": 0
+          }
+        ],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T09:39:42.428Z",
+      "duration": 1,
+      "playerChoice": "extract_minerals",
+      "outcome": "failure",
+      "rewards": {
+        "items": [],
+        "xp": 30,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T12:47:06.273Z",
+      "duration": 4,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T12:47:12.751Z",
+      "duration": 1,
+      "playerChoice": "extract_minerals",
+      "outcome": "failure",
+      "rewards": {
+        "items": [],
+        "xp": 30,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T12:47:18.064Z",
+      "duration": 6,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [
+          {
+            "itemId": "iron_ore",
+            "name": "iron_ore",
+            "quantity": 9,
+            "category": "resource",
+            "rarity": "common",
+            "value": 0
+          }
+        ],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_asteroid_belt",
+      "scenarioId": "scan_cluster",
+      "timestamp": "2025-11-22T12:50:53.194Z",
+      "duration": 1,
+      "playerChoice": "scan_cluster",
+      "outcome": "success",
+      "rewards": {
+        "items": [],
+        "xp": 50,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "mine_asteroid_belt",
+      "scenarioId": "extract_minerals",
+      "timestamp": "2025-11-22T12:51:00.404Z",
+      "duration": 2,
+      "playerChoice": "extract_minerals",
+      "outcome": "success",
+      "rewards": {
+        "items": [
+          {
+            "itemId": "iron_ore",
+            "name": "iron_ore",
+            "quantity": 6,
+            "category": "resource",
+            "rarity": "common",
+            "value": 0
+          }
+        ],
+        "xp": 100,
+        "credits": 0
+      }
+    },
+    {
+      "eventId": "survey_derelict_station",
+      "scenarioId": "investigate",
+      "timestamp": "2025-11-22T21:31:22.304Z",
+      "duration": 1,
+      "playerChoice": "investigate",
+      "outcome": "encounter",
+      "rewards": {
+        "items": [],
+        "xp": 75,
+        "credits": 0
+      }
     }
   ]
 }

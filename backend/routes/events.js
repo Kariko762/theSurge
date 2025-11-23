@@ -3,6 +3,8 @@ const router = express.Router();
 const { readJSON, writeJSON, backupFile } = require('../utils/fileHandler');
 const { authenticateToken, requireRole } = require('../middleware/auth');
 const { validateEvent } = require('../utils/validation');
+const { checkPOIActionTrigger, getAvailablePOIActions } = require('../services/eventTriggerService');
+const { executeBranch } = require('../services/eventOutcomeProcessor');
 
 /**
  * GET /api/events
@@ -263,6 +265,114 @@ router.delete('/:id', authenticateToken, requireRole('editor', 'admin'), async (
       message: 'Event deleted successfully',
       deletedEvent
     });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/events/trigger-poi-action
+ * Check if a POI action can trigger an event
+ */
+router.post('/trigger-poi-action', async (req, res) => {
+  try {
+    const { poiType, action, shipState, clusterData } = req.body;
+
+    if (!poiType || !action || !shipState) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: poiType, action, shipState'
+      });
+    }
+
+    const event = await checkPOIActionTrigger({
+      poiType,
+      action,
+      shipState,
+      clusterData
+    });
+
+    if (!event) {
+      return res.json({
+        success: true,
+        triggered: false,
+        message: 'No event triggered for this action'
+      });
+    }
+
+    res.json({
+      success: true,
+      triggered: true,
+      event
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/events/available-poi-actions
+ * Get available POI actions for a location
+ */
+router.post('/available-poi-actions', async (req, res) => {
+  try {
+    const { poiType, shipState, clusterData } = req.body;
+
+    if (!poiType || !shipState) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: poiType, shipState'
+      });
+    }
+
+    const actions = await getAvailablePOIActions({
+      poiType,
+      shipState,
+      clusterData
+    });
+
+    res.json({
+      success: true,
+      actions
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/events/execute-branch
+ * Execute an event branch and get the outcome
+ */
+router.post('/execute-branch', async (req, res) => {
+  try {
+    const { event, branchId, shipState, clusterData, rollResult } = req.body;
+
+    if (!event || !branchId || !shipState) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: event, branchId, shipState'
+      });
+    }
+
+    const result = await executeBranch({
+      event,
+      branchId,
+      shipState,
+      clusterData,
+      rollResult
+    });
+
+    res.json(result);
   } catch (error) {
     res.status(500).json({
       success: false,

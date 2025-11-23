@@ -61,7 +61,7 @@ export default function APIDocumentation() {
   };
 
   return (
-    <div>
+    <div style={{ paddingTop: '2rem' }}>
       <h2 style={{ color: 'var(--neon-cyan)', marginBottom: '2rem', fontSize: '1.8rem', textShadow: 'var(--glow-cyan)' }}>
         API Documentation
       </h2>

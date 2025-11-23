@@ -27,6 +27,7 @@ app.use((req, res, next) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/events', require('./routes/events'));
+app.use('/api/encounters', require('./routes/encounters'));
 app.use('/api/config', require('./routes/config'));
 app.use('/api/missions', require('./routes/missions'));
 app.use('/api/telemetry', require('./routes/telemetry'));

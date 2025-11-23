@@ -9,8 +9,10 @@ export default function LootManager({ config, updateConfig }) {
   const [activeTab, setActiveTab] = useState('items');
   const [items, setItems] = useState([]);
   const [lootPools, setLootPools] = useState([]);
+  const [factions, setFactions] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
+  const [filterSubcategory, setFilterSubcategory] = useState('all');
   const [filterTier, setFilterTier] = useState('all');
   const [editingItem, setEditingItem] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
@@ -28,9 +30,12 @@ export default function LootManager({ config, updateConfig }) {
     if (config?.lootTables?.pools) {
       setLootPools(config.lootTables.pools);
     }
+    if (config?.factions) {
+      setFactions(config.factions);
+    }
   }, [config]);
 
-  const categories = ['all', 'resource', 'equipment', 'consumable', 'component', 'artifact', 'data', 'contraband'];
+  const categories = ['all', 'resource', 'weapon', 'subsystem', 'equipment', 'consumable', 'artifact', 'data', 'contraband'];
   const tiers = ['all', 'common', 'uncommon', 'rare', 'epic', 'legendary'];
 
   const filteredItems = items.filter(item => {
@@ -40,10 +45,19 @@ export default function LootManager({ config, updateConfig }) {
       item.description?.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
+    const matchesSubcategory = filterSubcategory === 'all' || item.subcategory === filterSubcategory;
     const matchesTier = filterTier === 'all' || item.tier === filterTier;
     
-    return matchesSearch && matchesCategory && matchesTier;
+    return matchesSearch && matchesCategory && matchesSubcategory && matchesTier;
   });
+
+  // Get unique subcategories for current category
+  const subcategories = ['all', ...new Set(
+    items
+      .filter(item => filterCategory === 'all' || item.category === filterCategory)
+      .map(item => item.subcategory)
+      .filter(Boolean)
+  )];
 
   const openItemEditor = (item, index) => {
     setEditingItem(item);
@@ -134,7 +148,7 @@ export default function LootManager({ config, updateConfig }) {
   return (
     <div>
       {/* Tabs */}
-      <div className="tab-container" style={{ marginBottom: '2rem' }}>
+      <div className="tab-container-sub2">
         <button
           className={`tab-button ${activeTab === 'items' ? 'active' : ''}`}
           onClick={() => setActiveTab('items')}
@@ -152,72 +166,112 @@ export default function LootManager({ config, updateConfig }) {
       {/* ITEMS TAB */}
       {activeTab === 'items' && (
         <>
-          {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-            <h3 style={{ color: 'var(--neon-cyan)', margin: 0, fontSize: '1.3rem' }}>
-              Item Database
-            </h3>
-            <button
-              className="btn-neon btn-neon-primary"
-              onClick={() => openItemEditor(null, null)}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}
-            >
-              <CreateIcon size={18} /> ADD ITEM
-            </button>
-          </div>
+          {/* Compact Filter Bar */}
+          <div className="glass-card" style={{ padding: '0.75rem 1rem', margin: '1rem 2rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.75rem', alignItems: 'end' }}>
+              {/* Filters Row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '0.75rem' }}>
+                {/* Search */}
+                <div>
+                  <input
+                    type="text"
+                    className="input-neon"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search items..."
+                    style={{ 
+                      padding: '0.4rem 0.6rem',
+                      fontSize: '0.8rem',
+                      width: '100%'
+                    }}
+                  />
+                </div>
 
-      {/* Filters */}
-      <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem' }}>
-          {/* Search */}
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label>Search Items</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type="text"
-                className="input-neon"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name, ID, or description..."
-                style={{ paddingLeft: '2.5rem' }}
-              />
-              <SearchIcon size={18} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
+                {/* Category Filter */}
+                <div>
+                  <select
+                    className="input-neon"
+                    value={filterCategory}
+                    onChange={(e) => {
+                      setFilterCategory(e.target.value);
+                      setFilterSubcategory('all');
+                    }}
+                    style={{ 
+                      padding: '0.4rem 0.6rem',
+                      fontSize: '0.8rem',
+                      width: '100%'
+                    }}
+                  >
+                    <option value="all">All Categories</option>
+                    {categories.filter(c => c !== 'all').map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Subcategory Filter */}
+                <div>
+                  <select
+                    className="input-neon"
+                    value={filterSubcategory}
+                    onChange={(e) => setFilterSubcategory(e.target.value)}
+                    disabled={subcategories.length <= 1}
+                    style={{ 
+                      padding: '0.4rem 0.6rem',
+                      fontSize: '0.8rem',
+                      width: '100%',
+                      opacity: subcategories.length <= 1 ? 0.5 : 1
+                    }}
+                  >
+                    <option value="all">All Subcategories</option>
+                    {subcategories.filter(s => s !== 'all').map(sub => (
+                      <option key={sub} value={sub}>{sub}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Tier Filter */}
+                <div>
+                  <select
+                    className="input-neon"
+                    value={filterTier}
+                    onChange={(e) => setFilterTier(e.target.value)}
+                    style={{ 
+                      padding: '0.4rem 0.6rem',
+                      fontSize: '0.8rem',
+                      width: '100%'
+                    }}
+                  >
+                    <option value="all">All Tiers</option>
+                    {tiers.filter(t => t !== 'all').map(tier => (
+                      <option key={tier} value={tier}>{tier}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Add Item Button */}
+              <button
+                className="btn-neon btn-neon-primary"
+                onClick={() => openItemEditor(null, null)}
+                style={{ 
+                  padding: '0.4rem 0.75rem',
+                  fontSize: '0.75rem',
+                  whiteSpace: 'nowrap',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem'
+                }}
+              >
+                <CreateIcon size={14} /> Add Item
+              </button>
+            </div>
+
+            {/* Item Count */}
+            <div style={{ marginTop: '0.5rem', color: '#666', fontSize: '0.75rem' }}>
+              Showing {filteredItems.length} of {items.length} items
             </div>
           </div>
-
-          {/* Category Filter */}
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label>Category</label>
-            <select
-              className="input-neon"
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-            >
-              {categories.map(cat => (
-                <option key={cat} value={cat}>{cat === 'all' ? 'All Categories' : cat}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Tier Filter */}
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label>Tier</label>
-            <select
-              className="input-neon"
-              value={filterTier}
-              onChange={(e) => setFilterTier(e.target.value)}
-            >
-              {tiers.map(tier => (
-                <option key={tier} value={tier}>{tier === 'all' ? 'All Tiers' : tier}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div style={{ marginTop: '1rem', color: '#888', fontSize: '0.85rem' }}>
-          Showing {filteredItems.length} of {items.length} items
-        </div>
-      </div>
 
       {/* Items Grid */}
       {filteredItems.length === 0 && (
@@ -226,19 +280,20 @@ export default function LootManager({ config, updateConfig }) {
           textAlign: 'center',
           background: 'rgba(0, 20, 40, 0.3)',
           borderRadius: '8px',
-          border: '1px dashed var(--glass-border)'
+          border: '1px dashed var(--glass-border)',
+          margin: '0 2rem 2rem 2rem'
         }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.5 }}>📦</div>
           <div style={{ color: '#888', fontSize: '1rem', marginBottom: '0.5rem' }}>
-            {searchQuery || filterCategory !== 'all' || filterTier !== 'all' ? 'No items match filters' : 'No items in database'}
+            {searchQuery || filterCategory !== 'all' || filterSubcategory !== 'all' || filterTier !== 'all' ? 'No items match filters' : 'No items in database'}
           </div>
           <div style={{ color: '#666', fontSize: '0.9rem' }}>
-            Click "ADD ITEM" to create your first item
+            Click "Add Item" to create your first item
           </div>
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem', margin: '0 2rem 2rem 2rem' }}>
         {filteredItems.map((item, index) => {
           const actualIndex = items.findIndex(i => i.id === item.id);
           return (
@@ -540,6 +595,7 @@ export default function LootManager({ config, updateConfig }) {
       {showItemEditor && (
         <ItemEditor
           item={editingItem}
+          factions={factions}
           onSave={saveItem}
           onCancel={closeItemEditor}
         />

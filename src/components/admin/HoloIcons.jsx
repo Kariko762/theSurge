@@ -120,6 +120,15 @@ export const CreateIcon = ({ size = 20 }) => (
   </HoloIcon>
 );
 
+// Add Icon - Simple Plus
+export const AddIcon = ({ size = 20 }) => (
+  <HoloIcon size={size} glow={false}>
+    <line x1="12" y1="5" x2="12" y2="19" stroke="#00ffff" strokeWidth="2" strokeLinecap="round" />
+    <line x1="5" y1="12" x2="19" y2="12" stroke="#00ffff" strokeWidth="2" strokeLinecap="round" />
+    <circle cx="12" cy="12" r="10" stroke="#00ffff" strokeWidth="1.5" fill="none" opacity="0.3" />
+  </HoloIcon>
+);
+
 // Edit Icon - Pen with Scan Lines
 export const EditIcon = ({ size = 18 }) => (
   <HoloIcon size={size} glow={false}>
@@ -269,5 +278,30 @@ export const CloseIcon = ({ size = 20 }) => (
   <HoloIcon size={size}>
     <line x1="6" y1="6" x2="18" y2="18" stroke="#00ffff" strokeWidth="2" strokeLinecap="round" />
     <line x1="18" y1="6" x2="6" y2="18" stroke="#00ffff" strokeWidth="2" strokeLinecap="round" />
+  </HoloIcon>
+);
+
+// Play Icon - Triangle
+export const PlayIcon = ({ size = 20 }) => (
+  <HoloIcon size={size} glow={false}>
+    <path d="M8 5L18 12L8 19V5Z" stroke="#00ffff" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
+    <circle cx="12" cy="12" r="10" stroke="#00ffff" strokeWidth="1" fill="none" opacity="0.3" />
+  </HoloIcon>
+);
+
+// Pause Icon - Two Bars
+export const PauseIcon = ({ size = 20 }) => (
+  <HoloIcon size={size} glow={false}>
+    <rect x="7" y="5" width="3" height="14" stroke="#00ffff" strokeWidth="1.5" fill="none" />
+    <rect x="14" y="5" width="3" height="14" stroke="#00ffff" strokeWidth="1.5" fill="none" />
+    <circle cx="12" cy="12" r="10" stroke="#00ffff" strokeWidth="1" fill="none" opacity="0.3" />
+  </HoloIcon>
+);
+
+// Refresh Icon - Circular Arrows
+export const RefreshIcon = ({ size = 20 }) => (
+  <HoloIcon size={size} glow={false}>
+    <path d="M4 12C4 7.58 7.58 4 12 4C14.5 4 16.7 5.2 18 7M20 12C20 16.42 16.42 20 12 20C9.5 20 7.3 18.8 6 17" stroke="#00ffff" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+    <path d="M18 4V7H15M6 20V17H9" stroke="#00ffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
   </HoloIcon>
 );
