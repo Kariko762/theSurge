@@ -28,15 +28,25 @@ export default function LootPoolEditor({ pool, items, onSave, onCancel }) {
 
   useEffect(() => {
     if (pool) {
-      const hasEntries = pool.entries && pool.entries.length > 0;
+      // Ensure entries is always an array (convert from object if needed)
+      let entriesArray = [];
+      if (pool.entries) {
+        if (Array.isArray(pool.entries)) {
+          entriesArray = pool.entries;
+        } else if (typeof pool.entries === 'object') {
+          entriesArray = Object.values(pool.entries);
+        }
+      }
+      
+      const hasEntries = entriesArray.length > 0;
       setPoolMode(hasEntries ? 'manual' : 'tags');
       setFormData({
         id: pool.id || '',
         name: pool.name || '',
         description: pool.description || '',
-        tags: pool.tags || [],
-        grades: pool.grades || [],
-        entries: pool.entries || []
+        tags: Array.isArray(pool.tags) ? pool.tags : [],
+        grades: Array.isArray(pool.grades) ? pool.grades : [],
+        entries: entriesArray
       });
     }
   }, [pool]);

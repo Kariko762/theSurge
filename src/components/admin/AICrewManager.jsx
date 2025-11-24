@@ -18,8 +18,8 @@ export default function AICrewManager() {
   const loadAICores = async () => {
     try {
       setLoading(true);
-      const response = await api.config.get();
-      setAiList(response.config?.aiCores || {});
+      const aiCores = await api.aiCores.getAll();
+      setAiList(aiCores || {});
     } catch (err) {
       console.error('Failed to load AI cores:', err);
     } finally {
@@ -29,7 +29,18 @@ export default function AICrewManager() {
 
   const saveToBackend = async (updatedList) => {
     try {
-      await api.config.update({ aiCores: updatedList });
+      // aiCores is an object, not an array
+      const existing = await api.aiCores.getAll();
+      
+      for (const [aiId, aiCore] of Object.entries(updatedList)) {
+        const exists = existing.hasOwnProperty(aiId);
+        
+        if (exists) {
+          await api.aiCores.update(aiCore.id, aiCore);
+        } else {
+          await api.aiCores.create(aiCore);
+        }
+      }
     } catch (err) {
       console.error('Failed to save AI cores:', err);
       alert('Failed to save AI cores: ' + err.message);

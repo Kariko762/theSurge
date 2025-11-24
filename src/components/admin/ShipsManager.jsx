@@ -43,8 +43,8 @@ export default function ShipsManager() {
   const loadShips = async () => {
     try {
       setLoading(true);
-      const response = await api.config.get();
-      setShips(response.config?.ships || response.ships || []);
+      const ships = await api.ships.getAll();
+      setShips(ships || []);
       setError('');
     } catch (err) {
       setError('Failed to load ships');
@@ -55,8 +55,8 @@ export default function ShipsManager() {
 
   const loadLootItems = async () => {
     try {
-      const response = await api.config.get();
-      setLootItems(response.config?.lootTables?.items || []);
+      const items = await api.items.getAll();
+      setLootItems(items || []);
     } catch (err) {
       console.error('Failed to load loot items:', err);
     }
@@ -64,8 +64,8 @@ export default function ShipsManager() {
 
   const loadAICrew = async () => {
     try {
-      const response = await api.config.get();
-      setAiCrew(response.config?.aiCrew || []);
+      const aiCrew = await api.aiCores.getAll();
+      setAiCrew(aiCrew || {});
     } catch (err) {
       console.error('Failed to load AI crew:', err);
     }
@@ -73,8 +73,8 @@ export default function ShipsManager() {
 
   const loadShipTierBonuses = async () => {
     try {
-      const response = await api.config.get();
-      setShipTierBonuses(response.config?.shipTierBonuses || []);
+      const tierBonuses = await api.shipTiers.getAll();
+      setShipTierBonuses(tierBonuses || []);
     } catch (err) {
       console.error('Failed to load ship tier bonuses:', err);
     }
@@ -82,8 +82,8 @@ export default function ShipsManager() {
 
   const loadFactions = async () => {
     try {
-      const response = await api.config.get();
-      setFactions(response.config?.factions || []);
+      const factions = await api.factions.getAll();
+      setFactions(factions || []);
     } catch (err) {
       console.error('Failed to load factions:', err);
     }
@@ -95,9 +95,17 @@ export default function ShipsManager() {
       setError('');
       setSuccessMessage('');
       
-      const response = await api.config.get();
-      const updatedConfig = { ...response.config, ships };
-      await api.config.update(updatedConfig);
+      // Save each ship individually (use update if exists, create if new)
+      for (const ship of ships) {
+        const existingShips = await api.ships.getAll();
+        const exists = existingShips.some(s => s.id === ship.id);
+        
+        if (exists) {
+          await api.ships.update(ship.id, ship);
+        } else {
+          await api.ships.create(ship);
+        }
+      }
       
       setSuccessMessage('Ships saved successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
@@ -872,7 +880,7 @@ export default function ShipsManager() {
                   </div>
                   <div style={{ display: 'grid', gap: '0.5rem' }}>
                     {Object.entries(editingShip.aiCores || {}).map(([slotId, crewId]) => {
-                      const assignedCrew = aiCrew.find(c => c.id === crewId);
+                      const assignedCrew = aiCrew[crewId];
                       return (
                         <div key={slotId}>
                           <label style={{ color: '#aaa', fontSize: '0.7rem', display: 'block', marginBottom: '0.3rem' }}>
@@ -895,7 +903,7 @@ export default function ShipsManager() {
                             }}
                           >
                             <option value="">-- Empty --</option>
-                            {aiCrew.map(crew => (
+                            {Object.values(aiCrew).map(crew => (
                               <option key={crew.id} value={crew.id}>
                                 {crew.name} ({crew.specialization})
                               </option>

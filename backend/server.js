@@ -32,6 +32,14 @@ app.use('/api/config', require('./routes/config'));
 app.use('/api/missions', require('./routes/missions'));
 app.use('/api/telemetry', require('./routes/telemetry'));
 
+// New modular data routes
+app.use('/api/ships', require('./routes/ships'));
+app.use('/api/ship-tiers', require('./routes/ship-tiers'));
+app.use('/api/factions', require('./routes/factions'));
+app.use('/api/items', require('./routes/items'));
+app.use('/api/narratives', require('./routes/narratives'));
+app.use('/api/ai-cores', require('./routes/ai-cores'));
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
@@ -85,10 +93,18 @@ async function startServer() {
       console.log('   - GET    /api/auth/session');
       console.log('   - GET    /api/users');
       console.log('   - GET    /api/events');
-      console.log('   - GET    /api/config');
+      console.log('   - GET    /api/config (aggregated)');
       console.log('   - GET    /api/missions');
       console.log('   - GET    /api/telemetry');
       console.log('   - POST   /api/telemetry/track');
+      console.log('');
+      console.log('   Modular Data Endpoints:');
+      console.log('   - CRUD   /api/ships');
+      console.log('   - CRUD   /api/ship-tiers');
+      console.log('   - CRUD   /api/factions');
+      console.log('   - CRUD   /api/items');
+      console.log('   - CRUD   /api/narratives');
+      console.log('   - CRUD   /api/ai-cores');
       console.log('   ============================================');
       console.log('');
     });

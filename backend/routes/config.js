@@ -1,16 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const { readJSON, writeJSON, backupFile } = require('../utils/fileHandler');
+const { readJSON, writeJSON, backupFile, buildAggregatedConfig } = require('../utils/fileHandler');
 const { authenticateToken, requireRole } = require('../middleware/auth');
 const { validateConfig } = require('../utils/validation');
 
 /**
  * GET /api/config
- * Get all configuration
+ * Get all configuration (aggregated from all data files for backwards compatibility)
  */
 router.get('/', async (req, res) => {
   try {
-    const config = await readJSON('config.json');
+    const config = await buildAggregatedConfig();
 
     res.json({
       success: true,

@@ -21,12 +21,22 @@ export default function NarrativePoolEditor({ pool, onSave, onCancel }) {
 
   useEffect(() => {
     if (pool) {
+      // Ensure entries is always an array
+      let entriesArray = [];
+      if (pool.entries) {
+        if (Array.isArray(pool.entries)) {
+          entriesArray = pool.entries;
+        } else if (typeof pool.entries === 'object') {
+          entriesArray = Object.values(pool.entries);
+        }
+      }
+      
       setFormData({
         id: pool.id || '',
         name: pool.name || '',
         description: pool.description || '',
         category: pool.category || 'exploration',
-        entries: pool.entries || []
+        entries: entriesArray
       });
     }
   }, [pool]);
@@ -122,7 +132,9 @@ export default function NarrativePoolEditor({ pool, onSave, onCancel }) {
     return toneObj?.color || '#888';
   };
 
-  const totalWeight = formData.entries.reduce((sum, e) => sum + (e.weight || 0), 0);
+  // Ensure entries is an array before using reduce
+  const entriesArray = Array.isArray(formData.entries) ? formData.entries : [];
+  const totalWeight = entriesArray.reduce((sum, e) => sum + (e.weight || 0), 0);
 
   return (
     <div style={{

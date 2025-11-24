@@ -37,10 +37,12 @@ export default function EventEditor() {
 
   const loadConfig = async () => {
     try {
+      const factions = await api.factions.getAll();
+      setFactions(factions || []);
+      // Load full config for backwards compatibility with other fields
       const response = await api.config.get();
       const cfg = response.config || response;
       setConfig(cfg);
-      setFactions(cfg?.factions || []);
     } catch (err) {
       console.error('Failed to load config:', err);
     }

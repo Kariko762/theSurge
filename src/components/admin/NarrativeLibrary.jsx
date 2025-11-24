@@ -16,7 +16,17 @@ export default function NarrativeLibrary({ config, updateConfig }) {
 
   useEffect(() => {
     if (config?.narrativeLibrary?.pools) {
-      setPools(config.narrativeLibrary.pools);
+      // Ensure pools is always an array (convert from object if needed)
+      const poolsData = config.narrativeLibrary.pools;
+      if (Array.isArray(poolsData)) {
+        setPools(poolsData);
+      } else if (typeof poolsData === 'object') {
+        setPools(Object.values(poolsData));
+      } else {
+        setPools([]);
+      }
+    } else {
+      setPools([]);
     }
   }, [config]);
 
@@ -169,7 +179,12 @@ export default function NarrativeLibrary({ config, updateConfig }) {
       <div style={{ display: 'grid', gap: '1rem' }}>
         {filteredPools.map((pool, index) => {
           const actualIndex = pools.findIndex(p => p.id === pool.id);
-          const totalWeight = pool.entries?.reduce((sum, e) => sum + (e.weight || 0), 0) || 0;
+          
+          // Ensure entries is an array before using reduce
+          const entriesArray = Array.isArray(pool.entries) 
+            ? pool.entries 
+            : (pool.entries && typeof pool.entries === 'object' ? Object.values(pool.entries) : []);
+          const totalWeight = entriesArray.reduce((sum, e) => sum + (e.weight || 0), 0);
           
           return (
             <div

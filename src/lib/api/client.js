@@ -285,6 +285,222 @@ export const missions = {
 };
 
 // ============================================
+// Ships API
+// ============================================
+
+export const ships = {
+  getAll: async () => {
+    return await request('/ships');
+  },
+
+  getById: async (id) => {
+    return await request(`/ships/${id}`);
+  },
+
+  create: async (shipData) => {
+    return await request('/ships', {
+      method: 'POST',
+      body: JSON.stringify(shipData)
+    });
+  },
+
+  update: async (id, shipData) => {
+    return await request(`/ships/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(shipData)
+    });
+  },
+
+  delete: async (id) => {
+    return await request(`/ships/${id}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
+// ============================================
+// Ship Tiers API
+// ============================================
+
+export const shipTiers = {
+  getAll: async () => {
+    return await request('/ship-tiers');
+  },
+
+  getById: async (id) => {
+    return await request(`/ship-tiers/${id}`);
+  },
+
+  create: async (tierData) => {
+    return await request('/ship-tiers', {
+      method: 'POST',
+      body: JSON.stringify(tierData)
+    });
+  },
+
+  update: async (id, tierData) => {
+    return await request(`/ship-tiers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(tierData)
+    });
+  },
+
+  delete: async (id) => {
+    return await request(`/ship-tiers/${id}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
+// ============================================
+// Factions API
+// ============================================
+
+export const factions = {
+  getAll: async () => {
+    return await request('/factions');
+  },
+
+  getById: async (id) => {
+    return await request(`/factions/${id}`);
+  },
+
+  create: async (factionData) => {
+    return await request('/factions', {
+      method: 'POST',
+      body: JSON.stringify(factionData)
+    });
+  },
+
+  update: async (id, factionData) => {
+    return await request(`/factions/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(factionData)
+    });
+  },
+
+  delete: async (id) => {
+    return await request(`/factions/${id}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
+// ============================================
+// Items API
+// ============================================
+
+export const items = {
+  getAll: async (category = null) => {
+    const query = category ? `?category=${category}` : '';
+    return await request(`/items${query}`);
+  },
+
+  getCore: async () => {
+    return await request('/items/core');
+  },
+
+  updateCore: async (coreData) => {
+    return await request('/items/core', {
+      method: 'PUT',
+      body: JSON.stringify(coreData)
+    });
+  },
+
+  getById: async (category, id) => {
+    return await request(`/items/${category}/${id}`);
+  },
+
+  create: async (category, itemData) => {
+    return await request(`/items/${category}`, {
+      method: 'POST',
+      body: JSON.stringify(itemData)
+    });
+  },
+
+  update: async (category, id, itemData) => {
+    return await request(`/items/${category}/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(itemData)
+    });
+  },
+
+  delete: async (category, id) => {
+    return await request(`/items/${category}/${id}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
+// ============================================
+// Narratives API
+// ============================================
+
+export const narratives = {
+  getAll: async () => {
+    return await request('/narratives');
+  },
+
+  getById: async (poolId) => {
+    return await request(`/narratives/${poolId}`);
+  },
+
+  create: async (poolData) => {
+    return await request('/narratives', {
+      method: 'POST',
+      body: JSON.stringify(poolData)
+    });
+  },
+
+  update: async (poolId, poolData) => {
+    return await request(`/narratives/${poolId}`, {
+      method: 'PUT',
+      body: JSON.stringify(poolData)
+    });
+  },
+
+  delete: async (poolId) => {
+    return await request(`/narratives/${poolId}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
+// ============================================
+// AI Cores API
+// ============================================
+
+export const aiCores = {
+  getAll: async () => {
+    return await request('/ai-cores');
+  },
+
+  getById: async (id) => {
+    return await request(`/ai-cores/${id}`);
+  },
+
+  create: async (aiCoreData) => {
+    return await request('/ai-cores', {
+      method: 'POST',
+      body: JSON.stringify(aiCoreData)
+    });
+  },
+
+  update: async (id, aiCoreData) => {
+    return await request(`/ai-cores/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(aiCoreData)
+    });
+  },
+
+  delete: async (id) => {
+    return await request(`/ai-cores/${id}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
+// ============================================
 // Health Check
 // ============================================
 
@@ -301,6 +517,12 @@ export default {
   events,
   config,
   missions,
+  ships,
+  shipTiers,
+  factions,
+  items,
+  narratives,
+  aiCores,
   health,
   getToken,
   setToken,

@@ -6,7 +6,6 @@ import '../../styles/AdminGlass.css';
 const FACTION_TYPES = ['human_faction', 'alien_species', 'machine', 'hybrid', 'unknown'];
 const SPECIES_TYPES = ['human', 'varrkel', 'threxul', 'kaelorii', 'drogan', 'orrix', 'rhal', 'solun', 'precursor', 'autonomous_machine', 'sythari', 'xal_reef', 'other'];
 const FACTION_STANCES = ['allied', 'friendly', 'neutral', 'suspicious', 'hostile', 'war'];
-const ALIGNMENTS = ['lawful_good', 'neutral_good', 'chaotic_good', 'lawful_neutral', 'true_neutral', 'chaotic_neutral', 'lawful_evil', 'neutral_evil', 'chaotic_evil'];
 
 export default function FactionsManager() {
   const [factions, setFactions] = useState([]);
@@ -26,8 +25,8 @@ export default function FactionsManager() {
   const loadFactions = async () => {
     try {
       setLoading(true);
-      const response = await api.config.get();
-      setFactions(response.config?.factions || []);
+      const factions = await api.factions.getAll();
+      setFactions(factions || []);
       setError('');
     } catch (err) {
       setError('Failed to load factions');
@@ -42,9 +41,17 @@ export default function FactionsManager() {
       setError('');
       setSuccessMessage('');
       
-      const response = await api.config.get();
-      const updatedConfig = { ...response.config, factions };
-      await api.config.update(updatedConfig);
+      // Save each faction individually
+      for (const faction of factions) {
+        const existing = await api.factions.getAll();
+        const exists = existing.some(f => f.id === faction.id);
+        
+        if (exists) {
+          await api.factions.update(faction.id, faction);
+        } else {
+          await api.factions.create(faction);
+        }
+      }
       
       setSuccessMessage('Factions saved successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
@@ -88,7 +95,7 @@ export default function FactionsManager() {
         goals: '',
         notes: ''
       },
-      iconEmoji: '🏛️'
+      portrait: '' // Path to faction portrait image
     };
     setEditingFaction(newFaction);
   };
@@ -162,8 +169,9 @@ export default function FactionsManager() {
     return labels[species] || species.charAt(0).toUpperCase() + species.slice(1);
   };
 
-  const getAlignmentLabel = (alignment) => {
-    return alignment.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  const getAlignmentLabel = (stance) => {
+    if (!stance || typeof stance !== 'string') return 'Unknown';
+    return stance.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   };
 
   const filteredFactions = factions.filter(faction => {
@@ -537,10 +545,10 @@ export default function FactionsManager() {
                       </div>
 
                       <div>
-                        <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Alignment</label>
+                        <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Stance</label>
                         <select
-                          value={editingFaction.alignment}
-                          onChange={(e) => setEditingFaction({ ...editingFaction, alignment: e.target.value })}
+                          value={editingFaction.stance}
+                          onChange={(e) => setEditingFaction({ ...editingFaction, stance: e.target.value })}
                           style={{
                             width: '100%',
                             padding: '0.5rem',
@@ -551,11 +559,12 @@ export default function FactionsManager() {
                             fontSize: '0.85rem'
                           }}
                         >
-                          {ALIGNMENTS.map(alignment => (
-                            <option key={alignment} value={alignment}>
-                              {getAlignmentLabel(alignment)}
-                            </option>
-                          ))}
+                          <option value="hostile">Hostile</option>
+                          <option value="suspicious">Suspicious</option>
+                          <option value="neutral">Neutral</option>
+                          <option value="friendly">Friendly</option>
+                          <option value="allied">Allied</option>
+                          <option value="war">War</option>
                         </select>
                       </div>
                     </div>
@@ -574,6 +583,27 @@ export default function FactionsManager() {
                           borderRadius: '4px',
                           color: '#fff',
                           resize: 'vertical'
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Traits (comma-separated)</label>
+                      <input
+                        type="text"
+                        value={(editingFaction.traits || []).join(', ')}
+                        onChange={(e) => {
+                          const traitsArray = e.target.value.split(',').map(t => t.trim()).filter(t => t);
+                          setEditingFaction({ ...editingFaction, traits: traitsArray });
+                        }}
+                        placeholder="e.g., militaristic, bureaucratic, lawful"
+                        style={{
+                          width: '100%',
+                          padding: '0.5rem',
+                          background: 'rgba(0, 20, 40, 0.5)',
+                          border: '1px solid var(--glass-border)',
+                          borderRadius: '4px',
+                          color: '#fff'
                         }}
                       />
                     </div>
@@ -648,6 +678,51 @@ export default function FactionsManager() {
                             color: '#fff'
                           }}
                         />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Portrait */}
+                <div className="glass-card" style={{ padding: '1rem', background: 'rgba(0, 20, 40, 0.3)' }}>
+                  <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>Portrait</h3>
+                  <div style={{ display: 'grid', gap: '1rem' }}>
+                    {editingFaction.portrait && (
+                      <div style={{ textAlign: 'center' }}>
+                        <img 
+                          src={editingFaction.portrait} 
+                          alt="Faction Portrait"
+                          style={{ 
+                            maxWidth: '200px', 
+                            maxHeight: '200px',
+                            border: '2px solid var(--neon-cyan)',
+                            borderRadius: '8px',
+                            background: 'rgba(0,0,0,0.5)'
+                          }} 
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>
+                        Portrait Image Path
+                      </label>
+                      <input
+                        type="text"
+                        value={editingFaction.portrait || ''}
+                        onChange={(e) => setEditingFaction({ ...editingFaction, portrait: e.target.value })}
+                        placeholder={`/src/assets/factions/${editingFaction.id}/portrait.png`}
+                        style={{
+                          width: '100%',
+                          padding: '0.5rem',
+                          background: 'rgba(0, 20, 40, 0.5)',
+                          border: '1px solid var(--glass-border)',
+                          borderRadius: '4px',
+                          color: '#fff',
+                          fontSize: '0.75rem'
+                        }}
+                      />
+                      <div style={{ color: '#666', fontSize: '0.7rem', marginTop: '0.5rem' }}>
+                        💡 Place images in: <code style={{ color: '#0cf' }}>src/assets/factions/{editingFaction.id}/</code>
                       </div>
                     </div>
                   </div>
@@ -771,7 +846,7 @@ export default function FactionsManager() {
                                 {faction.name}
                               </div>
                               <div style={{ color: '#888', fontSize: '0.7rem' }}>
-                                {faction.type} • {getAlignmentLabel(faction.alignment)}
+                                {faction.type} • {getAlignmentLabel(faction.stance)}
                               </div>
                             </div>
                             {currentHonor !== null && (

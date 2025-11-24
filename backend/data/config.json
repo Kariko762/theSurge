@@ -662,6 +662,21 @@
           "range": 10,
           "chargeTime": 30
         }
+      },
+      {
+        "id": "gold_ore",
+        "name": "Gold Ore",
+        "description": "A rare earth metal found on planets and asteroids alike. Heavily used in electronics for its conductive properties.",
+        "category": "resource",
+        "subcategory": "",
+        "tier": "uncommon",
+        "weight": 2,
+        "size": 1,
+        "maxStack": 50,
+        "value": 1200,
+        "faction": null,
+        "tags": [],
+        "properties": {}
       }
     ],
     "pools": [
@@ -1226,7 +1241,7 @@
     }
   },
   "_metadata": {
-    "lastModified": "2025-11-24T13:51:11.735Z",
+    "lastModified": "2025-11-24T21:53:58.082Z",
     "modifiedBy": "admin"
   },
   "aiCores": {
@@ -1368,7 +1383,11 @@
         "combat": 0,
         "navigation": 0
       },
-      "tags": ["hull", "defense", "survivability"]
+      "tags": [
+        "hull",
+        "defense",
+        "survivability"
+      ]
     },
     {
       "id": "ship_bonus_002",
@@ -1393,7 +1412,11 @@
         "combat": 0,
         "navigation": 0
       },
-      "tags": ["shields", "defense", "energy"]
+      "tags": [
+        "shields",
+        "defense",
+        "energy"
+      ]
     },
     {
       "id": "ship_bonus_003",
@@ -1418,7 +1441,11 @@
         "combat": 0,
         "navigation": 0
       },
-      "tags": ["speed", "agility", "maneuverability"]
+      "tags": [
+        "speed",
+        "agility",
+        "maneuverability"
+      ]
     },
     {
       "id": "ship_bonus_004",
@@ -1443,7 +1470,11 @@
         "combat": 0,
         "navigation": 0
       },
-      "tags": ["accuracy", "targeting", "range"]
+      "tags": [
+        "accuracy",
+        "targeting",
+        "range"
+      ]
     },
     {
       "id": "ship_bonus_005",
@@ -1468,7 +1499,11 @@
         "combat": 0,
         "navigation": 0
       },
-      "tags": ["cargo", "storage", "hauling"]
+      "tags": [
+        "cargo",
+        "storage",
+        "hauling"
+      ]
     },
     {
       "id": "ship_bonus_006",
@@ -1493,7 +1528,11 @@
         "combat": 1,
         "navigation": 0
       },
-      "tags": ["initiative", "combat", "tactical"]
+      "tags": [
+        "initiative",
+        "combat",
+        "tactical"
+      ]
     }
   ],
   "ships": [
@@ -1585,8 +1624,7 @@
         "culture": "Loose, tribal, individualistic. Freedom above all. No hierarchy lasts long.",
         "goals": "Ensure no large power ever rises again; liberate worlds from 'authority'; survive.",
         "notes": "They frequently appear in ambush events, sabotage missions, and unexpected rescues."
-      },
-      "iconEmoji": "🚀"
+      }
     },
     {
       "id": "faction_hexcorp",
@@ -1627,11 +1665,10 @@
       },
       "lore": {
         "history": "Before the Collapse, Hex-Corp controlled vast chunks of Terran infrastructure. When the Surge tore the galaxy apart, their private fleets and fortified R&D habitats survived better than most. They now operate as a fragmented corporate state.",
-        "culture": "Rigid hierarchy, financial nobility, loyalty through incentives, and a belief that corporate structure is humanity's natural state.",
+        "culture": "Rigid hierarchy, financial nobility, loyalty through incentives, and a belief that corporate structure is humanityÃ¢â‚¬â„¢s natural state.",
         "goals": "Recover lost assets, secure tech superiority, rebuild a corporate empire.",
         "notes": "Their vault-labs occasionally trigger anomalies."
-      },
-      "iconEmoji": "🏢"
+      }
     },
     {
       "id": "faction_concordant",
@@ -1675,8 +1712,7 @@
         "culture": "Respect, negotiation, mutual aid. They believe unity is the only path to survival.",
         "goals": "Maintain safe trade corridors, aid struggling worlds, prevent total species extinction.",
         "notes": "Have access to rare pre-Surge trade archives and star maps."
-      },
-      "iconEmoji": "⚖️"
+      }
     },
     {
       "id": "faction_kaelori",
@@ -1720,8 +1756,51 @@
         "culture": "Harmony, long-term thinking, psionic resonance, and crystalline symbiosis.",
         "goals": "Recover lost psionic archives, prevent further collapse, foster interspecies diplomacy.",
         "notes": "Their ships produce almost no plasma wake, making them hard to detect."
+      }
+    },
+    {
+      "id": "faction_threxul",
+      "name": "Threxul Broodclades",
+      "type": "alien_species",
+      "species": "threxul",
+      "status": "expanding",
+      "stance": "war",
+      "description": "A ruthless swarming civilization of biomechanical entities adapted to extreme radiation. They thrive in post-Surge environments and aggressively consume resources.",
+      "homeworld": "The Maw Cluster (Unknown exact origin)",
+      "leader": "Brood-Prime Xh'rall",
+      "founded": "Unknown",
+      "baseReputation": -100,
+      "relationshipsWith": {
+        "faction_hexcorp": -100,
+        "faction_utd": -100,
+        "faction_freebelt": -100,
+        "faction_kaelori": -100,
+        "faction_concordant": -100
       },
-      "iconEmoji": "💠"
+      "traits": [
+        "hive_mind",
+        "bio_mechanical",
+        "ravenous",
+        "high_radiation_adapted"
+      ],
+      "colors": {
+        "primary": "#ff0055",
+        "secondary": "#7a002f"
+      },
+      "flags": {
+        "isPlayable": false,
+        "isHostile": true,
+        "canTrade": false,
+        "canAlly": false,
+        "appearsInEvents": true,
+        "ownsShips": true
+      },
+      "lore": {
+        "history": "The Surge didnÃ¢â‚¬â„¢t harm the ThrexulÃ¢â‚¬â€it empowered them. Radiation-rich regions serve as breeding grounds for new broodclades.",
+        "culture": "No individualism. Swarm logic. Expansion at any cost.",
+        "goals": "Feed. Reproduce. Consume all Fold-stable regions.",
+        "notes": "Their presence increases Surge radiation in-system."
+      }
     },
     {
       "id": "faction_utd",
@@ -1765,53 +1844,972 @@
         "culture": "Discipline, regulation, civic duty. Citizens are taught that humanity must rebuild through order and caution.",
         "goals": "Restore stability, reclaim human space, and suppress extremist splinter groups.",
         "notes": "Their heavy cruisers are some of the last pre-Surge military capital ships still functional."
-      },
-      "iconEmoji": "🏛️"
+      }
     },
     {
-      "id": "faction_threxul",
-      "name": "Threxul Broodclades",
-      "type": "alien_species",
-      "species": "threxul",
-      "status": "expanding",
-      "stance": "war",
-      "description": "A ruthless swarming civilization of biomechanical entities adapted to extreme radiation. They thrive in post-Surge environments and aggressively consume resources.",
-      "homeworld": "The Maw Cluster (Unknown exact origin)",
-      "leader": "Brood-Prime Xh'rall",
-      "founded": "Unknown",
-      "baseReputation": -100,
+      "id": "faction_1764017795146",
+      "name": "Ashinari Blades",
+      "type": "human_faction",
+      "species": "human",
+      "status": "scattered",
+      "stance": "neutral",
+      "description": "A remnant order of samurai-descended assassins and elite warriors who survived the Surge by retreating into monastic drifting fortresses. They uphold ancient codes of honour twisted by centuries of isolation.",
+      "homeworld": "Ashinaris Prime (destroyed)",
+      "leader": "Shogun Kael-Ren Ashinari",
+      "founded": "Year 811 Pre-Surge",
+      "baseReputation": -10,
       "relationshipsWith": {
-        "faction_hexcorp": -100,
-        "faction_utd": -100,
-        "faction_freebelt": -100,
-        "faction_kaelori": -100,
-        "faction_concordant": -100
+        "faction_freebelt": -25,
+        "faction_hexcorp": -40,
+        "faction_concordant": 20,
+        "faction_kaelori": -10,
+        "faction_threxul": -70
       },
       "traits": [
-        "hive_mind",
-        "bio_mechanical",
-        "ravenous",
-        "high_radiation_adapted"
+        "honour_bound",
+        "assassin",
+        "tradition",
+        "ritualistic",
+        "oathkeepers"
       ],
       "colors": {
-        "primary": "#ff0055",
-        "secondary": "#7a002f"
+        "primary": "#5b0606",
+        "secondary": "#07003d"
       },
       "flags": {
         "isPlayable": false,
-        "isHostile": true,
-        "canTrade": false,
-        "canAlly": false,
+        "isHostile": false,
+        "canTrade": true,
+        "canAlly": true,
         "appearsInEvents": true,
         "ownsShips": true
       },
       "lore": {
-        "history": "The Surge didn't harm the Threxul—it empowered them. Radiation-rich regions serve as breeding grounds for new broodclades.",
-        "culture": "No individualism. Swarm logic. Expansion at any cost.",
-        "goals": "Feed. Reproduce. Consume all Fold-stable regions.",
-        "notes": "Their presence increases Surge radiation in-system."
-      },
-      "iconEmoji": "🦂"
+        "history": "The Ashinari Sovereign Blades descend from the Ashina defense houses of Old Earth, who departed the planet centuries before the Surge. Their diaspora founded Ashinaris Prime, a world based around honour, ritual combat, and the preservation of warrior traditions. The Surge shattered their empire, leaving only drifting fortress-monasteries known as Void Dojos. Cut off, they evolved toward precision assassination, void-combat duelling, and clandestine justice.",
+        "culture": "Ashinari culture revolves around a strict code: The Eight Blades of Sovereignty — Duty, Discipline, Quietus, Sacrifice, Precision, Loyalty, Resolve, and Balance. Their speech is formal, their rituals complex, and their warriors undergo cybernetic augmentation blended with ancient martial discipline. Every Ashinari warrior crafts a 'Void-Katana', a plasma-edged weapon linked biometrically to its master.",
+        "goals": "To restore honour to the remnants of humanity by eliminating corruption, strengthening the worthy, and punishing those who 'dishonour the void'. They trade information reluctantly but strike fatal alliances when objectives align.",
+        "notes": ""
+      }
     }
-  ]
+  ],
+  "items": [
+    {
+      "id": "pulse_laser_mk1",
+      "name": "Pulse Laser Mk1",
+      "description": "Standard pulse laser weapon. Reliable short-range energy weapon with moderate damage.",
+      "category": "weapon",
+      "subcategory": "laser",
+      "tier": "common",
+      "weight": 10,
+      "size": 5,
+      "maxStack": 1,
+      "value": 500,
+      "faction": null,
+      "tags": [
+        "weapon",
+        "laser",
+        "energy",
+        "military"
+      ],
+      "properties": {
+        "damage": 15,
+        "range": 200,
+        "fireRate": 2
+      }
+    },
+    {
+      "id": "pulse_laser_mk2",
+      "name": "Pulse Laser Mk2",
+      "description": "Improved pulse laser with better heat management and higher damage output.",
+      "category": "weapon",
+      "subcategory": "laser",
+      "tier": "uncommon",
+      "weight": 12,
+      "size": 5,
+      "maxStack": 1,
+      "value": 1200,
+      "faction": null,
+      "tags": [
+        "weapon",
+        "laser",
+        "energy",
+        "military"
+      ],
+      "properties": {
+        "damage": 22,
+        "range": 250,
+        "fireRate": 2.5
+      }
+    },
+    {
+      "id": "beam_laser",
+      "name": "Beam Laser",
+      "description": "Continuous beam laser weapon. Excellent sustained damage but high power consumption.",
+      "category": "weapon",
+      "subcategory": "laser",
+      "tier": "rare",
+      "weight": 15,
+      "size": 6,
+      "maxStack": 1,
+      "value": 2500,
+      "faction": null,
+      "tags": [
+        "weapon",
+        "laser",
+        "energy",
+        "beam",
+        "military"
+      ],
+      "properties": {
+        "damage": 35,
+        "range": 300,
+        "fireRate": 5
+      }
+    },
+    {
+      "id": "missile_launcher_light",
+      "name": "Light Missile Launcher",
+      "description": "Compact missile launcher. Fires tracking missiles effective against small targets.",
+      "category": "weapon",
+      "subcategory": "missile",
+      "tier": "common",
+      "weight": 8,
+      "size": 4,
+      "maxStack": 1,
+      "value": 600,
+      "faction": null,
+      "tags": [
+        "weapon",
+        "missile",
+        "explosive",
+        "military"
+      ],
+      "properties": {
+        "damage": 40,
+        "range": 500,
+        "fireRate": 0.5,
+        "tracking": true
+      }
+    },
+    {
+      "id": "missile_launcher_heavy",
+      "name": "Heavy Missile Launcher",
+      "description": "Large payload missile system. Devastating damage but slow reload.",
+      "category": "weapon",
+      "subcategory": "missile",
+      "tier": "rare",
+      "weight": 20,
+      "size": 8,
+      "maxStack": 1,
+      "value": 3500,
+      "faction": null,
+      "tags": [
+        "weapon",
+        "missile",
+        "explosive",
+        "heavy",
+        "military"
+      ],
+      "properties": {
+        "damage": 120,
+        "range": 800,
+        "fireRate": 0.2,
+        "tracking": true
+      }
+    },
+    {
+      "id": "railgun_mk1",
+      "name": "Railgun Mk1",
+      "description": "Electromagnetic projectile accelerator. High velocity kinetic damage.",
+      "category": "weapon",
+      "subcategory": "rail",
+      "tier": "uncommon",
+      "weight": 18,
+      "size": 7,
+      "maxStack": 1,
+      "value": 1800,
+      "faction": null,
+      "tags": [
+        "weapon",
+        "rail",
+        "kinetic",
+        "military"
+      ],
+      "properties": {
+        "damage": 50,
+        "range": 600,
+        "fireRate": 1,
+        "armorPiercing": true
+      }
+    },
+    {
+      "id": "plasma_cannon",
+      "name": "Plasma Cannon",
+      "description": "Superheated plasma projector. Devastating thermal damage at medium range.",
+      "category": "weapon",
+      "subcategory": "plasma",
+      "tier": "epic",
+      "weight": 25,
+      "size": 10,
+      "maxStack": 1,
+      "value": 8000,
+      "faction": null,
+      "tags": [
+        "weapon",
+        "plasma",
+        "thermal",
+        "epic",
+        "military"
+      ],
+      "properties": {
+        "damage": 80,
+        "range": 350,
+        "fireRate": 1.5,
+        "thermal": true
+      }
+    },
+    {
+      "id": "autocannon",
+      "name": "Rotary Autocannon",
+      "description": "Rapid-fire kinetic weapon. High rate of fire with moderate damage per shot.",
+      "category": "weapon",
+      "subcategory": "kinetic",
+      "tier": "common",
+      "weight": 12,
+      "size": 6,
+      "maxStack": 1,
+      "value": 700,
+      "faction": null,
+      "tags": [
+        "weapon",
+        "kinetic",
+        "ballistic",
+        "military"
+      ],
+      "properties": {
+        "damage": 8,
+        "range": 300,
+        "fireRate": 10
+      }
+    },
+    {
+      "id": "shield_capacitor",
+      "name": "Advanced Shield Capacitor",
+      "description": "High-efficiency energy storage for shield systems. Increases shield recharge rate.",
+      "category": "subsystem",
+      "subcategory": "shield",
+      "tier": "rare",
+      "weight": 4,
+      "size": 3,
+      "maxStack": 5,
+      "value": 850,
+      "tags": {
+        "0": "subsystem",
+        "1": "shield",
+        "2": "upgrade"
+      }
+    },
+    {
+      "id": "ecm_suite_basic",
+      "name": "ECM Suite - Basic",
+      "description": "Electronic countermeasures system. Reduces enemy targeting accuracy.",
+      "category": "subsystem",
+      "subcategory": "ecm",
+      "tier": "common",
+      "weight": 5,
+      "size": 3,
+      "maxStack": 1,
+      "value": 800,
+      "tags": {
+        "0": "subsystem",
+        "1": "ecm",
+        "2": "defense"
+      },
+      "properties": {
+        "evasion": 10,
+        "jamming": 15
+      }
+    },
+    {
+      "id": "ecm_suite_advanced",
+      "name": "ECM Suite - Advanced",
+      "description": "Military-grade countermeasures with active jamming and decoys.",
+      "category": "subsystem",
+      "subcategory": "ecm",
+      "tier": "rare",
+      "weight": 7,
+      "size": 4,
+      "maxStack": 1,
+      "value": 2800,
+      "tags": {
+        "0": "subsystem",
+        "1": "ecm",
+        "2": "defense",
+        "3": "military"
+      },
+      "properties": {
+        "evasion": 25,
+        "jamming": 40,
+        "decoys": 3
+      }
+    },
+    {
+      "id": "sensor_array_standard",
+      "name": "Standard Sensor Array",
+      "description": "Multi-spectrum sensor package. Improves detection range and targeting.",
+      "category": "subsystem",
+      "subcategory": "sensor",
+      "tier": "common",
+      "weight": 4,
+      "size": 3,
+      "maxStack": 1,
+      "value": 600,
+      "tags": {
+        "0": "subsystem",
+        "1": "sensor",
+        "2": "detection"
+      },
+      "properties": {
+        "range": 500,
+        "accuracy": 15
+      }
+    },
+    {
+      "id": "sensor_array_longrange",
+      "name": "Long-Range Sensor Array",
+      "description": "Extended detection suite with gravitic sensors and deep-space scanning.",
+      "category": "subsystem",
+      "subcategory": "sensor",
+      "tier": "uncommon",
+      "weight": 6,
+      "size": 4,
+      "maxStack": 1,
+      "value": 1500,
+      "tags": {
+        "0": "subsystem",
+        "1": "sensor",
+        "2": "detection",
+        "3": "longrange"
+      },
+      "properties": {
+        "range": 1200,
+        "accuracy": 25,
+        "gravitic": true
+      }
+    },
+    {
+      "id": "power_core_compact",
+      "name": "Compact Power Core",
+      "description": "Small fusion reactor. Provides stable power for basic ship systems.",
+      "category": "subsystem",
+      "subcategory": "power",
+      "tier": "common",
+      "weight": 8,
+      "size": 5,
+      "maxStack": 1,
+      "value": 900,
+      "tags": {
+        "0": "subsystem",
+        "1": "power",
+        "2": "reactor"
+      },
+      "properties": {
+        "output": 100,
+        "efficiency": 80
+      }
+    },
+    {
+      "id": "power_core_military",
+      "name": "Military Power Core",
+      "description": "High-output fusion reactor with redundant systems and overcharge capability.",
+      "category": "subsystem",
+      "subcategory": "power",
+      "tier": "rare",
+      "weight": 15,
+      "size": 8,
+      "maxStack": 1,
+      "value": 4500,
+      "tags": {
+        "0": "subsystem",
+        "1": "power",
+        "2": "reactor",
+        "3": "military"
+      },
+      "properties": {
+        "output": 250,
+        "efficiency": 90,
+        "overcharge": true
+      }
+    },
+    {
+      "id": "shield_generator_mk1",
+      "name": "Shield Generator Mk1",
+      "description": "Basic energy shield projector. Provides moderate protection from weapons fire.",
+      "category": "subsystem",
+      "subcategory": "shield",
+      "tier": "common",
+      "weight": 10,
+      "size": 6,
+      "maxStack": 1,
+      "value": 1200,
+      "tags": {
+        "0": "subsystem",
+        "1": "shield",
+        "2": "defense"
+      },
+      "properties": {
+        "strength": 100,
+        "recharge": 10
+      }
+    },
+    {
+      "id": "shield_generator_mk2",
+      "name": "Shield Generator Mk2",
+      "description": "Enhanced shield system with faster recharge and increased capacity.",
+      "category": "subsystem",
+      "subcategory": "shield",
+      "tier": "uncommon",
+      "weight": 12,
+      "size": 7,
+      "maxStack": 1,
+      "value": 2500,
+      "tags": {
+        "0": "subsystem",
+        "1": "shield",
+        "2": "defense"
+      },
+      "properties": {
+        "strength": 175,
+        "recharge": 18
+      }
+    },
+    {
+      "id": "hull_plating_reinforced",
+      "name": "Reinforced Hull Plating",
+      "description": "Armored hull plates that increase damage resistance.",
+      "category": "subsystem",
+      "subcategory": "hull",
+      "tier": "uncommon",
+      "weight": 20,
+      "size": 10,
+      "maxStack": 1,
+      "value": 1800,
+      "tags": {
+        "0": "subsystem",
+        "1": "hull",
+        "2": "armor"
+      },
+      "properties": {
+        "armor": 50,
+        "hullBonus": 25
+      }
+    },
+    {
+      "id": "cargo_expander",
+      "name": "Cargo Hold Expander",
+      "description": "Modular cargo bay extension. Increases cargo capacity.",
+      "category": "subsystem",
+      "subcategory": "cargo",
+      "tier": "common",
+      "weight": 15,
+      "size": 12,
+      "maxStack": 1,
+      "value": 800,
+      "tags": {
+        "0": "subsystem",
+        "1": "cargo",
+        "2": "storage"
+      },
+      "properties": {
+        "cargoBonus": 50
+      }
+    },
+    {
+      "id": "iron_ore",
+      "name": "Iron Ore",
+      "description": "Common metallic ore found in asteroid belts. Used in basic ship repairs and construction.",
+      "category": "resource",
+      "tier": "common",
+      "weight": 5,
+      "size": 1,
+      "maxStack": 100,
+      "value": 15,
+      "tags": {
+        "0": "mining",
+        "1": "common",
+        "2": "metal"
+      }
+    },
+    {
+      "id": "platinum_ore",
+      "name": "Platinum Ore",
+      "description": "Rare precious metal with high market value and advanced manufacturing applications.",
+      "category": "resource",
+      "tier": "rare",
+      "weight": 8,
+      "size": 1,
+      "maxStack": 50,
+      "value": 450,
+      "tags": {
+        "0": "mining",
+        "1": "rare",
+        "2": "precious"
+      }
+    },
+    {
+      "id": "helium3",
+      "name": "Helium-3",
+      "description": "Fusion reactor fuel. Extracted from gas giants and solar winds. Essential for long-range travel.",
+      "category": "consumable",
+      "tier": "uncommon",
+      "weight": 0.5,
+      "size": 2,
+      "maxStack": 200,
+      "value": 80,
+      "tags": {
+        "0": "fuel",
+        "1": "gas",
+        "2": "uncommon"
+      }
+    },
+    {
+      "id": "repair_kit",
+      "name": "Emergency Repair Kit",
+      "description": "Portable repair tools and materials for quick hull breaches and system fixes.",
+      "category": "consumable",
+      "tier": "common",
+      "weight": 3,
+      "size": 2,
+      "maxStack": 10,
+      "value": 120,
+      "tags": {
+        "0": "repair",
+        "1": "emergency",
+        "2": "consumable"
+      }
+    },
+    {
+      "id": "engine_fighter_t1",
+      "name": "Fighter Engine T1",
+      "description": "Compact high-thrust engine for small craft. Excellent agility.",
+      "category": "equipment",
+      "subcategory": "engine",
+      "tier": "common",
+      "weight": 30,
+      "size": 15,
+      "maxStack": 1,
+      "value": 2000,
+      "tags": {
+        "0": "equipment",
+        "1": "engine",
+        "2": "fighter"
+      },
+      "properties": {
+        "thrust": 80,
+        "agility": 95,
+        "class": "fighter"
+      }
+    },
+    {
+      "id": "engine_corvette_t1",
+      "name": "Corvette Engine T1",
+      "description": "Balanced engine for corvette-class vessels. Good speed and maneuverability.",
+      "category": "equipment",
+      "subcategory": "engine",
+      "tier": "common",
+      "weight": 40,
+      "size": 20,
+      "maxStack": 1,
+      "value": 3500,
+      "tags": {
+        "0": "equipment",
+        "1": "engine",
+        "2": "corvette"
+      },
+      "properties": {
+        "thrust": 100,
+        "agility": 75,
+        "class": "corvette"
+      }
+    },
+    {
+      "id": "engine_frigate_t2",
+      "name": "Frigate Engine T2",
+      "description": "Medium-power drive system for frigate-class ships. Improved efficiency.",
+      "category": "equipment",
+      "subcategory": "engine",
+      "tier": "uncommon",
+      "weight": 60,
+      "size": 30,
+      "maxStack": 1,
+      "value": 6000,
+      "tags": {
+        "0": "equipment",
+        "1": "engine",
+        "2": "frigate"
+      },
+      "properties": {
+        "thrust": 130,
+        "agility": 60,
+        "class": "frigate",
+        "efficiency": 110
+      }
+    },
+    {
+      "id": "engine_cruiser_t3",
+      "name": "Cruiser Engine T3",
+      "description": "Heavy-duty propulsion for cruiser-class vessels. High power output.",
+      "category": "equipment",
+      "subcategory": "engine",
+      "tier": "rare",
+      "weight": 100,
+      "size": 50,
+      "maxStack": 1,
+      "value": 12000,
+      "tags": {
+        "0": "equipment",
+        "1": "engine",
+        "2": "cruiser",
+        "3": "heavy"
+      },
+      "properties": {
+        "thrust": 180,
+        "agility": 45,
+        "class": "cruiser",
+        "efficiency": 120
+      }
+    },
+    {
+      "id": "ftl_drive_basic",
+      "name": "Basic FTL Drive",
+      "description": "Standard faster-than-light drive. Enables interstellar travel.",
+      "category": "equipment",
+      "subcategory": "ftl",
+      "tier": "uncommon",
+      "weight": 50,
+      "size": 25,
+      "maxStack": 1,
+      "value": 15000,
+      "tags": {
+        "0": "equipment",
+        "1": "ftl",
+        "2": "jump"
+      },
+      "properties": {
+        "range": 10,
+        "chargeTime": 30
+      }
+    },
+    {
+      "id": "ancient_data_core",
+      "name": "Ancient Data Core",
+      "description": "Pre-Surge data storage containing valuable information. Highly sought after by researchers.",
+      "category": "artifact",
+      "tier": "epic",
+      "weight": 1,
+      "size": 1,
+      "maxStack": 1,
+      "value": 5000,
+      "tags": {
+        "0": "artifact",
+        "1": "data",
+        "2": "pre-surge",
+        "3": "epic"
+      }
+    }
+  ],
+  "narratives": {
+    "pools": {
+      "0": {
+        "id": "mining_success",
+        "name": "Mining Success Narratives",
+        "description": "Various success messages for mining operations",
+        "category": "mining",
+        "entries": {
+          "0": {
+            "weight": 40,
+            "title": "Rich Vein Discovered",
+            "message": "Your scanners light up as you breach a particularly rich mineral deposit. This is going to be a good haul.",
+            "systemMessage": "Mining efficiency increased by 15%",
+            "tone": "positive"
+          },
+          "1": {
+            "weight": 30,
+            "title": "Standard Operation",
+            "message": "The mining lasers cut through the asteroid surface smoothly. Nothing fancy, but steady work pays off.",
+            "systemMessage": "Mining operation nominal",
+            "tone": "neutral"
+          },
+          "2": {
+            "weight": 20,
+            "title": "Unexpected Find",
+            "message": "Wait... these readings can't be right. There's something else embedded in this rock...",
+            "systemMessage": "Anomalous signature detected",
+            "tone": "mysterious"
+          },
+          "3": {
+            "weight": 10,
+            "title": "Jackpot Strike",
+            "message": "ALERT: High-value mineral concentration detected! Your cargo hold is going to love this.",
+            "systemMessage": "Critical success - maximum yield",
+            "tone": "excited"
+          }
+        }
+      },
+      "1": {
+        "id": "mining_failure",
+        "name": "Mining Failure Narratives",
+        "description": "Various failure messages for mining operations",
+        "category": "mining",
+        "entries": {
+          "0": {
+            "weight": 50,
+            "title": "Equipment Malfunction",
+            "message": "The mining laser sputters and dies. You'll need to reset the system before trying again.",
+            "systemMessage": "Mining equipment requires maintenance",
+            "tone": "negative"
+          },
+          "1": {
+            "weight": 30,
+            "title": "Unstable Asteroid",
+            "message": "Cracks spiderweb across the asteroid's surface. You pull back before the whole thing fragments.",
+            "systemMessage": "Structural integrity compromised",
+            "tone": "tense"
+          },
+          "2": {
+            "weight": 20,
+            "title": "Pirate Interruption",
+            "message": "Your proximity alarms blare. Three hostile contacts incoming. Looks like someone doesn't want you mining here.",
+            "systemMessage": "Hostile ships detected - combat imminent",
+            "tone": "danger"
+          }
+        }
+      },
+      "2": {
+        "id": "scan_discovery",
+        "name": "Scan Discovery Narratives",
+        "description": "Revealing what you've discovered during scans",
+        "category": "exploration",
+        "entries": {
+          "0": {
+            "weight": 35,
+            "title": "Type-I Iron Cluster",
+            "message": "Scan complete. Standard iron-rich asteroid cluster. Common, but valuable.",
+            "systemMessage": "Classification: Type-I Ferrous Deposit",
+            "tone": "neutral",
+            "assignDefinition": "type_i_iron"
+          },
+          "1": {
+            "weight": 25,
+            "title": "Type-II Platinum Vein",
+            "message": "Your sensors pick up precious metal signatures. A platinum deposit—rare and extremely valuable.",
+            "systemMessage": "Classification: Type-II Precious Metal Vein",
+            "tone": "positive",
+            "assignDefinition": "type_ii_platinum"
+          },
+          "2": {
+            "weight": 20,
+            "title": "Type-III Volatile Ice",
+            "message": "WARNING: Volatile compounds detected. This asteroid contains explosive ice formations. Proceed with extreme caution.",
+            "systemMessage": "Classification: Type-III Volatile Cluster - HAZARDOUS",
+            "tone": "warning",
+            "assignDefinition": "type_iii_volatile"
+          },
+          "3": {
+            "weight": 15,
+            "title": "Type-IV Rare Earth",
+            "message": "Interesting... rare earth elements in high concentration. These are used in advanced ship components.",
+            "systemMessage": "Classification: Type-IV Rare Earth Deposit",
+            "tone": "curious",
+            "assignDefinition": "type_iv_rare_earth"
+          },
+          "4": {
+            "weight": 5,
+            "title": "Type-V Ancient Core",
+            "message": "This is impossible. These mineral formations predate the Surge by centuries. What were they mining for?",
+            "systemMessage": "Classification: Type-V Pre-Surge Anomaly",
+            "tone": "mysterious",
+            "assignDefinition": "type_v_ancient"
+          }
+        }
+      },
+      "3": {
+        "id": "station_approach",
+        "name": "Station Approach Narratives",
+        "description": "First contact with stations",
+        "category": "station",
+        "entries": {
+          "0": {
+            "weight": 40,
+            "title": "Active Station Hails",
+            "message": "The station's automated systems acknowledge your approach. Docking clearance granted.",
+            "systemMessage": "Station operational - access granted",
+            "tone": "neutral",
+            "assignDefinition": "operational"
+          },
+          "1": {
+            "weight": 35,
+            "title": "Derelict Silence",
+            "message": "No response to your hails. The station's lights are dark. Looks like it's been abandoned for some time.",
+            "systemMessage": "Station derelict - salvage opportunity",
+            "tone": "eerie",
+            "assignDefinition": "derelict"
+          },
+          "2": {
+            "weight": 15,
+            "title": "Distress Signal",
+            "message": "Emergency beacon active. Life support failing. Someone on that station needs help—fast.",
+            "systemMessage": "Distress signal detected - rescue mission available",
+            "tone": "urgent",
+            "assignDefinition": "distress"
+          },
+          "3": {
+            "weight": 10,
+            "title": "Hostile Lockdown",
+            "message": "WARNING: Weapons lock detected! The station's defense turrets are tracking your ship.",
+            "systemMessage": "Station hostile - combat systems active",
+            "tone": "danger",
+            "assignDefinition": "hostile"
+          }
+        }
+      }
+    }
+  },
+  "eventsCore": {
+    "encounterRates": {
+      "trader": {
+        "weight": 20,
+        "cooldown": 300
+      },
+      "pirate": {
+        "weight": 15,
+        "cooldown": 600
+      },
+      "derelict": {
+        "weight": 10,
+        "cooldown": 900
+      },
+      "anomaly": {
+        "weight": 5,
+        "cooldown": 1200
+      }
+    },
+    "riskCalculation": {
+      "wakeWeight": 40,
+      "locationWeight": 30,
+      "timeWeight": 15,
+      "eventWeight": 10,
+      "missionWeight": 5
+    },
+    "dynamicScheduler": {
+      "lowRisk": {
+        "threshold": 20,
+        "interval": 60
+      },
+      "moderateRisk": {
+        "threshold": 40,
+        "interval": 30
+      },
+      "highRisk": {
+        "threshold": 60,
+        "interval": 15
+      },
+      "criticalRisk": {
+        "threshold": 80,
+        "interval": 5
+      },
+      "extremeRisk": {
+        "threshold": 100,
+        "interval": 2
+      }
+    }
+  },
+  "missions": [],
+  "itemsCore": {
+    "itemCategories": [
+      "weapon",
+      "subsystem",
+      "resource",
+      "consumable",
+      "artifact",
+      "equipment"
+    ],
+    "itemTiers": [
+      "common",
+      "uncommon",
+      "rare",
+      "epic",
+      "legendary"
+    ],
+    "lootTables": {
+      "pools": [
+        {
+          "id": "asteroid_mining",
+          "name": "Asteroid Mining Loot",
+          "description": "Common ores and materials found when mining asteroids",
+          "tags": {
+            "0": "mining",
+            "1": "asteroid",
+            "2": "common"
+          },
+          "entries": {
+            "0": {
+              "itemId": "iron_ore",
+              "weight": 70,
+              "minQuantity": 5,
+              "maxQuantity": 15
+            },
+            "1": {
+              "itemId": "platinum_ore",
+              "weight": 20,
+              "minQuantity": 1,
+              "maxQuantity": 5
+            },
+            "2": {
+              "itemId": "repair_kit",
+              "weight": 10,
+              "minQuantity": 1,
+              "maxQuantity": 2
+            }
+          }
+        },
+        {
+          "id": "derelict_salvage",
+          "name": "Derelict Ship Salvage",
+          "description": "Items recovered from abandoned ships and stations",
+          "tags": {
+            "0": "salvage",
+            "1": "derelict",
+            "2": "rare"
+          },
+          "entries": {
+            "0": {
+              "itemId": "shield_capacitor",
+              "weight": 30,
+              "minQuantity": 1,
+              "maxQuantity": 2
+            },
+            "1": {
+              "itemId": "ancient_data_core",
+              "weight": 10,
+              "minQuantity": 1,
+              "maxQuantity": 1
+            },
+            "2": {
+              "itemId": "repair_kit",
+              "weight": 40,
+              "minQuantity": 2,
+              "maxQuantity": 5
+            },
+            "3": {
+              "itemId": "helium3",
+              "weight": 20,
+              "minQuantity": 10,
+              "maxQuantity": 30
+            }
+          }
+        }
+      ]
+    }
+  }
 }

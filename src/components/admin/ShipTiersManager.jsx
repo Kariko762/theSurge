@@ -20,8 +20,8 @@ export default function ShipTiersManager() {
   const loadTierBonuses = async () => {
     try {
       setLoading(true);
-      const response = await api.config.get();
-      setTierBonuses(response.config?.shipTierBonuses || []);
+      const tierBonuses = await api.shipTiers.getAll();
+      setTierBonuses(tierBonuses || []);
       setError('');
     } catch (err) {
       setError('Failed to load ship tier bonuses');
@@ -36,9 +36,17 @@ export default function ShipTiersManager() {
       setError('');
       setSuccessMessage('');
       
-      const response = await api.config.get();
-      const updatedConfig = { ...response.config, shipTierBonuses: tierBonuses };
-      await api.config.update(updatedConfig);
+      // Save each tier bonus individually
+      for (const bonus of tierBonuses) {
+        const existing = await api.shipTiers.getAll();
+        const exists = existing.some(b => b.id === bonus.id);
+        
+        if (exists) {
+          await api.shipTiers.update(bonus.id, bonus);
+        } else {
+          await api.shipTiers.create(bonus);
+        }
+      }
       
       setSuccessMessage('Ship tier bonuses saved successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
