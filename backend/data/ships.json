@@ -1,0 +1,46 @@
+[
+  {
+    "id": "ship_1763992197382",
+    "name": "Fighter",
+    "class": "fighter",
+    "tier": 1,
+    "manufacturer": "EmberCore",
+    "faction": null,
+    "description": "Basic Core Figher",
+    "playerLevelRequired": 1,
+    "baseStats": {
+      "hull": 100,
+      "shields": 50,
+      "power": 100,
+      "cargo": 50,
+      "speed": 5,
+      "agility": 5
+    },
+    "fuelCapacity": {
+      "min": 50,
+      "max": 100
+    },
+    "engine": "engine_fighter_t1",
+    "weaponSlots": {
+      "slot_1": "pulse_laser_mk1",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk1",
+      "slot_2": null
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null
+    },
+    "aiCoreSlots": 2,
+    "tierBonuses": [],
+    "cost": 10000,
+    "unlockRequirements": {
+      "credits": 10000,
+      "reputation": 0,
+      "tier": 1
+    },
+    "enabled": true
+  }
+]

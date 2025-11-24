@@ -1,0 +1,201 @@
+[
+  {
+    "id": "pulse_laser_mk1",
+    "name": "Pulse Laser Mk1",
+    "description": "Standard pulse laser weapon. Reliable short-range energy weapon with moderate damage.",
+    "category": "weapon",
+    "subcategory": "laser",
+    "tier": "common",
+    "weight": 10,
+    "size": 5,
+    "maxStack": 1,
+    "value": 500,
+    "faction": null,
+    "tags": [
+      "weapon",
+      "laser",
+      "energy",
+      "military"
+    ],
+    "properties": {
+      "damage": 15,
+      "range": 200,
+      "fireRate": 2
+    }
+  },
+  {
+    "id": "pulse_laser_mk2",
+    "name": "Pulse Laser Mk2",
+    "description": "Improved pulse laser with better heat management and higher damage output.",
+    "category": "weapon",
+    "subcategory": "laser",
+    "tier": "uncommon",
+    "weight": 12,
+    "size": 5,
+    "maxStack": 1,
+    "value": 1200,
+    "faction": null,
+    "tags": [
+      "weapon",
+      "laser",
+      "energy",
+      "military"
+    ],
+    "properties": {
+      "damage": 22,
+      "range": 250,
+      "fireRate": 2.5
+    }
+  },
+  {
+    "id": "beam_laser",
+    "name": "Beam Laser",
+    "description": "Continuous beam laser weapon. Excellent sustained damage but high power consumption.",
+    "category": "weapon",
+    "subcategory": "laser",
+    "tier": "rare",
+    "weight": 15,
+    "size": 6,
+    "maxStack": 1,
+    "value": 2500,
+    "faction": null,
+    "tags": [
+      "weapon",
+      "laser",
+      "energy",
+      "beam",
+      "military"
+    ],
+    "properties": {
+      "damage": 35,
+      "range": 300,
+      "fireRate": 5
+    }
+  },
+  {
+    "id": "missile_launcher_light",
+    "name": "Light Missile Launcher",
+    "description": "Compact missile launcher. Fires tracking missiles effective against small targets.",
+    "category": "weapon",
+    "subcategory": "missile",
+    "tier": "common",
+    "weight": 8,
+    "size": 4,
+    "maxStack": 1,
+    "value": 600,
+    "faction": null,
+    "tags": [
+      "weapon",
+      "missile",
+      "explosive",
+      "military"
+    ],
+    "properties": {
+      "damage": 40,
+      "range": 500,
+      "fireRate": 0.5,
+      "tracking": true
+    }
+  },
+  {
+    "id": "missile_launcher_heavy",
+    "name": "Heavy Missile Launcher",
+    "description": "Large payload missile system. Devastating damage but slow reload.",
+    "category": "weapon",
+    "subcategory": "missile",
+    "tier": "rare",
+    "weight": 20,
+    "size": 8,
+    "maxStack": 1,
+    "value": 3500,
+    "faction": null,
+    "tags": [
+      "weapon",
+      "missile",
+      "explosive",
+      "heavy",
+      "military"
+    ],
+    "properties": {
+      "damage": 120,
+      "range": 800,
+      "fireRate": 0.2,
+      "tracking": true
+    }
+  },
+  {
+    "id": "railgun_mk1",
+    "name": "Railgun Mk1",
+    "description": "Electromagnetic projectile accelerator. High velocity kinetic damage.",
+    "category": "weapon",
+    "subcategory": "rail",
+    "tier": "uncommon",
+    "weight": 18,
+    "size": 7,
+    "maxStack": 1,
+    "value": 1800,
+    "faction": null,
+    "tags": [
+      "weapon",
+      "rail",
+      "kinetic",
+      "military"
+    ],
+    "properties": {
+      "damage": 50,
+      "range": 600,
+      "fireRate": 1,
+      "armorPiercing": true
+    }
+  },
+  {
+    "id": "plasma_cannon",
+    "name": "Plasma Cannon",
+    "description": "Superheated plasma projector. Devastating thermal damage at medium range.",
+    "category": "weapon",
+    "subcategory": "plasma",
+    "tier": "epic",
+    "weight": 25,
+    "size": 10,
+    "maxStack": 1,
+    "value": 8000,
+    "faction": null,
+    "tags": [
+      "weapon",
+      "plasma",
+      "thermal",
+      "epic",
+      "military"
+    ],
+    "properties": {
+      "damage": 80,
+      "range": 350,
+      "fireRate": 1.5,
+      "thermal": true
+    }
+  },
+  {
+    "id": "autocannon",
+    "name": "Rotary Autocannon",
+    "description": "Rapid-fire kinetic weapon. High rate of fire with moderate damage per shot.",
+    "category": "weapon",
+    "subcategory": "kinetic",
+    "tier": "common",
+    "weight": 12,
+    "size": 6,
+    "maxStack": 1,
+    "value": 700,
+    "faction": null,
+    "tags": [
+      "weapon",
+      "kinetic",
+      "ballistic",
+      "military"
+    ],
+    "properties": {
+      "damage": 8,
+      "range": 300,
+      "fireRate": 10
+    }
+  }
+]

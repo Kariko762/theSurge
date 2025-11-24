@@ -1,0 +1,19 @@
+[
+  {
+    "id": "ancient_data_core",
+    "name": "Ancient Data Core",
+    "description": "Pre-Surge data storage containing valuable information. Highly sought after by researchers.",
+    "category": "artifact",
+    "tier": "epic",
+    "weight": 1,
+    "size": 1,
+    "maxStack": 1,
+    "value": 5000,
+    "tags": {
+      "0": "artifact",
+      "1": "data",
+      "2": "pre-surge",
+      "3": "epic"
+    }
+  }
+]

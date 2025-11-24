@@ -26,9 +26,9 @@ Ships gain bonuses based on their tier level. Higher tier ships receive progress
 - **2x Advanced Bonuses**
 
 ### Tier 6 (Legendary)
+- **1x Legendary Passive Ability**
 - **2x Standard Bonuses**
 - **2x Advanced Bonuses**
-- **1x Legendary Passive Ability**
 
 ---
 

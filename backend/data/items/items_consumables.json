@@ -1,0 +1,34 @@
+[
+  {
+    "id": "helium3",
+    "name": "Helium-3",
+    "description": "Fusion reactor fuel. Extracted from gas giants and solar winds. Essential for long-range travel.",
+    "category": "consumable",
+    "tier": "uncommon",
+    "weight": 0.5,
+    "size": 2,
+    "maxStack": 200,
+    "value": 80,
+    "tags": {
+      "0": "fuel",
+      "1": "gas",
+      "2": "uncommon"
+    }
+  },
+  {
+    "id": "repair_kit",
+    "name": "Emergency Repair Kit",
+    "description": "Portable repair tools and materials for quick hull breaches and system fixes.",
+    "category": "consumable",
+    "tier": "common",
+    "weight": 3,
+    "size": 2,
+    "maxStack": 10,
+    "value": 120,
+    "tags": {
+      "0": "repair",
+      "1": "emergency",
+      "2": "consumable"
+    }
+  }
+]

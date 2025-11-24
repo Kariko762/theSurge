@@ -6,6 +6,7 @@ import '../../styles/AdminGlass.css';
 const FACTION_TYPES = ['human_faction', 'alien_species', 'machine', 'hybrid', 'unknown'];
 const SPECIES_TYPES = ['human', 'varrkel', 'threxul', 'kaelorii', 'drogan', 'orrix', 'rhal', 'solun', 'precursor', 'autonomous_machine', 'sythari', 'xal_reef', 'other'];
 const FACTION_STANCES = ['allied', 'friendly', 'neutral', 'suspicious', 'hostile', 'war'];
+const ALIGNMENTS = ['lawful_good', 'neutral_good', 'chaotic_good', 'lawful_neutral', 'true_neutral', 'chaotic_neutral', 'lawful_evil', 'neutral_evil', 'chaotic_evil'];
 
 export default function FactionsManager() {
   const [factions, setFactions] = useState([]);
@@ -159,6 +160,10 @@ export default function FactionsManager() {
       other: 'Unknown'
     };
     return labels[species] || species.charAt(0).toUpperCase() + species.slice(1);
+  };
+
+  const getAlignmentLabel = (alignment) => {
+    return alignment.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   };
 
   const filteredFactions = factions.filter(faction => {

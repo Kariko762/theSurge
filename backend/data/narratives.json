@@ -1,0 +1,157 @@
+{
+  "pools": {
+    "0": {
+      "id": "mining_success",
+      "name": "Mining Success Narratives",
+      "description": "Various success messages for mining operations",
+      "category": "mining",
+      "entries": {
+        "0": {
+          "weight": 40,
+          "title": "Rich Vein Discovered",
+          "message": "Your scanners light up as you breach a particularly rich mineral deposit. This is going to be a good haul.",
+          "systemMessage": "Mining efficiency increased by 15%",
+          "tone": "positive"
+        },
+        "1": {
+          "weight": 30,
+          "title": "Standard Operation",
+          "message": "The mining lasers cut through the asteroid surface smoothly. Nothing fancy, but steady work pays off.",
+          "systemMessage": "Mining operation nominal",
+          "tone": "neutral"
+        },
+        "2": {
+          "weight": 20,
+          "title": "Unexpected Find",
+          "message": "Wait... these readings can't be right. There's something else embedded in this rock...",
+          "systemMessage": "Anomalous signature detected",
+          "tone": "mysterious"
+        },
+        "3": {
+          "weight": 10,
+          "title": "Jackpot Strike",
+          "message": "ALERT: High-value mineral concentration detected! Your cargo hold is going to love this.",
+          "systemMessage": "Critical success - maximum yield",
+          "tone": "excited"
+        }
+      }
+    },
+    "1": {
+      "id": "mining_failure",
+      "name": "Mining Failure Narratives",
+      "description": "Various failure messages for mining operations",
+      "category": "mining",
+      "entries": {
+        "0": {
+          "weight": 50,
+          "title": "Equipment Malfunction",
+          "message": "The mining laser sputters and dies. You'll need to reset the system before trying again.",
+          "systemMessage": "Mining equipment requires maintenance",
+          "tone": "negative"
+        },
+        "1": {
+          "weight": 30,
+          "title": "Unstable Asteroid",
+          "message": "Cracks spiderweb across the asteroid's surface. You pull back before the whole thing fragments.",
+          "systemMessage": "Structural integrity compromised",
+          "tone": "tense"
+        },
+        "2": {
+          "weight": 20,
+          "title": "Pirate Interruption",
+          "message": "Your proximity alarms blare. Three hostile contacts incoming. Looks like someone doesn't want you mining here.",
+          "systemMessage": "Hostile ships detected - combat imminent",
+          "tone": "danger"
+        }
+      }
+    },
+    "2": {
+      "id": "scan_discovery",
+      "name": "Scan Discovery Narratives",
+      "description": "Revealing what you've discovered during scans",
+      "category": "exploration",
+      "entries": {
+        "0": {
+          "weight": 35,
+          "title": "Type-I Iron Cluster",
+          "message": "Scan complete. Standard iron-rich asteroid cluster. Common, but valuable.",
+          "systemMessage": "Classification: Type-I Ferrous Deposit",
+          "tone": "neutral",
+          "assignDefinition": "type_i_iron"
+        },
+        "1": {
+          "weight": 25,
+          "title": "Type-II Platinum Vein",
+          "message": "Your sensors pick up precious metal signatures. A platinum deposit—rare and extremely valuable.",
+          "systemMessage": "Classification: Type-II Precious Metal Vein",
+          "tone": "positive",
+          "assignDefinition": "type_ii_platinum"
+        },
+        "2": {
+          "weight": 20,
+          "title": "Type-III Volatile Ice",
+          "message": "WARNING: Volatile compounds detected. This asteroid contains explosive ice formations. Proceed with extreme caution.",
+          "systemMessage": "Classification: Type-III Volatile Cluster - HAZARDOUS",
+          "tone": "warning",
+          "assignDefinition": "type_iii_volatile"
+        },
+        "3": {
+          "weight": 15,
+          "title": "Type-IV Rare Earth",
+          "message": "Interesting... rare earth elements in high concentration. These are used in advanced ship components.",
+          "systemMessage": "Classification: Type-IV Rare Earth Deposit",
+          "tone": "curious",
+          "assignDefinition": "type_iv_rare_earth"
+        },
+        "4": {
+          "weight": 5,
+          "title": "Type-V Ancient Core",
+          "message": "This is impossible. These mineral formations predate the Surge by centuries. What were they mining for?",
+          "systemMessage": "Classification: Type-V Pre-Surge Anomaly",
+          "tone": "mysterious",
+          "assignDefinition": "type_v_ancient"
+        }
+      }
+    },
+    "3": {
+      "id": "station_approach",
+      "name": "Station Approach Narratives",
+      "description": "First contact with stations",
+      "category": "station",
+      "entries": {
+        "0": {
+          "weight": 40,
+          "title": "Active Station Hails",
+          "message": "The station's automated systems acknowledge your approach. Docking clearance granted.",
+          "systemMessage": "Station operational - access granted",
+          "tone": "neutral",
+          "assignDefinition": "operational"
+        },
+        "1": {
+          "weight": 35,
+          "title": "Derelict Silence",
+          "message": "No response to your hails. The station's lights are dark. Looks like it's been abandoned for some time.",
+          "systemMessage": "Station derelict - salvage opportunity",
+          "tone": "eerie",
+          "assignDefinition": "derelict"
+        },
+        "2": {
+          "weight": 15,
+          "title": "Distress Signal",
+          "message": "Emergency beacon active. Life support failing. Someone on that station needs help—fast.",
+          "systemMessage": "Distress signal detected - rescue mission available",
+          "tone": "urgent",
+          "assignDefinition": "distress"
+        },
+        "3": {
+          "weight": 10,
+          "title": "Hostile Lockdown",
+          "message": "WARNING: Weapons lock detected! The station's defense turrets are tracking your ship.",
+          "systemMessage": "Station hostile - combat systems active",
+          "tone": "danger",
+          "assignDefinition": "hostile"
+        }
+      }
+    }
+  }
+}

@@ -1344,6 +1344,156 @@
         "damage": 0
       },
       "tags": []
+    },
+    {
+      "id": "ship_bonus_001",
+      "name": "Reinforced Bulkhead Plating",
+      "type": "standard",
+      "tier": 2,
+      "description": "Extra layering of structural hull plating improves survivability.",
+      "effects": {
+        "hull": 15,
+        "shields": 0,
+        "power": 0,
+        "cargo": 0,
+        "speed": 0,
+        "agility": 0,
+        "accuracy": 0,
+        "evasion": 0,
+        "range": 0,
+        "damage": 0,
+        "initiative": 0,
+        "engineering": 0,
+        "piloting": 0,
+        "combat": 0,
+        "navigation": 0
+      },
+      "tags": ["hull", "defense", "survivability"]
+    },
+    {
+      "id": "ship_bonus_002",
+      "name": "Enhanced Shield Emitters",
+      "type": "standard",
+      "tier": 2,
+      "description": "Upgraded emitter coils increase maximum shield capacity.",
+      "effects": {
+        "hull": 0,
+        "shields": 12,
+        "power": 0,
+        "cargo": 0,
+        "speed": 0,
+        "agility": 0,
+        "accuracy": 0,
+        "evasion": 0,
+        "range": 0,
+        "damage": 0,
+        "initiative": 0,
+        "engineering": 0,
+        "piloting": 0,
+        "combat": 0,
+        "navigation": 0
+      },
+      "tags": ["shields", "defense", "energy"]
+    },
+    {
+      "id": "ship_bonus_003",
+      "name": "Overcharged Thruster Array",
+      "type": "standard",
+      "tier": 2,
+      "description": "More responsive thrust vectors for improved maneuverability.",
+      "effects": {
+        "hull": 0,
+        "shields": 0,
+        "power": 0,
+        "cargo": 0,
+        "speed": 2,
+        "agility": 3,
+        "accuracy": 0,
+        "evasion": 0,
+        "range": 0,
+        "damage": 0,
+        "initiative": 0,
+        "engineering": 0,
+        "piloting": 0,
+        "combat": 0,
+        "navigation": 0
+      },
+      "tags": ["speed", "agility", "maneuverability"]
+    },
+    {
+      "id": "ship_bonus_004",
+      "name": "Precision Targeting Package",
+      "type": "standard",
+      "tier": 2,
+      "description": "Improved sensor-targeting matrices enhance accuracy.",
+      "effects": {
+        "hull": 0,
+        "shields": 0,
+        "power": 0,
+        "cargo": 0,
+        "speed": 0,
+        "agility": 0,
+        "accuracy": 4,
+        "evasion": 0,
+        "range": 1,
+        "damage": 0,
+        "initiative": 0,
+        "engineering": 0,
+        "piloting": 0,
+        "combat": 0,
+        "navigation": 0
+      },
+      "tags": ["accuracy", "targeting", "range"]
+    },
+    {
+      "id": "ship_bonus_005",
+      "name": "Expanded Cargo Racks",
+      "type": "standard",
+      "tier": 2,
+      "description": "Reinforced internal braces increase usable cargo capacity.",
+      "effects": {
+        "hull": 0,
+        "shields": 0,
+        "power": 0,
+        "cargo": 10,
+        "speed": 0,
+        "agility": 0,
+        "accuracy": 0,
+        "evasion": 0,
+        "range": 0,
+        "damage": 0,
+        "initiative": 0,
+        "engineering": 0,
+        "piloting": 0,
+        "combat": 0,
+        "navigation": 0
+      },
+      "tags": ["cargo", "storage", "hauling"]
+    },
+    {
+      "id": "ship_bonus_006",
+      "name": "Tactical Uplink Node",
+      "type": "standard",
+      "tier": 2,
+      "description": "A latency-optimised tactical processor that boosts reaction time.",
+      "effects": {
+        "hull": 0,
+        "shields": 0,
+        "power": 0,
+        "cargo": 0,
+        "speed": 0,
+        "agility": 0,
+        "accuracy": 0,
+        "evasion": 0,
+        "range": 0,
+        "damage": 0,
+        "initiative": 2,
+        "engineering": 0,
+        "piloting": 0,
+        "combat": 1,
+        "navigation": 0
+      },
+      "tags": ["initiative", "combat", "tactical"]
     }
   ],
   "ships": [
@@ -1390,6 +1540,278 @@
         "tier": 1
       },
       "enabled": true
+    }
+  ],
+  "factions": [
+    {
+      "id": "faction_freebelt",
+      "name": "Freebelt Coalition",
+      "type": "human_faction",
+      "species": "human",
+      "status": "scattered",
+      "stance": "hostile",
+      "description": "A decentralised network of ex-miners, deserters, scrappers, and anti-authoritarian cells united by hatred of institutional control.",
+      "homeworld": "None (Nomadic Belters)",
+      "leader": "No central leadership; spokesperson known as \"Ghostline\"",
+      "founded": "During the early Collapse",
+      "baseReputation": -30,
+      "relationshipsWith": {
+        "faction_hexcorp": -60,
+        "faction_utd": -40,
+        "faction_kaelori": 0,
+        "faction_threxul": -100,
+        "faction_concordant": 10
+      },
+      "traits": [
+        "guerrilla",
+        "anti_authoritarian",
+        "resourceful",
+        "tech_scavengers"
+      ],
+      "colors": {
+        "primary": "#00d7ff",
+        "secondary": "#005e73"
+      },
+      "flags": {
+        "isPlayable": true,
+        "isHostile": true,
+        "canTrade": false,
+        "canAlly": false,
+        "appearsInEvents": true,
+        "ownsShips": true
+      },
+      "lore": {
+        "history": "Born in the chaos of the Collapse, the Freebelt formed to resist both Hex-Corp exploitation and Directorate overreach. Their improvised fleets are legendary for hit-and-run strikes.",
+        "culture": "Loose, tribal, individualistic. Freedom above all. No hierarchy lasts long.",
+        "goals": "Ensure no large power ever rises again; liberate worlds from 'authority'; survive.",
+        "notes": "They frequently appear in ambush events, sabotage missions, and unexpected rescues."
+      },
+      "iconEmoji": "🚀"
+    },
+    {
+      "id": "faction_hexcorp",
+      "name": "Hex-Corp",
+      "type": "human_faction",
+      "species": "human",
+      "status": "fractured",
+      "stance": "suspicious",
+      "description": "A powerful pre-Collapse megacorporation that survived by sealing entire research divisions inside hardened orbital vaults. Their influence remains strong in pockets across the Surge.",
+      "homeworld": "Earth Corporate Belt (Fragmented Orbital Zones)",
+      "leader": "Acting Executive Chair Mara Vance",
+      "founded": "2148 CE",
+      "baseReputation": -10,
+      "relationshipsWith": {
+        "faction_utd": -20,
+        "faction_freebelt": -60,
+        "faction_kaelori": 10,
+        "faction_threxul": -100,
+        "faction_concordant": 25
+      },
+      "traits": [
+        "profit_driven",
+        "tech_hoarder",
+        "research_obsessive",
+        "corporate_militant"
+      ],
+      "colors": {
+        "primary": "#29baff",
+        "secondary": "#146c99"
+      },
+      "flags": {
+        "isPlayable": false,
+        "isHostile": false,
+        "canTrade": true,
+        "canAlly": true,
+        "appearsInEvents": true,
+        "ownsShips": true
+      },
+      "lore": {
+        "history": "Before the Collapse, Hex-Corp controlled vast chunks of Terran infrastructure. When the Surge tore the galaxy apart, their private fleets and fortified R&D habitats survived better than most. They now operate as a fragmented corporate state.",
+        "culture": "Rigid hierarchy, financial nobility, loyalty through incentives, and a belief that corporate structure is humanity's natural state.",
+        "goals": "Recover lost assets, secure tech superiority, rebuild a corporate empire.",
+        "notes": "Their vault-labs occasionally trigger anomalies."
+      },
+      "iconEmoji": "🏢"
+    },
+    {
+      "id": "faction_concordant",
+      "name": "Interstellar Concordant",
+      "type": "hybrid",
+      "species": "other",
+      "status": "stable",
+      "stance": "allied",
+      "description": "A cross-species organization devoted to open trade, mutual aid, and intersystem reconstruction. One of the few groups to grow in the aftermath.",
+      "homeworld": "No central homeworld (Rotating Council Stations)",
+      "leader": "The Concordant Council",
+      "founded": "Early post-Collapse",
+      "baseReputation": 50,
+      "relationshipsWith": {
+        "faction_hexcorp": 25,
+        "faction_utd": 40,
+        "faction_freebelt": 10,
+        "faction_kaelori": 50,
+        "faction_threxul": -100
+      },
+      "traits": [
+        "merchant",
+        "neutral",
+        "diplomatic",
+        "cross_species"
+      ],
+      "colors": {
+        "primary": "#00ffe7",
+        "secondary": "#008c7a"
+      },
+      "flags": {
+        "isPlayable": false,
+        "isHostile": false,
+        "canTrade": true,
+        "canAlly": true,
+        "appearsInEvents": true,
+        "ownsShips": true
+      },
+      "lore": {
+        "history": "Formed in the ashes of the Collapse, the Concordant banded together fleeing civilians, traders, scientists, and refugees into a faction built on cooperation.",
+        "culture": "Respect, negotiation, mutual aid. They believe unity is the only path to survival.",
+        "goals": "Maintain safe trade corridors, aid struggling worlds, prevent total species extinction.",
+        "notes": "Have access to rare pre-Surge trade archives and star maps."
+      },
+      "iconEmoji": "⚖️"
+    },
+    {
+      "id": "faction_kaelori",
+      "name": "Kaelori Ascendancy",
+      "type": "alien_species",
+      "species": "kaelorii",
+      "status": "surviving",
+      "stance": "friendly",
+      "description": "Graceful psionic alien civilization with crystalline biology. The Surge damaged their Fold-relay network, leaving small enclaves scattered.",
+      "homeworld": "Kaelis Prime (Crystalline World)",
+      "leader": "High Resonant Elys-Tarin",
+      "founded": "Unknown; estimated millions of years old",
+      "baseReputation": 30,
+      "relationshipsWith": {
+        "faction_hexcorp": 10,
+        "faction_utd": 25,
+        "faction_freebelt": 0,
+        "faction_threxul": -100,
+        "faction_concordant": 50
+      },
+      "traits": [
+        "psionic",
+        "ethereal",
+        "ancient",
+        "diplomatic"
+      ],
+      "colors": {
+        "primary": "#79e3ff",
+        "secondary": "#2f6e85"
+      },
+      "flags": {
+        "isPlayable": false,
+        "isHostile": false,
+        "canTrade": true,
+        "canAlly": true,
+        "appearsInEvents": true,
+        "ownsShips": true
+      },
+      "lore": {
+        "history": "The Kaelori once maintained a serene pan-galactic network of crystalline data vaults. The Surge shattered most of their infrastructure, leaving them weakened but wise.",
+        "culture": "Harmony, long-term thinking, psionic resonance, and crystalline symbiosis.",
+        "goals": "Recover lost psionic archives, prevent further collapse, foster interspecies diplomacy.",
+        "notes": "Their ships produce almost no plasma wake, making them hard to detect."
+      },
+      "iconEmoji": "💠"
+    },
+    {
+      "id": "faction_utd",
+      "name": "United Terran Directorate",
+      "type": "human_faction",
+      "species": "human",
+      "status": "diminished",
+      "stance": "neutral",
+      "description": "The fractured remains of the old Terran Government. Once spanning hundreds of systems, now reduced to scattered enclaves barely holding onto order.",
+      "homeworld": "Old Earth (Abandoned), New Bastion (Current Seat)",
+      "leader": "Director-Admiral Serin Quell",
+      "founded": "2091 CE",
+      "baseReputation": 10,
+      "relationshipsWith": {
+        "faction_hexcorp": -20,
+        "faction_freebelt": -40,
+        "faction_kaelori": 25,
+        "faction_threxul": -100,
+        "faction_concordant": 40
+      },
+      "traits": [
+        "bureaucratic",
+        "lawful",
+        "militaristic",
+        "resource_strained"
+      ],
+      "colors": {
+        "primary": "#0091d1",
+        "secondary": "#1b2e4a"
+      },
+      "flags": {
+        "isPlayable": true,
+        "isHostile": false,
+        "canTrade": true,
+        "canAlly": true,
+        "appearsInEvents": true,
+        "ownsShips": true
+      },
+      "lore": {
+        "history": "Once the dominant power in known space, the Directorate suffered catastrophic losses during the Surge. Entire fleets vanished. Worlds broke apart. Now they maintain a patchwork of strongholds.",
+        "culture": "Discipline, regulation, civic duty. Citizens are taught that humanity must rebuild through order and caution.",
+        "goals": "Restore stability, reclaim human space, and suppress extremist splinter groups.",
+        "notes": "Their heavy cruisers are some of the last pre-Surge military capital ships still functional."
+      },
+      "iconEmoji": "🏛️"
+    },
+    {
+      "id": "faction_threxul",
+      "name": "Threxul Broodclades",
+      "type": "alien_species",
+      "species": "threxul",
+      "status": "expanding",
+      "stance": "war",
+      "description": "A ruthless swarming civilization of biomechanical entities adapted to extreme radiation. They thrive in post-Surge environments and aggressively consume resources.",
+      "homeworld": "The Maw Cluster (Unknown exact origin)",
+      "leader": "Brood-Prime Xh'rall",
+      "founded": "Unknown",
+      "baseReputation": -100,
+      "relationshipsWith": {
+        "faction_hexcorp": -100,
+        "faction_utd": -100,
+        "faction_freebelt": -100,
+        "faction_kaelori": -100,
+        "faction_concordant": -100
+      },
+      "traits": [
+        "hive_mind",
+        "bio_mechanical",
+        "ravenous",
+        "high_radiation_adapted"
+      ],
+      "colors": {
+        "primary": "#ff0055",
+        "secondary": "#7a002f"
+      },
+      "flags": {
+        "isPlayable": false,
+        "isHostile": true,
+        "canTrade": false,
+        "canAlly": false,
+        "appearsInEvents": true,
+        "ownsShips": true
+      },
+      "lore": {
+        "history": "The Surge didn't harm the Threxul—it empowered them. Radiation-rich regions serve as breeding grounds for new broodclades.",
+        "culture": "No individualism. Swarm logic. Expansion at any cost.",
+        "goals": "Feed. Reproduce. Consume all Fold-stable regions.",
+        "notes": "Their presence increases Surge radiation in-system."
+      },
+      "iconEmoji": "🦂"
     }
   ]
 }

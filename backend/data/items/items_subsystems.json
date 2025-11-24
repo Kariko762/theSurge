@@ -1,0 +1,234 @@
+[
+  {
+    "id": "shield_capacitor",
+    "name": "Advanced Shield Capacitor",
+    "description": "High-efficiency energy storage for shield systems. Increases shield recharge rate.",
+    "category": "subsystem",
+    "subcategory": "shield",
+    "tier": "rare",
+    "weight": 4,
+    "size": 3,
+    "maxStack": 5,
+    "value": 850,
+    "tags": {
+      "0": "subsystem",
+      "1": "shield",
+      "2": "upgrade"
+    }
+  },
+  {
+    "id": "ecm_suite_basic",
+    "name": "ECM Suite - Basic",
+    "description": "Electronic countermeasures system. Reduces enemy targeting accuracy.",
+    "category": "subsystem",
+    "subcategory": "ecm",
+    "tier": "common",
+    "weight": 5,
+    "size": 3,
+    "maxStack": 1,
+    "value": 800,
+    "tags": {
+      "0": "subsystem",
+      "1": "ecm",
+      "2": "defense"
+    },
+    "properties": {
+      "evasion": 10,
+      "jamming": 15
+    }
+  },
+  {
+    "id": "ecm_suite_advanced",
+    "name": "ECM Suite - Advanced",
+    "description": "Military-grade countermeasures with active jamming and decoys.",
+    "category": "subsystem",
+    "subcategory": "ecm",
+    "tier": "rare",
+    "weight": 7,
+    "size": 4,
+    "maxStack": 1,
+    "value": 2800,
+    "tags": {
+      "0": "subsystem",
+      "1": "ecm",
+      "2": "defense",
+      "3": "military"
+    },
+    "properties": {
+      "evasion": 25,
+      "jamming": 40,
+      "decoys": 3
+    }
+  },
+  {
+    "id": "sensor_array_standard",
+    "name": "Standard Sensor Array",
+    "description": "Multi-spectrum sensor package. Improves detection range and targeting.",
+    "category": "subsystem",
+    "subcategory": "sensor",
+    "tier": "common",
+    "weight": 4,
+    "size": 3,
+    "maxStack": 1,
+    "value": 600,
+    "tags": {
+      "0": "subsystem",
+      "1": "sensor",
+      "2": "detection"
+    },
+    "properties": {
+      "range": 500,
+      "accuracy": 15
+    }
+  },
+  {
+    "id": "sensor_array_longrange",
+    "name": "Long-Range Sensor Array",
+    "description": "Extended detection suite with gravitic sensors and deep-space scanning.",
+    "category": "subsystem",
+    "subcategory": "sensor",
+    "tier": "uncommon",
+    "weight": 6,
+    "size": 4,
+    "maxStack": 1,
+    "value": 1500,
+    "tags": {
+      "0": "subsystem",
+      "1": "sensor",
+      "2": "detection",
+      "3": "longrange"
+    },
+    "properties": {
+      "range": 1200,
+      "accuracy": 25,
+      "gravitic": true
+    }
+  },
+  {
+    "id": "power_core_compact",
+    "name": "Compact Power Core",
+    "description": "Small fusion reactor. Provides stable power for basic ship systems.",
+    "category": "subsystem",
+    "subcategory": "power",
+    "tier": "common",
+    "weight": 8,
+    "size": 5,
+    "maxStack": 1,
+    "value": 900,
+    "tags": {
+      "0": "subsystem",
+      "1": "power",
+      "2": "reactor"
+    },
+    "properties": {
+      "output": 100,
+      "efficiency": 80
+    }
+  },
+  {
+    "id": "power_core_military",
+    "name": "Military Power Core",
+    "description": "High-output fusion reactor with redundant systems and overcharge capability.",
+    "category": "subsystem",
+    "subcategory": "power",
+    "tier": "rare",
+    "weight": 15,
+    "size": 8,
+    "maxStack": 1,
+    "value": 4500,
+    "tags": {
+      "0": "subsystem",
+      "1": "power",
+      "2": "reactor",
+      "3": "military"
+    },
+    "properties": {
+      "output": 250,
+      "efficiency": 90,
+      "overcharge": true
+    }
+  },
+  {
+    "id": "shield_generator_mk1",
+    "name": "Shield Generator Mk1",
+    "description": "Basic energy shield projector. Provides moderate protection from weapons fire.",
+    "category": "subsystem",
+    "subcategory": "shield",
+    "tier": "common",
+    "weight": 10,
+    "size": 6,
+    "maxStack": 1,
+    "value": 1200,
+    "tags": {
+      "0": "subsystem",
+      "1": "shield",
+      "2": "defense"
+    },
+    "properties": {
+      "strength": 100,
+      "recharge": 10
+    }
+  },
+  {
+    "id": "shield_generator_mk2",
+    "name": "Shield Generator Mk2",
+    "description": "Enhanced shield system with faster recharge and increased capacity.",
+    "category": "subsystem",
+    "subcategory": "shield",
+    "tier": "uncommon",
+    "weight": 12,
+    "size": 7,
+    "maxStack": 1,
+    "value": 2500,
+    "tags": {
+      "0": "subsystem",
+      "1": "shield",
+      "2": "defense"
+    },
+    "properties": {
+      "strength": 175,
+      "recharge": 18
+    }
+  },
+  {
+    "id": "hull_plating_reinforced",
+    "name": "Reinforced Hull Plating",
+    "description": "Armored hull plates that increase damage resistance.",
+    "category": "subsystem",
+    "subcategory": "hull",
+    "tier": "uncommon",
+    "weight": 20,
+    "size": 10,
+    "maxStack": 1,
+    "value": 1800,
+    "tags": {
+      "0": "subsystem",
+      "1": "hull",
+      "2": "armor"
+    },
+    "properties": {
+      "armor": 50,
+      "hullBonus": 25
+    }
+  },
+  {
+    "id": "cargo_expander",
+    "name": "Cargo Hold Expander",
+    "description": "Modular cargo bay extension. Increases cargo capacity.",
+    "category": "subsystem",
+    "subcategory": "cargo",
+    "tier": "common",
+    "weight": 15,
+    "size": 12,
+    "maxStack": 1,
+    "value": 800,
+    "tags": {
+      "0": "subsystem",
+      "1": "cargo",
+      "2": "storage"
+    },
+    "properties": {
+      "cargoBonus": 50
+    }
+  }
+]

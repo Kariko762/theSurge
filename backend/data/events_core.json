@@ -1,0 +1,49 @@
+{
+  "encounterRates": {
+    "trader": {
+      "weight": 20,
+      "cooldown": 300
+    },
+    "pirate": {
+      "weight": 15,
+      "cooldown": 600
+    },
+    "derelict": {
+      "weight": 10,
+      "cooldown": 900
+    },
+    "anomaly": {
+      "weight": 5,
+      "cooldown": 1200
+    }
+  },
+  "riskCalculation": {
+    "wakeWeight": 40,
+    "locationWeight": 30,
+    "timeWeight": 15,
+    "eventWeight": 10,
+    "missionWeight": 5
+  },
+  "dynamicScheduler": {
+    "lowRisk": {
+      "threshold": 20,
+      "interval": 60
+    },
+    "moderateRisk": {
+      "threshold": 40,
+      "interval": 30
+    },
+    "highRisk": {
+      "threshold": 60,
+      "interval": 15
+    },
+    "criticalRisk": {
+      "threshold": 80,
+      "interval": 5
+    },
+    "extremeRisk": {
+      "threshold": 100,
+      "interval": 2
+    }
+  }
+}

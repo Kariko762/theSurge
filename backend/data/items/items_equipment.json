@@ -1,0 +1,114 @@
+[
+  {
+    "id": "engine_fighter_t1",
+    "name": "Fighter Engine T1",
+    "description": "Compact high-thrust engine for small craft. Excellent agility.",
+    "category": "equipment",
+    "subcategory": "engine",
+    "tier": "common",
+    "weight": 30,
+    "size": 15,
+    "maxStack": 1,
+    "value": 2000,
+    "tags": {
+      "0": "equipment",
+      "1": "engine",
+      "2": "fighter"
+    },
+    "properties": {
+      "thrust": 80,
+      "agility": 95,
+      "class": "fighter"
+    }
+  },
+  {
+    "id": "engine_corvette_t1",
+    "name": "Corvette Engine T1",
+    "description": "Balanced engine for corvette-class vessels. Good speed and maneuverability.",
+    "category": "equipment",
+    "subcategory": "engine",
+    "tier": "common",
+    "weight": 40,
+    "size": 20,
+    "maxStack": 1,
+    "value": 3500,
+    "tags": {
+      "0": "equipment",
+      "1": "engine",
+      "2": "corvette"
+    },
+    "properties": {
+      "thrust": 100,
+      "agility": 75,
+      "class": "corvette"
+    }
+  },
+  {
+    "id": "engine_frigate_t2",
+    "name": "Frigate Engine T2",
+    "description": "Medium-power drive system for frigate-class ships. Improved efficiency.",
+    "category": "equipment",
+    "subcategory": "engine",
+    "tier": "uncommon",
+    "weight": 60,
+    "size": 30,
+    "maxStack": 1,
+    "value": 6000,
+    "tags": {
+      "0": "equipment",
+      "1": "engine",
+      "2": "frigate"
+    },
+    "properties": {
+      "thrust": 130,
+      "agility": 60,
+      "class": "frigate",
+      "efficiency": 110
+    }
+  },
+  {
+    "id": "engine_cruiser_t3",
+    "name": "Cruiser Engine T3",
+    "description": "Heavy-duty propulsion for cruiser-class vessels. High power output.",
+    "category": "equipment",
+    "subcategory": "engine",
+    "tier": "rare",
+    "weight": 100,
+    "size": 50,
+    "maxStack": 1,
+    "value": 12000,
+    "tags": {
+      "0": "equipment",
+      "1": "engine",
+      "2": "cruiser",
+      "3": "heavy"
+    },
+    "properties": {
+      "thrust": 180,
+      "agility": 45,
+      "class": "cruiser",
+      "efficiency": 120
+    }
+  },
+  {
+    "id": "ftl_drive_basic",
+    "name": "Basic FTL Drive",
+    "description": "Standard faster-than-light drive. Enables interstellar travel.",
+    "category": "equipment",
+    "subcategory": "ftl",
+    "tier": "uncommon",
+    "weight": 50,
+    "size": 25,
+    "maxStack": 1,
+    "value": 15000,
+    "tags": {
+      "0": "equipment",
+      "1": "ftl",
+      "2": "jump"
+    },
+    "properties": {
+      "range": 10,
+      "chargeTime": 30
+    }
+  }
+]

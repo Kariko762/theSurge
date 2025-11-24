@@ -1,0 +1,74 @@
+{
+  "itemCategories": ["weapon", "subsystem", "resource", "consumable", "artifact", "equipment"],
+  "itemTiers": ["common", "uncommon", "rare", "epic", "legendary"],
+  "lootTables": {
+    "pools": [
+      {
+        "id": "asteroid_mining",
+        "name": "Asteroid Mining Loot",
+        "description": "Common ores and materials found when mining asteroids",
+        "tags": {
+          "0": "mining",
+          "1": "asteroid",
+          "2": "common"
+        },
+        "entries": {
+          "0": {
+            "itemId": "iron_ore",
+            "weight": 70,
+            "minQuantity": 5,
+            "maxQuantity": 15
+          },
+          "1": {
+            "itemId": "platinum_ore",
+            "weight": 20,
+            "minQuantity": 1,
+            "maxQuantity": 5
+          },
+          "2": {
+            "itemId": "repair_kit",
+            "weight": 10,
+            "minQuantity": 1,
+            "maxQuantity": 2
+          }
+        }
+      },
+      {
+        "id": "derelict_salvage",
+        "name": "Derelict Ship Salvage",
+        "description": "Items recovered from abandoned ships and stations",
+        "tags": {
+          "0": "salvage",
+          "1": "derelict",
+          "2": "rare"
+        },
+        "entries": {
+          "0": {
+            "itemId": "shield_capacitor",
+            "weight": 30,
+            "minQuantity": 1,
+            "maxQuantity": 2
+          },
+          "1": {
+            "itemId": "ancient_data_core",
+            "weight": 10,
+            "minQuantity": 1,
+            "maxQuantity": 1
+          },
+          "2": {
+            "itemId": "repair_kit",
+            "weight": 40,
+            "minQuantity": 2,
+            "maxQuantity": 5
+          },
+          "3": {
+            "itemId": "helium3",
+            "weight": 20,
+            "minQuantity": 10,
+            "maxQuantity": 30
+          }
+        }
+      }
+    ]
+  }
+}
