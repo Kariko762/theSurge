@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loot Container System Test</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #001020;
+      color: #0ff;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #0ff;
+      text-shadow: 0 0 10px #0ff;
+    }
+    .test-section {
+      background: rgba(0, 40, 80, 0.5);
+      border: 2px solid #0ff;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+    .test-title {
+      color: #fa0;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    button {
+      background: rgba(0, 255, 255, 0.1);
+      border: 2px solid #0ff;
+      color: #0ff;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 1rem;
+      margin: 0.5rem;
+      transition: all 0.2s ease;
+    }
+    button:hover {
+      background: rgba(0, 255, 255, 0.3);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    }
+    pre {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid #666;
+      border-radius: 4px;
+      padding: 1rem;
+      overflow-x: auto;
+      color: #0f8;
+    }
+    .success {
+      color: #0f8;
+    }
+    .error {
+      color: #f66;
+    }
+    .info {
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎁 LOOT CONTAINER SYSTEM TEST</h1>
+
+  <div class="test-section">
+    <div class="test-title">📦 Test 1: Create Loot Pool with Grades</div>
+    <p class="info">Creates a test loot pool with multiple container grades</p>
+    <button onclick="test1_createPool()">RUN TEST 1</button>
+    <pre id="test1-output">Waiting...</pre>
+  </div>
+
+  <div class="test-section">
+    <div class="test-title">🎲 Test 2: Resolve Loot Pool (Grade Selection)</div>
+    <p class="info">Triggers loot resolution with weighted grade selection</p>
+    <button onclick="test2_resolveLoot()">RUN TEST 2</button>
+    <button onclick="test2_resolveMultiple()">RUN 10 TIMES</button>
+    <pre id="test2-output">Waiting...</pre>
+  </div>
+
+  <div class="test-section">
+    <div class="test-title">🎯 Test 3: Tier Filtering</div>
+    <p class="info">Verifies tier filters work correctly</p>
+    <button onclick="test3_tierFiltering()">RUN TEST 3</button>
+    <pre id="test3-output">Waiting...</pre>
+  </div>
+
+  <div class="test-section">
+    <div class="test-title">⭐ Test 4: Guaranteed Items</div>
+    <p class="info">Confirms guaranteed items always appear</p>
+    <button onclick="test4_guaranteedItems()">RUN TEST 4</button>
+    <pre id="test4-output">Waiting...</pre>
+  </div>
+
+  <div class="test-section">
+    <div class="test-title">🎨 Test 5: Container Data</div>
+    <p class="info">Checks container presentation metadata</p>
+    <button onclick="test5_containerData()">RUN TEST 5</button>
+    <pre id="test5-output">Waiting...</pre>
+  </div>
+
+  <div class="test-section">
+    <div class="test-title">🚀 Test 6: Full Integration Test</div>
+    <p class="info">Simulates complete event → loot pool → reveal flow</p>
+    <button onclick="test6_fullIntegration()">RUN TEST 6</button>
+    <pre id="test6-output">Waiting...</pre>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3001/api';
+
+    // Test pool structure
+    const testPool = {
+      id: 'test_military_loot',
+      name: 'Test Military Loot Pool',
+      description: 'Test pool with multiple container grades',
+      tags: ['military', 'test'],
+      grades: [
+        {
+          id: 'grade_1',
+          displayName: 'GRADE-I MILITARY CONTAINER',
+          weight: 50,
+          filters: {
+            tiers: ['common', 'uncommon'],
+            tags: ['military']
+          },
+          guaranteedItems: [
+            { itemId: 'credits', quantity: 100 }
+          ],
+          rollSettings: {
+            minItems: 2,
+            maxItems: 3,
+            bonusRolls: 0
+          },
+          containerData: {
+            icon: '📦',
+            glowColor: '#0ff',
+            revealAnimation: 'pulse',
+            revealDelay: 300
+          }
+        },
+        {
+          id: 'grade_2',
+          displayName: 'GRADE-II MILITARY CONTAINER',
+          weight: 30,
+          filters: {
+            tiers: ['uncommon', 'rare'],
+            tags: ['military']
+          },
+          guaranteedItems: [
+            { itemId: 'credits', quantity: 500 }
+          ],
+          rollSettings: {
+            minItems: 3,
+            maxItems: 5,
+            bonusRolls: 1
+          },
+          containerData: {
+            icon: '🎁',
+            glowColor: '#0af',
+            revealAnimation: 'flash',
+            revealDelay: 250
+          }
+        },
+        {
+          id: 'grade_3',
+          displayName: 'GRADE-III MILITARY CONTAINER',
+          weight: 15,
+          filters: {
+            tiers: ['rare', 'epic'],
+            tags: ['military']
+          },
+          guaranteedItems: [
+            { itemId: 'credits', quantity: 1000 }
+          ],
+          rollSettings: {
+            minItems: 4,
+            maxItems: 6,
+            bonusRolls: 2
+          },
+          containerData: {
+            icon: '💎',
+            glowColor: '#c0f',
+            revealAnimation: 'spin',
+            revealDelay: 200
+          }
+        },
+        {
+          id: 'grade_legendary',
+          displayName: 'LEGENDARY MILITARY CACHE',
+          weight: 5,
+          filters: {
+            tiers: ['epic', 'legendary'],
+            tags: ['military']
+          },
+          guaranteedItems: [
+            { itemId: 'credits', quantity: 5000 }
+          ],
+          rollSettings: {
+            minItems: 5,
+            maxItems: 8,
+            bonusRolls: 3
+          },
+          containerData: {
+            icon: '🏆',
+            glowColor: '#fa0',
+            revealAnimation: 'shake',
+            revealDelay: 150
+          }
+        }
+      ],
+      entries: [
+        { itemId: 'iron_ore', weight: 40, minQuantity: 10, maxQuantity: 30 },
+        { itemId: 'copper_ore', weight: 40, minQuantity: 5, maxQuantity: 20 },
+        { itemId: 'titanium_ore', weight: 20, minQuantity: 1, maxQuantity: 10 }
+      ]
+    };
+
+    function output(testId, message, className = '') {
+      const el = document.getElementById(`test${testId}-output`);
+      const timestamp = new Date().toLocaleTimeString();
+      el.innerHTML = `[${timestamp}] ${message}`;
+      if (className) el.className = className;
+    }
+
+    async function test1_createPool() {
+      output(1, 'Creating test loot pool...', 'info');
+      
+      try {
+        const response = await fetch(`${API_BASE}/config`, {
+          method: 'GET'
+        });
+        const data = await response.json();
+        
+        // Add test pool
+        if (!data.config.lootTables) data.config.lootTables = {};
+        if (!data.config.lootTables.pools) data.config.lootTables.pools = [];
+        
+        // Remove existing test pool
+        data.config.lootTables.pools = data.config.lootTables.pools.filter(p => p.id !== 'test_military_loot');
+        
+        // Add new test pool
+        data.config.lootTables.pools.push(testPool);
+        
+        // Save config
+        await fetch(`${API_BASE}/config`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data.config)
+        });
+        
+        output(1, `✓ SUCCESS\n\nPool created with ${testPool.grades.length} grades:\n${testPool.grades.map(g => `  - ${g.displayName} (${g.weight}% weight)`).join('\n')}`, 'success');
+      } catch (error) {
+        output(1, `✗ ERROR: ${error.message}`, 'error');
+      }
+    }
+
+    async function test2_resolveLoot() {
+      output(2, 'Resolving loot pool...', 'info');
+      
+      try {
+        // Simulate event outcome with loot pool
+        const testEvent = {
+          id: 'test_event',
+          scenario: {
+            title: 'Test Loot Drop',
+            description: 'Testing loot container system'
+          },
+          branches: [{
+            id: 'test_branch',
+            label: 'Get Loot',
+            outcome: {
+              type: 'success',
+              narrative: {
+                text: 'You found a military container!',
+                systemMessage: 'Loot acquired'
+              },
+              rewards: {
+                lootPool: 'test_military_loot'
+              }
+            }
+          }]
+        };
+        
+        const response = await fetch(`${API_BASE}/events/execute-branch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: testEvent,
+            branchId: 'test_branch',
+            shipState: {},
+            clusterData: null
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          const items = result.outcome.items || [];
+          const containerData = result.outcome.containerData;
+          
+          output(2, `✓ SUCCESS\n\nGrade: ${containerData?.displayName || 'Unknown'}\nIcon: ${containerData?.icon}\nColor: ${containerData?.glowColor}\n\nItems (${items.length}):\n${items.map(i => `  - ${i.name} x${i.quantity}${i.guaranteed ? ' ⭐' : ''}`).join('\n')}`, 'success');
+        } else {
+          output(2, `✗ ERROR: ${result.error}`, 'error');
+        }
+      } catch (error) {
+        output(2, `✗ ERROR: ${error.message}`, 'error');
+      }
+    }
+
+    async function test2_resolveMultiple() {
+      output(2, 'Rolling loot 10 times...', 'info');
+      
+      const gradeStats = {};
+      
+      try {
+        for (let i = 0; i < 10; i++) {
+          const testEvent = {
+            id: 'test_event',
+            scenario: { title: 'Test', description: 'Test' },
+            branches: [{
+              id: 'test_branch',
+              label: 'Get Loot',
+              outcome: {
+                type: 'success',
+                narrative: { text: 'Loot!', systemMessage: 'Loot' },
+                rewards: { lootPool: 'test_military_loot' }
+              }
+            }]
+          };
+          
+          const response = await fetch(`${API_BASE}/events/execute-branch`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              event: testEvent,
+              branchId: 'test_branch',
+              shipState: {},
+              clusterData: null
+            })
+          });
+          
+          const result = await response.json();
+          const gradeName = result.outcome.containerData?.displayName || 'Unknown';
+          gradeStats[gradeName] = (gradeStats[gradeName] || 0) + 1;
+        }
+        
+        output(2, `✓ SUCCESS - Grade Distribution (10 rolls):\n\n${Object.entries(gradeStats).map(([grade, count]) => `  ${grade}: ${count}/10 (${(count/10*100).toFixed(0)}%)`).join('\n')}`, 'success');
+      } catch (error) {
+        output(2, `✗ ERROR: ${error.message}`, 'error');
+      }
+    }
+
+    async function test3_tierFiltering() {
+      output(3, 'Testing tier filtering...', 'info');
+      output(3, '⚠️ This test requires items in the database with proper tier tags', 'info');
+    }
+
+    async function test4_guaranteedItems() {
+      output(4, 'Testing guaranteed items (running 5 times)...', 'info');
+      
+      let allHaveCredits = true;
+      const results = [];
+      
+      try {
+        for (let i = 0; i < 5; i++) {
+          const testEvent = {
+            id: 'test_event',
+            scenario: { title: 'Test', description: 'Test' },
+            branches: [{
+              id: 'test_branch',
+              label: 'Get Loot',
+              outcome: {
+                type: 'success',
+                narrative: { text: 'Loot!', systemMessage: 'Loot' },
+                rewards: { lootPool: 'test_military_loot' }
+              }
+            }]
+          };
+          
+          const response = await fetch(`${API_BASE}/events/execute-branch`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              event: testEvent,
+              branchId: 'test_branch',
+              shipState: {},
+              clusterData: null
+            })
+          });
+          
+          const result = await response.json();
+          const items = result.outcome.items || [];
+          const hasCredits = items.some(item => item.itemId === 'credits' && item.guaranteed);
+          
+          results.push(`Roll ${i+1}: ${hasCredits ? '✓ Credits found' : '✗ No credits'}`);
+          if (!hasCredits) allHaveCredits = false;
+        }
+        
+        output(4, `${allHaveCredits ? '✓ SUCCESS' : '✗ FAILED'}\n\n${results.join('\n')}\n\n${allHaveCredits ? 'All rolls contained guaranteed credits item!' : 'Some rolls missing guaranteed items!'}`, allHaveCredits ? 'success' : 'error');
+      } catch (error) {
+        output(4, `✗ ERROR: ${error.message}`, 'error');
+      }
+    }
+
+    async function test5_containerData() {
+      output(5, 'Testing container metadata...', 'info');
+      
+      try {
+        const testEvent = {
+          id: 'test_event',
+          scenario: { title: 'Test', description: 'Test' },
+          branches: [{
+            id: 'test_branch',
+            label: 'Get Loot',
+            outcome: {
+              type: 'success',
+              narrative: { text: 'Loot!', systemMessage: 'Loot' },
+              rewards: { lootPool: 'test_military_loot' }
+            }
+          }]
+        };
+        
+        const response = await fetch(`${API_BASE}/events/execute-branch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: testEvent,
+            branchId: 'test_branch',
+            shipState: {},
+            clusterData: null
+          })
+        });
+        
+        const result = await response.json();
+        const containerData = result.outcome.containerData;
+        
+        if (containerData) {
+          output(5, `✓ SUCCESS - Container Data Retrieved:\n\nGrade ID: ${containerData.gradeId}\nDisplay Name: ${containerData.displayName}\nIcon: ${containerData.icon}\nGlow Color: ${containerData.glowColor}\nAnimation: ${containerData.revealAnimation}\nDelay: ${containerData.revealDelay}ms`, 'success');
+        } else {
+          output(5, '✗ FAILED - No container data returned', 'error');
+        }
+      } catch (error) {
+        output(5, `✗ ERROR: ${error.message}`, 'error');
+      }
+    }
+
+    async function test6_fullIntegration() {
+      output(6, 'Running full integration test...', 'info');
+      
+      try {
+        // Step 1: Create pool
+        output(6, 'Step 1/3: Creating pool...', 'info');
+        await test1_createPool();
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Step 2: Resolve loot
+        output(6, 'Step 2/3: Resolving loot...', 'info');
+        const testEvent = {
+          id: 'test_event',
+          scenario: { title: 'Test', description: 'Test' },
+          branches: [{
+            id: 'test_branch',
+            label: 'Get Loot',
+            outcome: {
+              type: 'success',
+              narrative: { text: 'Loot!', systemMessage: 'Loot' },
+              rewards: { lootPool: 'test_military_loot' }
+            }
+          }]
+        };
+        
+        const response = await fetch(`${API_BASE}/events/execute-branch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: testEvent,
+            branchId: 'test_branch',
+            shipState: {},
+            clusterData: null
+          })
+        });
+        
+        const result = await response.json();
+        
+        // Step 3: Verify structure
+        output(6, 'Step 3/3: Verifying structure...', 'info');
+        const hasItems = result.outcome.items && result.outcome.items.length > 0;
+        const hasContainer = result.outcome.containerData !== null;
+        const hasGuaranteed = result.outcome.items.some(i => i.guaranteed);
+        
+        const checks = [
+          `Items returned: ${hasItems ? '✓' : '✗'}`,
+          `Container data: ${hasContainer ? '✓' : '✗'}`,
+          `Guaranteed items: ${hasGuaranteed ? '✓' : '✗'}`
+        ];
+        
+        const allPassed = hasItems && hasContainer && hasGuaranteed;
+        
+        output(6, `${allPassed ? '✓ ALL TESTS PASSED' : '✗ SOME TESTS FAILED'}\n\n${checks.join('\n')}\n\nGrade: ${result.outcome.containerData?.displayName}\nItems: ${result.outcome.items?.length}`, allPassed ? 'success' : 'error');
+      } catch (error) {
+        output(6, `✗ ERROR: ${error.message}`, 'error');
+      }
+    }
+
+    // Auto-run info on load
+    window.addEventListener('load', () => {
+      console.log('Loot Container System Test Suite Ready');
+      console.log('API Base:', API_BASE);
+    });
+  </script>
+</body>
+</html>

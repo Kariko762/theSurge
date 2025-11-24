@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import EventSimulator from './EventSimulator';
 import BuildSimulator from './BuildSimulator';
+import LootSimulator from './LootSimulator';
 import '../../styles/AdminGlass.css';
 
 export default function SimulationPanel() {
@@ -8,6 +9,7 @@ export default function SimulationPanel() {
 
   const sections = [
     { id: 'events', label: 'Events' },
+    { id: 'loot', label: 'Loot Containers' },
     { id: 'builds', label: 'Builds' }
   ];
 
@@ -28,6 +30,7 @@ export default function SimulationPanel() {
 
       {/* Content */}
       {activeSection === 'events' && <EventSimulator />}
+      {activeSection === 'loot' && <LootSimulator />}
       {activeSection === 'builds' && <BuildSimulator />}
     </div>
   );

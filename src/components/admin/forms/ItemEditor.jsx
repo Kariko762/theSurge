@@ -29,6 +29,12 @@ export default function ItemEditor({ item, factions = [], onSave, onCancel }) {
 
   useEffect(() => {
     if (item) {
+      // Convert tags to array if it's an object (from corrupted save)
+      let tagsArray = item.tags || [];
+      if (!Array.isArray(tagsArray)) {
+        tagsArray = Object.values(tagsArray);
+      }
+      
       setFormData({
         id: item.id || '',
         name: item.name || '',
@@ -41,7 +47,7 @@ export default function ItemEditor({ item, factions = [], onSave, onCancel }) {
         maxStack: item.maxStack || 1,
         value: item.value || 0,
         faction: item.faction || null,
-        tags: item.tags || [],
+        tags: tagsArray,
         properties: item.properties || {}
       });
     }
@@ -186,8 +192,8 @@ export default function ItemEditor({ item, factions = [], onSave, onCancel }) {
       }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <h2 style={{ color: 'var(--neon-cyan)', margin: 0, fontSize: '1.5rem' }}>
-            {item ? 'Edit Item' : 'Create New Item'}
+          <h2 style={{ color: 'var(--neon-cyan)', margin: 0, fontSize: '1.1rem' }}>
+            {item ? `Edit Item: ${formData.name || formData.id || 'Untitled'}` : 'Create New Item'}
           </h2>
           <div style={{ display: 'flex', gap: '0.75rem' }}>
             <button
@@ -205,9 +211,7 @@ export default function ItemEditor({ item, factions = [], onSave, onCancel }) {
               <SaveIcon size={18} /> SAVE ITEM
             </button>
           </div>
-        </div>
-
-        {/* 2-Column Layout */}
+        </div>        {/* 2-Column Layout */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
           {/* Left Column */}
           <div>

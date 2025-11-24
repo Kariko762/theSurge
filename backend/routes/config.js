@@ -146,9 +146,16 @@ function deepMerge(target, source) {
   const output = { ...target };
   
   for (const key in source) {
-    if (source[key] instanceof Object && key in target) {
+    // If source value is an array, replace target array completely (don't merge)
+    if (Array.isArray(source[key])) {
+      output[key] = source[key];
+    }
+    // If both are objects (but not arrays), recursively merge
+    else if (source[key] instanceof Object && key in target && target[key] instanceof Object && !Array.isArray(target[key])) {
       output[key] = deepMerge(target[key], source[key]);
-    } else {
+    } 
+    // Otherwise, just assign the value
+    else {
       output[key] = source[key];
     }
   }

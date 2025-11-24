@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react';
-import { CreateIcon, EditIcon, DeleteIcon, SaveIcon, WarningIcon, SearchIcon } from './HoloIcons';
+import api from '../../lib/api/client';
+import { CreateIcon, EditIcon, DeleteIcon, SaveIcon, WarningIcon, SearchIcon, SuccessIcon, LoadingIcon } from './HoloIcons';
 import ItemEditor from './forms/ItemEditor';
 import LootPoolEditor from './forms/LootPoolEditor';
 import ConfirmModal from './modals/ConfirmModal';
 import '../../styles/AdminGlass.css';
 
-export default function LootManager({ config, updateConfig }) {
+export default function LootManager() {
+  const [config, setConfig] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [activeTab, setActiveTab] = useState('items');
   const [items, setItems] = useState([]);
   const [lootPools, setLootPools] = useState([]);
@@ -22,18 +28,83 @@ export default function LootManager({ config, updateConfig }) {
   const [showPoolEditor, setShowPoolEditor] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [lootChanged, setLootChanged] = useState(false);
 
   useEffect(() => {
-    if (config?.lootTables?.items) {
-      setItems(config.lootTables.items);
+    loadConfig();
+  }, []);
+
+  const loadConfig = async () => {
+    try {
+      setLoading(true);
+      const response = await api.config.get();
+      const cfg = response.config || response;
+      setConfig(cfg);
+      
+      // Only set items/pools/factions on initial load
+      if (cfg?.lootTables?.items) {
+        // Convert object to array if needed (PowerShell sometimes converts arrays to objects)
+        let itemsData = cfg.lootTables.items;
+        if (!Array.isArray(itemsData)) {
+          itemsData = Object.values(itemsData);
+        }
+        setItems(itemsData);
+      } else {
+        setItems([]);
+      }
+      if (cfg?.lootTables?.pools) {
+        let poolsData = cfg.lootTables.pools;
+        if (!Array.isArray(poolsData)) {
+          poolsData = Object.values(poolsData);
+        }
+        setLootPools(poolsData);
+      } else {
+        setLootPools([]);
+      }
+      if (cfg?.factions) {
+        let factionsData = cfg.factions;
+        if (!Array.isArray(factionsData)) {
+          factionsData = Object.values(factionsData);
+        }
+        setFactions(factionsData);
+      } else {
+        setFactions([]);
+      }
+      
+      setError('');
+    } catch (err) {
+      setError(err.message || 'Failed to load configuration');
+    } finally {
+      setLoading(false);
     }
-    if (config?.lootTables?.pools) {
-      setLootPools(config.lootTables.pools);
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      setError('');
+      setSuccessMessage('');
+      
+      const response = await api.config.get();
+      const updatedConfig = { 
+        ...response.config, 
+        lootTables: {
+          ...(response.config.lootTables || {}),
+          items,
+          pools: lootPools
+        }
+      };
+      await api.config.update(updatedConfig);
+      
+      setLootChanged(false);
+      setSuccessMessage('Loot tables saved successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      setError(err.message || 'Failed to save loot tables');
+    } finally {
+      setSaving(false);
     }
-    if (config?.factions) {
-      setFactions(config.factions);
-    }
-  }, [config]);
+  };
 
   const categories = ['all', 'resource', 'weapon', 'subsystem', 'equipment', 'consumable', 'artifact', 'data', 'contraband'];
   const tiers = ['all', 'common', 'uncommon', 'rare', 'epic', 'legendary'];
@@ -77,7 +148,7 @@ export default function LootManager({ config, updateConfig }) {
     }
     
     setItems(newItems);
-    updateConfig('lootTables.items', newItems);
+    setLootChanged(true);
     closeItemEditor();
   };
 
@@ -103,7 +174,7 @@ export default function LootManager({ config, updateConfig }) {
     }
     
     setLootPools(newPools);
-    updateConfig('lootTables.pools', newPools);
+    setLootChanged(true);
     closePoolEditor();
   };
 
@@ -123,12 +194,12 @@ export default function LootManager({ config, updateConfig }) {
       if (itemToDelete.type === 'pool') {
         const newPools = lootPools.filter((_, i) => i !== itemToDelete.index);
         setLootPools(newPools);
-        updateConfig('lootTables.pools', newPools);
       } else {
         const newItems = items.filter((_, i) => i !== itemToDelete.index);
         setItems(newItems);
-        updateConfig('lootTables.items', newItems);
       }
+      
+      setLootChanged(true);
       setShowDeleteConfirm(false);
       setItemToDelete(null);
     }
@@ -147,6 +218,85 @@ export default function LootManager({ config, updateConfig }) {
 
   return (
     <div>
+      {/* Unsaved Changes Warning */}
+      {lootChanged && (
+        <div className="glass-card" style={{
+          padding: '0.75rem 1rem',
+          margin: '1rem 2rem',
+          marginBottom: '0.5rem',
+          borderColor: 'rgba(255, 165, 0, 0.5)',
+          background: 'rgba(255, 165, 0, 0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem'
+        }}>
+          <WarningIcon size={18} />
+          <span style={{ color: '#ffa500', fontSize: '0.85rem', fontWeight: 'bold' }}>
+            Warning - Don't forget to save the loot table! You have unsaved changes.
+          </span>
+        </div>
+      )}
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="glass-card" style={{
+          padding: '0.75rem 1rem',
+          margin: '1rem 2rem',
+          marginBottom: '0.5rem',
+          borderColor: 'rgba(0, 255, 136, 0.5)',
+          background: 'rgba(0, 255, 136, 0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem'
+        }}>
+          <SuccessIcon size={18} />
+          <span style={{ color: '#00ff88', fontSize: '0.85rem' }}>{successMessage}</span>
+        </div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div className="glass-card" style={{
+          padding: '0.75rem 1rem',
+          margin: '1rem 2rem',
+          marginBottom: '0.5rem',
+          marginTop: successMessage ? '0' : '1rem',
+          borderColor: 'rgba(255, 107, 107, 0.5)',
+          background: 'rgba(255, 0, 0, 0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem'
+        }}>
+          <WarningIcon size={18} />
+          <span style={{ color: '#ff6b6b', fontSize: '0.85rem' }}>{error}</span>
+        </div>
+      )}
+
+      {/* Save Button */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'flex-end',
+        margin: '1rem 2rem',
+        marginBottom: '0.5rem'
+      }}>
+        <button
+          className="btn-neon"
+          onClick={handleSave}
+          disabled={saving || loading}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            opacity: (saving || loading) ? 0.5 : 1,
+            borderColor: lootChanged ? '#ffa500' : undefined,
+            animation: lootChanged ? 'pulse 2s infinite' : undefined
+          }}
+        >
+          {saving ? <LoadingIcon size={16} /> : <SaveIcon size={16} />}
+          {saving ? 'Saving...' : lootChanged ? 'Save Changes *' : 'Save Changes'}
+        </button>
+      </div>
+
       {/* Tabs */}
       <div className="tab-container-sub2">
         <button
@@ -538,22 +688,26 @@ export default function LootManager({ config, updateConfig }) {
                 }}>
                   <div>
                     <div style={{ color: '#666', fontSize: '0.7rem' }}>Items</div>
-                    <div style={{ color: '#fff', fontSize: '0.9rem' }}>{pool.entries?.length || 0}</div>
+                    <div style={{ color: '#fff', fontSize: '0.9rem' }}>
+                      {Array.isArray(pool.entries) ? pool.entries.length : 0}
+                    </div>
                   </div>
                   <div>
                     <div style={{ color: '#666', fontSize: '0.7rem' }}>Total Weight</div>
                     <div style={{ color: '#fff', fontSize: '0.9rem' }}>
-                      {pool.entries?.reduce((sum, e) => sum + (e.weight || 0), 0) || 0}
+                      {Array.isArray(pool.entries) ? pool.entries.reduce((sum, e) => sum + (e.weight || 0), 0) : 0}
                     </div>
                   </div>
                   <div>
                     <div style={{ color: '#666', fontSize: '0.7rem' }}>Tags</div>
-                    <div style={{ color: '#fff', fontSize: '0.9rem' }}>{pool.tags?.length || 0}</div>
+                    <div style={{ color: '#fff', fontSize: '0.9rem' }}>
+                      {Array.isArray(pool.tags) ? pool.tags.length : 0}
+                    </div>
                   </div>
                 </div>
 
                 {/* Pool Items Preview */}
-                {pool.entries && pool.entries.length > 0 && (
+                {Array.isArray(pool.entries) && pool.entries.length > 0 && (
                   <div>
                     <div style={{ color: '#666', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
                       Items in this pool:

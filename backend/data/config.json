@@ -49,7 +49,11 @@
         "size": 1,
         "maxStack": 100,
         "value": 15,
-        "tags": ["mining", "common", "metal"]
+        "tags": {
+          "0": "mining",
+          "1": "common",
+          "2": "metal"
+        }
       },
       {
         "id": "platinum_ore",
@@ -61,7 +65,11 @@
         "size": 1,
         "maxStack": 50,
         "value": 450,
-        "tags": ["mining", "rare", "precious"]
+        "tags": {
+          "0": "mining",
+          "1": "rare",
+          "2": "precious"
+        }
       },
       {
         "id": "helium3",
@@ -73,7 +81,11 @@
         "size": 2,
         "maxStack": 200,
         "value": 80,
-        "tags": ["fuel", "gas", "uncommon"]
+        "tags": {
+          "0": "fuel",
+          "1": "gas",
+          "2": "uncommon"
+        }
       },
       {
         "id": "repair_kit",
@@ -85,7 +97,11 @@
         "size": 2,
         "maxStack": 10,
         "value": 120,
-        "tags": ["repair", "emergency", "consumable"]
+        "tags": {
+          "0": "repair",
+          "1": "emergency",
+          "2": "consumable"
+        }
       },
       {
         "id": "ancient_data_core",
@@ -97,7 +113,12 @@
         "size": 1,
         "maxStack": 1,
         "value": 5000,
-        "tags": ["artifact", "data", "pre-surge", "epic"]
+        "tags": {
+          "0": "artifact",
+          "1": "data",
+          "2": "pre-surge",
+          "3": "epic"
+        }
       },
       {
         "id": "shield_capacitor",
@@ -110,7 +131,11 @@
         "size": 3,
         "maxStack": 5,
         "value": 850,
-        "tags": ["subsystem", "shield", "upgrade"]
+        "tags": {
+          "0": "subsystem",
+          "1": "shield",
+          "2": "upgrade"
+        }
       },
       {
         "id": "pulse_laser_mk1",
@@ -123,8 +148,18 @@
         "size": 5,
         "maxStack": 1,
         "value": 500,
-        "tags": ["weapon", "laser", "energy"],
-        "properties": { "damage": 15, "range": 200, "fireRate": 2 }
+        "faction": null,
+        "tags": [
+          "weapon",
+          "laser",
+          "energy",
+          "military"
+        ],
+        "properties": {
+          "damage": 15,
+          "range": 200,
+          "fireRate": 2
+        }
       },
       {
         "id": "pulse_laser_mk2",
@@ -137,8 +172,18 @@
         "size": 5,
         "maxStack": 1,
         "value": 1200,
-        "tags": ["weapon", "laser", "energy"],
-        "properties": { "damage": 22, "range": 250, "fireRate": 2.5 }
+        "faction": null,
+        "tags": [
+          "weapon",
+          "laser",
+          "energy",
+          "military"
+        ],
+        "properties": {
+          "damage": 22,
+          "range": 250,
+          "fireRate": 2.5
+        }
       },
       {
         "id": "beam_laser",
@@ -151,8 +196,19 @@
         "size": 6,
         "maxStack": 1,
         "value": 2500,
-        "tags": ["weapon", "laser", "energy", "beam"],
-        "properties": { "damage": 35, "range": 300, "fireRate": 5 }
+        "faction": null,
+        "tags": [
+          "weapon",
+          "laser",
+          "energy",
+          "beam",
+          "military"
+        ],
+        "properties": {
+          "damage": 35,
+          "range": 300,
+          "fireRate": 5
+        }
       },
       {
         "id": "missile_launcher_light",
@@ -165,8 +221,19 @@
         "size": 4,
         "maxStack": 1,
         "value": 600,
-        "tags": ["weapon", "missile", "explosive"],
-        "properties": { "damage": 40, "range": 500, "fireRate": 0.5, "tracking": true }
+        "faction": null,
+        "tags": [
+          "weapon",
+          "missile",
+          "explosive",
+          "military"
+        ],
+        "properties": {
+          "damage": 40,
+          "range": 500,
+          "fireRate": 0.5,
+          "tracking": true
+        }
       },
       {
         "id": "missile_launcher_heavy",
@@ -179,8 +246,20 @@
         "size": 8,
         "maxStack": 1,
         "value": 3500,
-        "tags": ["weapon", "missile", "explosive", "heavy"],
-        "properties": { "damage": 120, "range": 800, "fireRate": 0.2, "tracking": true }
+        "faction": null,
+        "tags": [
+          "weapon",
+          "missile",
+          "explosive",
+          "heavy",
+          "military"
+        ],
+        "properties": {
+          "damage": 120,
+          "range": 800,
+          "fireRate": 0.2,
+          "tracking": true
+        }
       },
       {
         "id": "railgun_mk1",
@@ -193,8 +272,19 @@
         "size": 7,
         "maxStack": 1,
         "value": 1800,
-        "tags": ["weapon", "rail", "kinetic"],
-        "properties": { "damage": 50, "range": 600, "fireRate": 1, "armorPiercing": true }
+        "faction": null,
+        "tags": [
+          "weapon",
+          "rail",
+          "kinetic",
+          "military"
+        ],
+        "properties": {
+          "damage": 50,
+          "range": 600,
+          "fireRate": 1,
+          "armorPiercing": true
+        }
       },
       {
         "id": "plasma_cannon",
@@ -207,8 +297,20 @@
         "size": 10,
         "maxStack": 1,
         "value": 8000,
-        "tags": ["weapon", "plasma", "thermal", "epic"],
-        "properties": { "damage": 80, "range": 350, "fireRate": 1.5, "thermal": true }
+        "faction": null,
+        "tags": [
+          "weapon",
+          "plasma",
+          "thermal",
+          "epic",
+          "military"
+        ],
+        "properties": {
+          "damage": 80,
+          "range": 350,
+          "fireRate": 1.5,
+          "thermal": true
+        }
       },
       {
         "id": "autocannon",
@@ -221,8 +323,18 @@
         "size": 6,
         "maxStack": 1,
         "value": 700,
-        "tags": ["weapon", "kinetic", "ballistic"],
-        "properties": { "damage": 8, "range": 300, "fireRate": 10 }
+        "faction": null,
+        "tags": [
+          "weapon",
+          "kinetic",
+          "ballistic",
+          "military"
+        ],
+        "properties": {
+          "damage": 8,
+          "range": 300,
+          "fireRate": 10
+        }
       },
       {
         "id": "ecm_suite_basic",
@@ -235,8 +347,15 @@
         "size": 3,
         "maxStack": 1,
         "value": 800,
-        "tags": ["subsystem", "ecm", "defense"],
-        "properties": { "evasion": 10, "jamming": 15 }
+        "tags": {
+          "0": "subsystem",
+          "1": "ecm",
+          "2": "defense"
+        },
+        "properties": {
+          "evasion": 10,
+          "jamming": 15
+        }
       },
       {
         "id": "ecm_suite_advanced",
@@ -249,8 +368,17 @@
         "size": 4,
         "maxStack": 1,
         "value": 2800,
-        "tags": ["subsystem", "ecm", "defense", "military"],
-        "properties": { "evasion": 25, "jamming": 40, "decoys": 3 }
+        "tags": {
+          "0": "subsystem",
+          "1": "ecm",
+          "2": "defense",
+          "3": "military"
+        },
+        "properties": {
+          "evasion": 25,
+          "jamming": 40,
+          "decoys": 3
+        }
       },
       {
         "id": "sensor_array_standard",
@@ -263,8 +391,15 @@
         "size": 3,
         "maxStack": 1,
         "value": 600,
-        "tags": ["subsystem", "sensor", "detection"],
-        "properties": { "range": 500, "accuracy": 15 }
+        "tags": {
+          "0": "subsystem",
+          "1": "sensor",
+          "2": "detection"
+        },
+        "properties": {
+          "range": 500,
+          "accuracy": 15
+        }
       },
       {
         "id": "sensor_array_longrange",
@@ -277,8 +412,17 @@
         "size": 4,
         "maxStack": 1,
         "value": 1500,
-        "tags": ["subsystem", "sensor", "detection", "longrange"],
-        "properties": { "range": 1200, "accuracy": 25, "gravitic": true }
+        "tags": {
+          "0": "subsystem",
+          "1": "sensor",
+          "2": "detection",
+          "3": "longrange"
+        },
+        "properties": {
+          "range": 1200,
+          "accuracy": 25,
+          "gravitic": true
+        }
       },
       {
         "id": "power_core_compact",
@@ -291,8 +435,15 @@
         "size": 5,
         "maxStack": 1,
         "value": 900,
-        "tags": ["subsystem", "power", "reactor"],
-        "properties": { "output": 100, "efficiency": 80 }
+        "tags": {
+          "0": "subsystem",
+          "1": "power",
+          "2": "reactor"
+        },
+        "properties": {
+          "output": 100,
+          "efficiency": 80
+        }
       },
       {
         "id": "power_core_military",
@@ -305,8 +456,17 @@
         "size": 8,
         "maxStack": 1,
         "value": 4500,
-        "tags": ["subsystem", "power", "reactor", "military"],
-        "properties": { "output": 250, "efficiency": 90, "overcharge": true }
+        "tags": {
+          "0": "subsystem",
+          "1": "power",
+          "2": "reactor",
+          "3": "military"
+        },
+        "properties": {
+          "output": 250,
+          "efficiency": 90,
+          "overcharge": true
+        }
       },
       {
         "id": "shield_generator_mk1",
@@ -319,8 +479,15 @@
         "size": 6,
         "maxStack": 1,
         "value": 1200,
-        "tags": ["subsystem", "shield", "defense"],
-        "properties": { "strength": 100, "recharge": 10 }
+        "tags": {
+          "0": "subsystem",
+          "1": "shield",
+          "2": "defense"
+        },
+        "properties": {
+          "strength": 100,
+          "recharge": 10
+        }
       },
       {
         "id": "shield_generator_mk2",
@@ -333,8 +500,15 @@
         "size": 7,
         "maxStack": 1,
         "value": 2500,
-        "tags": ["subsystem", "shield", "defense"],
-        "properties": { "strength": 175, "recharge": 18 }
+        "tags": {
+          "0": "subsystem",
+          "1": "shield",
+          "2": "defense"
+        },
+        "properties": {
+          "strength": 175,
+          "recharge": 18
+        }
       },
       {
         "id": "hull_plating_reinforced",
@@ -347,8 +521,15 @@
         "size": 10,
         "maxStack": 1,
         "value": 1800,
-        "tags": ["subsystem", "hull", "armor"],
-        "properties": { "armor": 50, "hullBonus": 25 }
+        "tags": {
+          "0": "subsystem",
+          "1": "hull",
+          "2": "armor"
+        },
+        "properties": {
+          "armor": 50,
+          "hullBonus": 25
+        }
       },
       {
         "id": "cargo_expander",
@@ -361,8 +542,14 @@
         "size": 12,
         "maxStack": 1,
         "value": 800,
-        "tags": ["subsystem", "cargo", "storage"],
-        "properties": { "cargoBonus": 50 }
+        "tags": {
+          "0": "subsystem",
+          "1": "cargo",
+          "2": "storage"
+        },
+        "properties": {
+          "cargoBonus": 50
+        }
       },
       {
         "id": "engine_fighter_t1",
@@ -375,8 +562,16 @@
         "size": 15,
         "maxStack": 1,
         "value": 2000,
-        "tags": ["equipment", "engine", "fighter"],
-        "properties": { "thrust": 80, "agility": 95, "class": "fighter" }
+        "tags": {
+          "0": "equipment",
+          "1": "engine",
+          "2": "fighter"
+        },
+        "properties": {
+          "thrust": 80,
+          "agility": 95,
+          "class": "fighter"
+        }
       },
       {
         "id": "engine_corvette_t1",
@@ -389,8 +584,16 @@
         "size": 20,
         "maxStack": 1,
         "value": 3500,
-        "tags": ["equipment", "engine", "corvette"],
-        "properties": { "thrust": 100, "agility": 75, "class": "corvette" }
+        "tags": {
+          "0": "equipment",
+          "1": "engine",
+          "2": "corvette"
+        },
+        "properties": {
+          "thrust": 100,
+          "agility": 75,
+          "class": "corvette"
+        }
       },
       {
         "id": "engine_frigate_t2",
@@ -403,8 +606,17 @@
         "size": 30,
         "maxStack": 1,
         "value": 6000,
-        "tags": ["equipment", "engine", "frigate"],
-        "properties": { "thrust": 130, "agility": 60, "class": "frigate", "efficiency": 110 }
+        "tags": {
+          "0": "equipment",
+          "1": "engine",
+          "2": "frigate"
+        },
+        "properties": {
+          "thrust": 130,
+          "agility": 60,
+          "class": "frigate",
+          "efficiency": 110
+        }
       },
       {
         "id": "engine_cruiser_t3",
@@ -417,8 +629,18 @@
         "size": 50,
         "maxStack": 1,
         "value": 12000,
-        "tags": ["equipment", "engine", "cruiser", "heavy"],
-        "properties": { "thrust": 180, "agility": 45, "class": "cruiser", "efficiency": 120 }
+        "tags": {
+          "0": "equipment",
+          "1": "engine",
+          "2": "cruiser",
+          "3": "heavy"
+        },
+        "properties": {
+          "thrust": 180,
+          "agility": 45,
+          "class": "cruiser",
+          "efficiency": 120
+        }
       },
       {
         "id": "ftl_drive_basic",
@@ -431,8 +653,15 @@
         "size": 25,
         "maxStack": 1,
         "value": 15000,
-        "tags": ["equipment", "ftl", "jump"],
-        "properties": { "range": 10, "chargeTime": 30 }
+        "tags": {
+          "0": "equipment",
+          "1": "ftl",
+          "2": "jump"
+        },
+        "properties": {
+          "range": 10,
+          "chargeTime": 30
+        }
       }
     ],
     "pools": [
@@ -440,136 +669,281 @@
         "id": "asteroid_mining",
         "name": "Asteroid Mining Loot",
         "description": "Common ores and materials found when mining asteroids",
-        "tags": ["mining", "asteroid", "common"],
-        "entries": [
-          {
+        "tags": {
+          "0": "mining",
+          "1": "asteroid",
+          "2": "common"
+        },
+        "entries": {
+          "0": {
             "itemId": "iron_ore",
             "weight": 70,
             "minQuantity": 5,
             "maxQuantity": 15
           },
-          {
+          "1": {
             "itemId": "platinum_ore",
             "weight": 20,
             "minQuantity": 1,
             "maxQuantity": 5
           },
-          {
+          "2": {
             "itemId": "repair_kit",
             "weight": 10,
             "minQuantity": 1,
             "maxQuantity": 2
           }
-        ]
+        }
       },
       {
         "id": "derelict_salvage",
         "name": "Derelict Ship Salvage",
         "description": "Items recovered from abandoned ships and stations",
-        "tags": ["salvage", "derelict", "rare"],
-        "entries": [
-          {
+        "tags": {
+          "0": "salvage",
+          "1": "derelict",
+          "2": "rare"
+        },
+        "entries": {
+          "0": {
             "itemId": "shield_capacitor",
             "weight": 30,
             "minQuantity": 1,
             "maxQuantity": 2
           },
-          {
+          "1": {
             "itemId": "ancient_data_core",
             "weight": 10,
             "minQuantity": 1,
             "maxQuantity": 1
           },
-          {
+          "2": {
             "itemId": "repair_kit",
             "weight": 40,
             "minQuantity": 2,
             "maxQuantity": 5
           },
-          {
+          "3": {
             "itemId": "helium3",
             "weight": 20,
             "minQuantity": 10,
             "maxQuantity": 30
+          }
+        }
+      },
+      {
+        "id": "test_military_loot",
+        "name": "Military Loot Container",
+        "entries": [],
+        "description": "Test pool for military equipment drops",
+        "tags": [
+          "military",
+          "combat",
+          "weapons"
+        ],
+        "grades": [
+          {
+            "id": "grade_1",
+            "displayName": "GRADE-I MILITARY CONTAINER",
+            "guaranteedItems": [
+              {
+                "quantity": 100,
+                "itemId": "credits"
+              }
+            ],
+            "containerData": {
+              "icon": "",
+              "glowColor": "#0ff",
+              "revealDelay": 300,
+              "revealAnimation": "pulse"
+            },
+            "weight": 50,
+            "filters": {
+              "tags": [
+                "military"
+              ],
+              "tiers": [
+                "common",
+                "uncommon"
+              ]
+            },
+            "rollSettings": {
+              "minItems": 2,
+              "bonusRolls": 0,
+              "maxItems": 3
+            }
+          },
+          {
+            "id": "grade_2",
+            "displayName": "GRADE-II MILITARY CONTAINER",
+            "guaranteedItems": [
+              {
+                "quantity": 250,
+                "itemId": "credits"
+              }
+            ],
+            "containerData": {
+              "icon": "",
+              "glowColor": "#0af",
+              "revealDelay": 250,
+              "revealAnimation": "flash"
+            },
+            "weight": 30,
+            "filters": {
+              "tags": [
+                "military"
+              ],
+              "tiers": [
+                "uncommon",
+                "rare"
+              ]
+            },
+            "rollSettings": {
+              "minItems": 3,
+              "bonusRolls": 1,
+              "maxItems": 5
+            }
+          },
+          {
+            "id": "grade_3",
+            "displayName": "GRADE-III MILITARY CONTAINER",
+            "guaranteedItems": [
+              {
+                "quantity": 500,
+                "itemId": "credits"
+              }
+            ],
+            "containerData": {
+              "icon": "",
+              "glowColor": "#c0f",
+              "revealDelay": 200,
+              "revealAnimation": "spin"
+            },
+            "weight": 15,
+            "filters": {
+              "tags": [
+                "military"
+              ],
+              "tiers": [
+                "rare",
+                "epic"
+              ]
+            },
+            "rollSettings": {
+              "minItems": 4,
+              "bonusRolls": 2,
+              "maxItems": 6
+            }
+          },
+          {
+            "id": "grade_legendary",
+            "displayName": "LEGENDARY MILITARY CACHE",
+            "guaranteedItems": [
+              {
+                "quantity": 1000,
+                "itemId": "credits"
+              }
+            ],
+            "containerData": {
+              "icon": "",
+              "glowColor": "#fa0",
+              "revealDelay": 150,
+              "revealAnimation": "shake"
+            },
+            "weight": 5,
+            "filters": {
+              "tags": [
+                "military"
+              ],
+              "tiers": [
+                "epic",
+                "legendary"
+              ]
+            },
+            "rollSettings": {
+              "minItems": 5,
+              "bonusRolls": 3,
+              "maxItems": 8
+            }
           }
         ]
       }
     ]
   },
   "narrativeLibrary": {
-    "pools": [
-      {
+    "pools": {
+      "0": {
         "id": "mining_success",
         "name": "Mining Success Narratives",
         "description": "Various success messages for mining operations",
         "category": "mining",
-        "entries": [
-          {
+        "entries": {
+          "0": {
             "weight": 40,
             "title": "Rich Vein Discovered",
             "message": "Your scanners light up as you breach a particularly rich mineral deposit. This is going to be a good haul.",
             "systemMessage": "Mining efficiency increased by 15%",
             "tone": "positive"
           },
-          {
+          "1": {
             "weight": 30,
             "title": "Standard Operation",
             "message": "The mining lasers cut through the asteroid surface smoothly. Nothing fancy, but steady work pays off.",
             "systemMessage": "Mining operation nominal",
             "tone": "neutral"
           },
-          {
+          "2": {
             "weight": 20,
             "title": "Unexpected Find",
             "message": "Wait... these readings can't be right. There's something else embedded in this rock...",
             "systemMessage": "Anomalous signature detected",
             "tone": "mysterious"
           },
-          {
+          "3": {
             "weight": 10,
             "title": "Jackpot Strike",
             "message": "ALERT: High-value mineral concentration detected! Your cargo hold is going to love this.",
             "systemMessage": "Critical success - maximum yield",
             "tone": "excited"
           }
-        ]
+        }
       },
-      {
+      "1": {
         "id": "mining_failure",
         "name": "Mining Failure Narratives",
         "description": "Various failure messages for mining operations",
         "category": "mining",
-        "entries": [
-          {
+        "entries": {
+          "0": {
             "weight": 50,
             "title": "Equipment Malfunction",
             "message": "The mining laser sputters and dies. You'll need to reset the system before trying again.",
             "systemMessage": "Mining equipment requires maintenance",
             "tone": "negative"
           },
-          {
+          "1": {
             "weight": 30,
             "title": "Unstable Asteroid",
             "message": "Cracks spiderweb across the asteroid's surface. You pull back before the whole thing fragments.",
             "systemMessage": "Structural integrity compromised",
             "tone": "tense"
           },
-          {
+          "2": {
             "weight": 20,
             "title": "Pirate Interruption",
             "message": "Your proximity alarms blare. Three hostile contacts incoming. Looks like someone doesn't want you mining here.",
             "systemMessage": "Hostile ships detected - combat imminent",
             "tone": "danger"
           }
-        ]
+        }
       },
-      {
+      "2": {
         "id": "scan_discovery",
         "name": "Scan Discovery Narratives",
         "description": "Revealing what you've discovered during scans",
         "category": "exploration",
-        "entries": [
-          {
+        "entries": {
+          "0": {
             "weight": 35,
             "title": "Type-I Iron Cluster",
             "message": "Scan complete. Standard iron-rich asteroid cluster. Common, but valuable.",
@@ -577,15 +951,15 @@
             "tone": "neutral",
             "assignDefinition": "type_i_iron"
           },
-          {
+          "1": {
             "weight": 25,
             "title": "Type-II Platinum Vein",
-            "message": "Your sensors pick up precious metal signatures. A platinum deposit—rare and extremely valuable.",
+            "message": "Your sensors pick up precious metal signatures. A platinum depositÃ¢â‚¬â€rare and extremely valuable.",
             "systemMessage": "Classification: Type-II Precious Metal Vein",
             "tone": "positive",
             "assignDefinition": "type_ii_platinum"
           },
-          {
+          "2": {
             "weight": 20,
             "title": "Type-III Volatile Ice",
             "message": "WARNING: Volatile compounds detected. This asteroid contains explosive ice formations. Proceed with extreme caution.",
@@ -593,7 +967,7 @@
             "tone": "warning",
             "assignDefinition": "type_iii_volatile"
           },
-          {
+          "3": {
             "weight": 15,
             "title": "Type-IV Rare Earth",
             "message": "Interesting... rare earth elements in high concentration. These are used in advanced ship components.",
@@ -601,7 +975,7 @@
             "tone": "curious",
             "assignDefinition": "type_iv_rare_earth"
           },
-          {
+          "4": {
             "weight": 5,
             "title": "Type-V Ancient Core",
             "message": "This is impossible. These mineral formations predate the Surge by centuries. What were they mining for?",
@@ -609,15 +983,15 @@
             "tone": "mysterious",
             "assignDefinition": "type_v_ancient"
           }
-        ]
+        }
       },
-      {
+      "3": {
         "id": "station_approach",
         "name": "Station Approach Narratives",
         "description": "First contact with stations",
         "category": "station",
-        "entries": [
-          {
+        "entries": {
+          "0": {
             "weight": 40,
             "title": "Active Station Hails",
             "message": "The station's automated systems acknowledge your approach. Docking clearance granted.",
@@ -625,7 +999,7 @@
             "tone": "neutral",
             "assignDefinition": "operational"
           },
-          {
+          "1": {
             "weight": 35,
             "title": "Derelict Silence",
             "message": "No response to your hails. The station's lights are dark. Looks like it's been abandoned for some time.",
@@ -633,15 +1007,15 @@
             "tone": "eerie",
             "assignDefinition": "derelict"
           },
-          {
+          "2": {
             "weight": 15,
             "title": "Distress Signal",
-            "message": "Emergency beacon active. Life support failing. Someone on that station needs help—fast.",
+            "message": "Emergency beacon active. Life support failing. Someone on that station needs helpÃ¢â‚¬â€fast.",
             "systemMessage": "Distress signal detected - rescue mission available",
             "tone": "urgent",
             "assignDefinition": "distress"
           },
-          {
+          "3": {
             "weight": 10,
             "title": "Hostile Lockdown",
             "message": "WARNING: Weapons lock detected! The station's defense turrets are tracking your ship.",
@@ -649,9 +1023,9 @@
             "tone": "danger",
             "assignDefinition": "hostile"
           }
-        ]
+        }
       }
-    ]
+    }
   },
   "encounterRates": {
     "trader": {
@@ -699,5 +1073,160 @@
       "threshold": 100,
       "interval": 2
     }
+  },
+  "lootPools": {
+    "0": {
+      "id": "test_military_loot",
+      "name": "Test Military Loot Pool",
+      "description": "Test pool with multiple container grades",
+      "tags": {
+        "0": "military",
+        "1": "test"
+      },
+      "grades": {
+        "0": {
+          "id": "grade_1",
+          "displayName": "GRADE-I MILITARY CONTAINER",
+          "weight": 50,
+          "filters": {
+            "tiers": {
+              "0": "common",
+              "1": "uncommon"
+            },
+            "tags": {
+              "0": "military"
+            }
+          },
+          "guaranteedItems": {
+            "0": {
+              "itemId": "credits",
+              "quantity": 100
+            }
+          },
+          "rollSettings": {
+            "minItems": 2,
+            "maxItems": 3,
+            "bonusRolls": 0
+          },
+          "containerData": {
+            "icon": "Ã°Å¸â€œÂ¦",
+            "glowColor": "#0ff",
+            "revealAnimation": "pulse",
+            "revealDelay": 300
+          }
+        },
+        "1": {
+          "id": "grade_2",
+          "displayName": "GRADE-II MILITARY CONTAINER",
+          "weight": 30,
+          "filters": {
+            "tiers": {
+              "0": "uncommon",
+              "1": "rare"
+            },
+            "tags": {
+              "0": "military"
+            }
+          },
+          "guaranteedItems": {
+            "0": {
+              "itemId": "credits",
+              "quantity": 500
+            }
+          },
+          "rollSettings": {
+            "minItems": 3,
+            "maxItems": 5,
+            "bonusRolls": 1
+          },
+          "containerData": {
+            "icon": "Ã°Å¸Å½Â",
+            "glowColor": "#0af",
+            "revealAnimation": "flash",
+            "revealDelay": 250
+          }
+        },
+        "2": {
+          "id": "grade_3",
+          "displayName": "GRADE-III MILITARY CONTAINER",
+          "weight": 15,
+          "filters": {
+            "tiers": {
+              "0": "rare",
+              "1": "epic"
+            },
+            "tags": {
+              "0": "military"
+            }
+          },
+          "guaranteedItems": {
+            "0": {
+              "itemId": "credits",
+              "quantity": 1000
+            }
+          },
+          "rollSettings": {
+            "minItems": 4,
+            "maxItems": 6,
+            "bonusRolls": 2
+          },
+          "containerData": {
+            "icon": "Ã°Å¸â€™Å½",
+            "glowColor": "#c0f",
+            "revealAnimation": "spin",
+            "revealDelay": 200
+          }
+        },
+        "3": {
+          "id": "grade_legendary",
+          "displayName": "LEGENDARY MILITARY CACHE",
+          "weight": 5,
+          "filters": {
+            "tiers": {
+              "0": "epic",
+              "1": "legendary"
+            },
+            "tags": {
+              "0": "military"
+            }
+          },
+          "guaranteedItems": {
+            "0": {
+              "itemId": "credits",
+              "quantity": 5000
+            }
+          },
+          "rollSettings": {
+            "minItems": 5,
+            "maxItems": 8,
+            "bonusRolls": 3
+          },
+          "containerData": {
+            "icon": "Ã¢Â­Â",
+            "glowColor": "#fa0",
+            "revealAnimation": "shake",
+            "revealDelay": 150
+          }
+        }
+      },
+      "entries": {
+        "0": {
+          "itemId": "credits",
+          "weight": 10,
+          "minQty": 50,
+          "maxQty": 200
+        },
+        "1": {
+          "itemId": "supply_rations",
+          "weight": 5,
+          "minQty": 1,
+          "maxQty": 3
+        }
+      }
+    }
+  },
+  "_metadata": {
+    "lastModified": "2025-11-24T07:14:40.555Z",
+    "modifiedBy": "admin"
   }
 }

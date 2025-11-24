@@ -381,4 +381,31 @@ router.post('/execute-branch', async (req, res) => {
   }
 });
 
+// Direct loot pool resolution endpoint (for testing/simulation)
+router.post('/resolve-loot', async (req, res) => {
+  try {
+    const { poolId } = req.body;
+
+    if (!poolId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required field: poolId'
+      });
+    }
+
+    const { resolveLootPool } = require('../services/eventOutcomeProcessor');
+    const lootResult = await resolveLootPool(poolId);
+
+    res.json({
+      success: true,
+      loot: lootResult
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

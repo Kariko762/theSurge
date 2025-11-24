@@ -114,11 +114,9 @@ export default function ConfigEditor() {
     { id: 'factions', label: 'Factions' },
     { id: 'ai', label: 'AI Crew' },
     { id: 'skills', label: 'Player Skills' },
-    { id: 'difficulty', label: 'Difficulty Curves' },
     { id: 'loot', label: 'Loot Tables' },
     { id: 'narratives', label: 'Narrative Library' },
     { id: 'pois', label: 'POI Library' },
-    { id: 'risk', label: 'Risk Weights' },
     { id: 'scheduler', label: 'Event Scheduler' }
   ];
 
@@ -271,7 +269,7 @@ export default function ConfigEditor() {
 
       {/* LOOT TABLES SECTION */}
       {activeSection === 'loot' && (
-        <LootManager config={config} updateConfig={updateConfig} />
+        <LootManager />
       )}
 
       {/* NARRATIVE LIBRARY SECTION */}
