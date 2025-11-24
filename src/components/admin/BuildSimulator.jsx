@@ -4,249 +4,234 @@ import { PlayIcon, RefreshIcon, LoadingIcon } from './HoloIcons';
 import '../../styles/AdminGlass.css';
 
 export default function BuildSimulator() {
-  const [aiCrewList, setAiCrewList] = useState({});
-  const [selectedAI, setSelectedAI] = useState([]); // Changed to array for multiple AI
+  const [ships, setShips] = useState([]);
+  const [selectedShip, setSelectedShip] = useState(null);
+  const [aiCores, setAiCores] = useState({});
+  const [selectedAI, setSelectedAI] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Ship configuration
-  const [shipConfig, setShipConfig] = useState({
-    hull: 100,
-    shields: 50,
-    weapons: 3,
-    sensors: 2,
-    cargo: 10,
-    speed: 5
-  });
-
-  // Component configuration
-  const [components, setComponents] = useState([]);
-  const [selectedComponents, setSelectedComponents] = useState([]);
-
-  // DRE Log
+  // Three-panel logs
+  const [terminalLog, setTerminalLog] = useState([]);
   const [dreLog, setDreLog] = useState([]);
+  const [backendLog, setBackendLog] = useState([]);
+  
   const [attributeBreakdown, setAttributeBreakdown] = useState(null);
+  
+  const terminalRef = useRef(null);
   const dreRef = useRef(null);
+  const backendRef = useRef(null);
 
   useEffect(() => {
     loadData();
   }, []);
 
   useEffect(() => {
+    if (terminalRef.current) terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+  }, [terminalLog]);
+
+  useEffect(() => {
     if (dreRef.current) dreRef.current.scrollTop = dreRef.current.scrollHeight;
   }, [dreLog]);
+
+  useEffect(() => {
+    if (backendRef.current) backendRef.current.scrollTop = backendRef.current.scrollHeight;
+  }, [backendLog]);
 
   const loadData = async () => {
     try {
       setLoading(true);
+      addBackendLog('Loading configuration...', 'process');
       const response = await api.config.get();
-      setAiCrewList(response.config?.aiCrew || response.aiCrew || {});
       
-      // Mock components for now
-      setComponents([
-        { id: 'shield_boost', name: 'Shield Booster MkII', stat: 'shields', value: 25, type: 'additive' },
-        { id: 'weapon_upgrade', name: 'Plasma Cannon', stat: 'weapons', value: 2, type: 'additive' },
-        { id: 'sensor_array', name: 'Advanced Sensor Array', stat: 'sensors', value: 3, type: 'additive' },
-        { id: 'hull_plating', name: 'Reinforced Hull Plating', stat: 'hull', value: 50, type: 'additive' },
-        { id: 'cargo_bay', name: 'Expanded Cargo Bay', stat: 'cargo', value: 15, type: 'additive' },
-        { id: 'engine_boost', name: 'Ion Engine Booster', stat: 'speed', value: 2, type: 'additive' },
-        { id: 'efficiency_core', name: 'Efficiency Core', stat: 'all_skills', value: 1, type: 'additive' },
-        { id: 'combat_ai', name: 'Combat AI Module', stat: 'combat', value: 2, type: 'additive' }
-      ]);
+      setAiCores(response.config?.aiCores || response.aiCores || {});
+      setShips(response.config?.ships || {});
+      
+      addBackendLog(`Loaded ${Object.keys(response.config?.aiCores || {}).length} AI cores`, 'success');
+      addBackendLog(`Loaded ${Object.keys(response.config?.ships || {}).length} ship configurations`, 'success');
     } catch (err) {
-      addLog('Failed to load data: ' + err.message, 'error');
+      addBackendLog('Failed to load data: ' + err.message, 'error');
+      addTerminalLog('⚠️ ERROR: Failed to load configuration', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const addLog = (message, type = 'info', data = null) => {
-    setDreLog(prev => [...prev, {
+  const addTerminalLog = (message, type = 'info') => {
+    setTerminalLog(prev => [...prev, {
+      id: `${Date.now()}-${Math.random()}`,
       timestamp: new Date().toISOString(),
       time: new Date().toLocaleTimeString(),
       message,
-      type,
-      data
+      type
+    }]);
+  };
+
+  const addDreLog = (message, type = 'info') => {
+    setDreLog(prev => [...prev, {
+      id: `${Date.now()}-${Math.random()}`,
+      timestamp: new Date().toISOString(),
+      time: new Date().toLocaleTimeString(),
+      message,
+      type
+    }]);
+  };
+
+  const addBackendLog = (message, type = 'info') => {
+    setBackendLog(prev => [...prev, {
+      id: `${Date.now()}-${Math.random()}`,
+      timestamp: new Date().toISOString(),
+      time: new Date().toLocaleTimeString(),
+      message,
+      type
     }]);
   };
 
   const resetSimulation = () => {
+    setTerminalLog([]);
     setDreLog([]);
+    setBackendLog([]);
     setAttributeBreakdown(null);
-    addLog('Build simulator reset', 'system');
+    addTerminalLog('>> SYSTEM RESET', 'system');
+    addBackendLog('Simulator reset', 'system');
   };
 
   const calculateBuild = () => {
-    resetSimulation();
-    
-    addLog('=== BUILD CALCULATION START ===', 'header');
-    addLog('Calculating final build attributes...', 'process');
+    if (!selectedShip) {
+      addTerminalLog('⚠️ ERROR: No ship selected', 'error');
+      addBackendLog('Build calculation failed: No ship selected', 'error');
+      return;
+    }
+
+    addBackendLog('=== BUILD CALCULATION START ===', 'header');
+    addTerminalLog('>> Initializing build calculation...', 'process');
+    addDreLog('=== BUILD ANALYSIS ===', 'header');
 
     const breakdown = {
-      ship: { ...shipConfig },
-      ai: null,
-      components: [],
-      skills: {},
-      finalStats: { ...shipConfig },
+      ship: selectedShip,
+      ai: selectedAI.length > 0 ? selectedAI : null,
+      finalStats: { ...(selectedShip.baseStats || selectedShip.stats || {}) },
       finalSkills: {}
     };
 
-    // Step 1: Base Ship Stats
-    addLog('', 'space');
-    addLog('STEP 1: Base Ship Configuration', 'header');
-    Object.entries(shipConfig).forEach(([stat, value]) => {
-      addLog(`  ${stat}: ${value}`, 'data');
+    // Ship base stats
+    addDreLog(`Ship: ${selectedShip.name}`, 'info');
+    addDreLog(`Class: ${selectedShip.class} | Tier: ${selectedShip.tier}`, 'info');
+    addTerminalLog(`>> Loading ship: ${selectedShip.name}`, 'success');
+    
+    const shipStats = selectedShip.baseStats || selectedShip.stats || {};
+    Object.entries(shipStats).forEach(([stat, value]) => {
+      addDreLog(`  ${stat}: ${value}`, 'data');
     });
 
-    // Step 2: Apply AI Bonuses
-    if (selectedAI) {
-      addLog('', 'space');
-      addLog('STEP 2: AI Crew Bonuses', 'header');
-      breakdown.ai = selectedAI;
+    // AI bonuses
+    if (selectedAI.length > 0) {
+      addDreLog('', 'space');
+      addDreLog('AI CORE BONUSES', 'header');
+      addTerminalLog(`>> Integrating ${selectedAI.length} AI core(s)`, 'process');
       
-      addLog(`Selected AI: ${selectedAI.name}`, 'info');
-      addLog(`Role: ${selectedAI.role}`, 'info');
-      addLog('Skill Modifiers:', 'info');
-      
-      Object.entries(selectedAI.skillModifiers || {}).forEach(([skill, value]) => {
-        breakdown.finalSkills[skill] = (breakdown.finalSkills[skill] || 0) + value;
-        breakdown.skills[skill] = {
-          base: 0,
-          ai: value,
-          components: 0,
-          total: value
-        };
-        addLog(`  ${skill}: +${value}`, 'reward');
-      });
-
-      // Combat modifiers
-      if (selectedAI.combatModifiers) {
-        addLog('Combat Modifiers:', 'info');
-        Object.entries(selectedAI.combatModifiers).forEach(([stat, value]) => {
-          if (breakdown.finalStats[stat] !== undefined) {
-            breakdown.finalStats[stat] += value;
-            addLog(`  ${stat}: +${value} → ${breakdown.finalStats[stat]}`, 'reward');
-          }
-        });
-      }
-    } else {
-      addLog('', 'space');
-      addLog('STEP 2: AI Crew Bonuses', 'header');
-      addLog('No AI selected - skipping AI bonuses', 'warning');
-    }
-
-    // Step 3: Apply Component Bonuses
-    addLog('', 'space');
-    addLog('STEP 3: Component Bonuses', 'header');
-    
-    if (selectedComponents.length === 0) {
-      addLog('No components selected', 'warning');
-    } else {
-      selectedComponents.forEach(comp => {
-        breakdown.components.push(comp);
-        addLog(`Installing: ${comp.name}`, 'process');
+      selectedAI.forEach(ai => {
+        addBackendLog(`Loading AI: ${ai.name} (${ai.role})`, 'process');
+        addDreLog(`${ai.name} - ${ai.role}`, 'success');
         
-        if (comp.stat === 'all_skills') {
-          addLog('  Type: Universal Skill Bonus', 'info');
-          Object.keys(breakdown.finalSkills).forEach(skill => {
-            breakdown.finalSkills[skill] += comp.value;
-            breakdown.skills[skill].components += comp.value;
-            breakdown.skills[skill].total += comp.value;
-          });
-          addLog(`  All skills: +${comp.value}`, 'reward');
-        } else if (breakdown.finalStats[comp.stat] !== undefined) {
-          // Ship stat bonus
-          breakdown.finalStats[comp.stat] += comp.value;
-          addLog(`  ${comp.stat}: +${comp.value} → ${breakdown.finalStats[comp.stat]}`, 'reward');
-        } else if (breakdown.finalSkills[comp.stat] !== undefined || comp.stat in (selectedAI?.skillModifiers || {})) {
-          // Skill bonus
-          if (!breakdown.skills[comp.stat]) {
-            breakdown.skills[comp.stat] = { base: 0, ai: 0, components: 0, total: 0 };
-          }
-          breakdown.finalSkills[comp.stat] = (breakdown.finalSkills[comp.stat] || 0) + comp.value;
-          breakdown.skills[comp.stat].components += comp.value;
-          breakdown.skills[comp.stat].total += comp.value;
-          addLog(`  ${comp.stat} skill: +${comp.value}`, 'reward');
-        } else {
-          addLog(`  Unknown stat: ${comp.stat}`, 'warning');
-        }
+        Object.entries(ai.skillModifiers || {}).forEach(([skill, value]) => {
+          breakdown.finalSkills[skill] = (breakdown.finalSkills[skill] || 0) + value;
+          addDreLog(`  ${skill}: +${value}`, 'reward');
+        });
       });
+      addBackendLog('AI integration complete', 'success');
     }
 
-    // Step 4: Final Summary
-    addLog('', 'space');
-    addLog('STEP 4: Final Build Summary', 'header');
-    
-    addLog('Ship Stats:', 'success');
+    addDreLog('', 'space');
+    addDreLog('FINAL BUILD STATS', 'header');
     Object.entries(breakdown.finalStats).forEach(([stat, value]) => {
-      const change = value - shipConfig[stat];
-      if (change > 0) {
-        addLog(`  ${stat}: ${shipConfig[stat]} → ${value} (+${change})`, 'reward');
-      } else {
-        addLog(`  ${stat}: ${value}`, 'data');
-      }
+      addDreLog(`${stat}: ${value}`, 'success');
     });
 
     if (Object.keys(breakdown.finalSkills).length > 0) {
-      addLog('', 'space');
-      addLog('Skill Modifiers:', 'success');
-      Object.entries(breakdown.finalSkills).forEach(([skill, total]) => {
-        const detail = breakdown.skills[skill];
-        addLog(`  ${skill}: ${total} (AI: ${detail.ai}, Components: ${detail.components})`, 'reward');
+      addDreLog('', 'space');
+      addDreLog('SKILL MODIFIERS', 'header');
+      Object.entries(breakdown.finalSkills).forEach(([skill, value]) => {
+        addDreLog(`${skill}: +${value}`, 'reward');
       });
     }
 
     setAttributeBreakdown(breakdown);
-    
-    addLog('', 'space');
-    addLog('=== BUILD CALCULATION COMPLETE ===', 'header');
+    addTerminalLog('>> Build calculation complete', 'success');
+    addBackendLog('=== BUILD CALCULATION COMPLETE ===', 'header');
   };
 
-  const testRoll = (skill) => {
-    if (!attributeBreakdown) {
-      addLog('No build calculated yet', 'error');
-      return;
-    }
-
-    addLog('', 'space');
-    addLog(`=== TESTING ${skill.toUpperCase()} ROLL ===`, 'header');
-    
+  const rollAttack = () => {
+    if (!attributeBreakdown) return;
+    addTerminalLog('>> Rolling attack...', 'process');
     const roll = Math.floor(Math.random() * 20) + 1;
-    const bonus = attributeBreakdown.finalSkills[skill] || 0;
+    const bonus = attributeBreakdown.finalSkills['combat'] || 0;
     const total = roll + bonus;
-
-    addLog(`Rolling d20 for ${skill}...`, 'process');
-    addLog(`Base roll: ${roll}`, roll >= 15 ? 'success' : roll <= 5 ? 'critical-fail' : 'info');
-    addLog(`Skill bonus: +${bonus}`, 'info');
-    
-    if (bonus > 0) {
-      const detail = attributeBreakdown.skills[skill];
-      addLog('Bonus breakdown:', 'info');
-      if (detail.ai > 0) addLog(`  AI: +${detail.ai}`, 'data');
-      if (detail.components > 0) addLog(`  Components: +${detail.components}`, 'data');
-    }
-    
-    addLog(`Final total: ${roll} + ${bonus} = ${total}`, 'success');
-    
-    // Check against difficulty targets
-    const difficulties = [
-      { name: 'Easy', target: 8 },
-      { name: 'Medium', target: 12 },
-      { name: 'Hard', target: 16 },
-      { name: 'Very Hard', target: 20 }
-    ];
-    
-    addLog('Against difficulty targets:', 'info');
-    difficulties.forEach(diff => {
-      const success = total >= diff.target;
-      addLog(`  ${diff.name} (${diff.target}): ${success ? '✓ SUCCESS' : '✗ FAILURE'}`, success ? 'success' : 'failure');
-    });
-
-    if (roll === 20) {
-      addLog('🌟 NATURAL 20 - CRITICAL SUCCESS!', 'critical-success');
-    } else if (roll === 1) {
-      addLog('💥 NATURAL 1 - CRITICAL FAILURE!', 'critical-fail');
-    }
+    addDreLog(`Attack Roll: d20(${roll}) + ${bonus} = ${total}`, roll === 20 ? 'critical-success' : roll === 1 ? 'critical-fail' : 'success');
+    addTerminalLog(`>> Attack total: ${total}`, total >= 15 ? 'success' : 'info');
+    addBackendLog(`Attack roll executed: ${total}`, 'process');
   };
+
+  const rollDefense = () => {
+    if (!attributeBreakdown) return;
+    addTerminalLog('>> Rolling defense...', 'process');
+    const roll = Math.floor(Math.random() * 20) + 1;
+    const bonus = attributeBreakdown.finalSkills['piloting'] || 0;
+    const total = roll + bonus;
+    addDreLog(`Defense Roll: d20(${roll}) + ${bonus} = ${total}`, roll === 20 ? 'critical-success' : roll === 1 ? 'critical-fail' : 'success');
+    addTerminalLog(`>> Defense total: ${total}`, total >= 15 ? 'success' : 'info');
+    addBackendLog(`Defense roll executed: ${total}`, 'process');
+  };
+
+  const rollEngineering = () => {
+    if (!attributeBreakdown) return;
+    addTerminalLog('>> Rolling engineering check...', 'process');
+    const roll = Math.floor(Math.random() * 20) + 1;
+    const bonus = attributeBreakdown.finalSkills['engineering'] || 0;
+    const total = roll + bonus;
+    addDreLog(`Engineering Check: d20(${roll}) + ${bonus} = ${total}`, roll === 20 ? 'critical-success' : roll === 1 ? 'critical-fail' : 'success');
+    addTerminalLog(`>> Engineering total: ${total}`, total >= 15 ? 'success' : 'info');
+    addBackendLog(`Engineering check executed: ${total}`, 'process');
+  };
+
+  const rollNavigation = () => {
+    if (!attributeBreakdown) return;
+    addTerminalLog('>> Rolling navigation check...', 'process');
+    const roll = Math.floor(Math.random() * 20) + 1;
+    const bonus = attributeBreakdown.finalSkills['navigation'] || 0;
+    const total = roll + bonus;
+    addDreLog(`Navigation Check: d20(${roll}) + ${bonus} = ${total}`, roll === 20 ? 'critical-success' : roll === 1 ? 'critical-fail' : 'success');
+    addTerminalLog(`>> Navigation total: ${total}`, total >= 15 ? 'success' : 'info');
+    addBackendLog(`Navigation check executed: ${total}`, 'process');
+  };
+
+  const simulateDamage = () => {
+    if (!attributeBreakdown) return;
+    const damage = Math.floor(Math.random() * 30) + 10;
+    addTerminalLog(`>> Incoming damage: ${damage}`, 'warning');
+    addDreLog(`Damage calculation: ${damage} points`, 'warning');
+    addBackendLog(`Damage event: ${damage} HP`, 'warning');
+  };
+
+  const simulateRepair = () => {
+    if (!attributeBreakdown) return;
+    const repair = Math.floor(Math.random() * 20) + 5;
+    addTerminalLog(`>> Repairing hull: +${repair} HP`, 'success');
+    addDreLog(`Repair systems: ${repair} points restored`, 'success');
+    addBackendLog(`Repair event: +${repair} HP`, 'success');
+  };
+
+  const btnStyle = (color) => ({
+    padding: '0.6rem 1rem',
+    background: `rgba(${color === '#0ff' ? '0,255,255' : color === '#f66' ? '255,102,102' : color === '#fa0' ? '255,170,0' : color === '#0af' ? '0,170,255' : color === '#0f8' ? '0,255,136' : color === '#b8f' ? '184,136,255' : color === '#f00' ? '255,0,0' : '0,255,0'}, 0.1)`,
+    border: `2px solid ${color}`,
+    borderRadius: '6px',
+    color,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    fontSize: '0.75rem'
+  });
 
   const getLogColor = (type) => {
     switch (type) {
@@ -268,12 +253,12 @@ export default function BuildSimulator() {
 
   const renderLogEntry = (entry) => {
     if (entry.type === 'space') {
-      return <div key={entry.timestamp} style={{ height: '0.5rem' }} />;
+      return <div key={entry.id} style={{ height: '0.5rem' }} />;
     }
 
     return (
       <div 
-        key={entry.timestamp}
+        key={entry.id}
         style={{
           color: getLogColor(entry.type),
           marginBottom: '0.5rem',
@@ -304,106 +289,19 @@ export default function BuildSimulator() {
 
   return (
     <div style={{ padding: '2rem' }}>
-      {/* Controls */}
+      {/* Ship & AI Selection */}
       <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ color: '#fff', margin: 0 }}>Build Calculator</h3>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <button
-              onClick={calculateBuild}
-              className="glass-button"
-              style={{
-                padding: '0.75rem 1.5rem',
-                background: 'rgba(0, 255, 255, 0.1)',
-                border: '2px solid var(--neon-cyan)',
-                borderRadius: '6px',
-                color: 'var(--neon-cyan)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
-            >
-              <PlayIcon size={18} />
-              Calculate Build
-            </button>
-
-            <button
-              onClick={resetSimulation}
-              className="glass-button"
-              style={{
-                padding: '0.75rem 1.5rem',
-                background: 'rgba(255, 100, 100, 0.1)',
-                border: '2px solid #f66',
-                borderRadius: '6px',
-                color: '#f66',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
-            >
-              <RefreshIcon size={18} />
-              Reset
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-        {/* Configuration Panel */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Ship Configuration */}
-          <div className="glass-card" style={{ padding: '1.5rem' }}>
-            <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>
-              🚀 Base Ship Configuration
-            </h3>
-            <div style={{ display: 'grid', gap: '0.75rem' }}>
-              {Object.entries(shipConfig).map(([stat, value]) => (
-                <div key={stat} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <span style={{ 
-                    color: '#aaa', 
-                    width: '80px', 
-                    textTransform: 'capitalize',
-                    fontSize: '0.85rem'
-                  }}>
-                    {stat}:
-                  </span>
-                  <input
-                    type="range"
-                    min="0"
-                    max="200"
-                    step="5"
-                    value={value}
-                    onChange={(e) => setShipConfig({
-                      ...shipConfig,
-                      [stat]: parseInt(e.target.value)
-                    })}
-                    style={{ flex: 1 }}
-                  />
-                  <span style={{ 
-                    color: 'var(--neon-cyan)', 
-                    width: '40px', 
-                    textAlign: 'right',
-                    fontSize: '0.9rem'
-                  }}>
-                    {value}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* AI Selection */}
-          <div className="glass-card" style={{ padding: '1.5rem' }}>
-            <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>
-              🤖 AI Crew Member
-            </h3>
+        <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>Build Configuration</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          {/* Ship Selection */}
+          <div>
+            <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Select Ship</label>
             <select
-              value={selectedAI ? selectedAI.id : ''}
+              value={selectedShip?.id || ''}
               onChange={(e) => {
-                const ai = Object.values(aiCrewList).find(a => a.id === e.target.value);
-                setSelectedAI(ai || null);
+                const ship = Object.values(ships).find(s => s.id === e.target.value);
+                setSelectedShip(ship || null);
+                if (ship) addTerminalLog(`>> Ship selected: ${ship.name}`, 'success');
               }}
               style={{
                 width: '100%',
@@ -412,163 +310,148 @@ export default function BuildSimulator() {
                 border: '1px solid var(--glass-border)',
                 borderRadius: '6px',
                 color: '#fff',
-                fontSize: '0.9rem',
-                marginBottom: '1rem'
+                fontSize: '0.9rem'
               }}
             >
-              <option value="">-- No AI --</option>
-              {Object.values(aiCrewList).map(ai => (
+              <option value="">-- Select Ship --</option>
+              {Object.values(ships).map(ship => (
+                <option key={ship.id} value={ship.id}>
+                  {ship.name} ({ship.class} - T{ship.tier})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* AI Selection */}
+          <div>
+            <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Assign AI Cores (Multi-select)</label>
+            <select
+              multiple
+              size={4}
+              value={selectedAI.map(ai => ai.id)}
+              onChange={(e) => {
+                const selected = Array.from(e.target.selectedOptions).map(opt => 
+                  Object.values(aiCores).find(ai => ai.id === opt.value)
+                ).filter(Boolean);
+                setSelectedAI(selected);
+              }}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                background: 'rgba(0, 20, 40, 0.5)',
+                border: '1px solid var(--glass-border)',
+                borderRadius: '6px',
+                color: '#fff',
+                fontSize: '0.85rem'
+              }}
+            >
+              {Object.values(aiCores).map(ai => (
                 <option key={ai.id} value={ai.id}>
                   {ai.name} ({ai.role})
                 </option>
               ))}
             </select>
-
-            {selectedAI && (
-              <div style={{ 
-                padding: '1rem', 
-                background: 'rgba(0, 255, 255, 0.05)', 
-                borderRadius: '6px',
-                border: '1px solid rgba(0, 255, 255, 0.2)'
-              }}>
-                <div style={{ color: '#fff', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
-                  {selectedAI.name}
-                </div>
-                <div style={{ color: '#aaa', marginBottom: '0.75rem', fontSize: '0.8rem' }}>
-                  {selectedAI.description}
-                </div>
-                <div style={{ color: '#0ff', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-                  Skill Modifiers:
-                </div>
-                {Object.entries(selectedAI.skillModifiers || {}).map(([skill, value]) => (
-                  <div key={skill} style={{ 
-                    color: '#0f0', 
-                    fontSize: '0.8rem',
-                    paddingLeft: '1rem'
-                  }}>
-                    {skill}: +{value}
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
+        </div>
 
-          {/* Component Selection */}
-          <div className="glass-card" style={{ padding: '1.5rem' }}>
-            <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>
-              ⚙️ Ship Components
-            </h3>
-            <div style={{ 
-              display: 'grid', 
-              gap: '0.5rem',
-              maxHeight: '300px',
+        {/* Action Buttons */}
+        <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button onClick={calculateBuild} className="glass-button" style={btnStyle('#0ff')}>
+            <PlayIcon size={16} /> Calculate Build
+          </button>
+          <button onClick={resetSimulation} className="glass-button" style={btnStyle('#f66')}>
+            <RefreshIcon size={16} /> Reset
+          </button>
+          <button onClick={rollAttack} className="glass-button" style={btnStyle('#fa0')} disabled={!attributeBreakdown}>
+            🎲 Roll Attack
+          </button>
+          <button onClick={rollDefense} className="glass-button" style={btnStyle('#0af')} disabled={!attributeBreakdown}>
+            🛡️ Roll Defense
+          </button>
+          <button onClick={rollEngineering} className="glass-button" style={btnStyle('#0f8')} disabled={!attributeBreakdown}>
+            🔧 Roll Engineering
+          </button>
+          <button onClick={rollNavigation} className="glass-button" style={btnStyle('#b8f')} disabled={!attributeBreakdown}>
+            🧭 Roll Navigation
+          </button>
+          <button onClick={simulateDamage} className="glass-button" style={btnStyle('#f00')} disabled={!attributeBreakdown}>
+            💥 Simulate Damage
+          </button>
+          <button onClick={simulateRepair} className="glass-button" style={btnStyle('#0f0')} disabled={!attributeBreakdown}>
+            ⚙️ Simulate Repair
+          </button>
+        </div>
+      </div>
+
+      {/* Three-Panel Layout */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+        {/* Terminal Panel */}
+        <div className="glass-card" style={{ padding: '1rem' }}>
+          <h3 style={{ color: '#0ff', marginBottom: '0.75rem', fontSize: '0.9rem' }}>📟 TERMINAL</h3>
+          <div 
+            ref={terminalRef}
+            style={{
+              height: '500px',
               overflowY: 'auto',
-              padding: '0.5rem'
-            }}>
-              {components.map(comp => {
-                const isSelected = selectedComponents.some(c => c.id === comp.id);
-                return (
-                  <label
-                    key={comp.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      padding: '0.75rem',
-                      background: isSelected ? 'rgba(0, 255, 255, 0.1)' : 'rgba(0, 20, 40, 0.3)',
-                      border: `1px solid ${isSelected ? 'var(--neon-cyan)' : 'var(--glass-border)'}`,
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedComponents([...selectedComponents, comp]);
-                        } else {
-                          setSelectedComponents(selectedComponents.filter(c => c.id !== comp.id));
-                        }
-                      }}
-                      style={{ width: '16px', height: '16px' }}
-                    />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ color: '#fff', fontSize: '0.85rem', marginBottom: '0.25rem' }}>
-                        {comp.name}
-                      </div>
-                      <div style={{ color: '#0f0', fontSize: '0.75rem' }}>
-                        {comp.stat}: +{comp.value}
-                      </div>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
+              background: 'rgba(0, 0, 0, 0.8)',
+              padding: '0.75rem',
+              borderRadius: '4px',
+              border: '1px solid rgba(0, 255, 255, 0.3)',
+              fontFamily: 'monospace',
+              fontSize: '0.8rem'
+            }}
+          >
+            {terminalLog.length === 0 && (
+              <div style={{ color: '#666', textAlign: 'center', padding: '2rem' }}>Terminal ready...</div>
+            )}
+            {terminalLog.map(entry => renderLogEntry(entry))}
           </div>
         </div>
 
         {/* DRE Panel */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div className="glass-card" style={{ padding: '1.5rem', flex: 1 }}>
-            <h3 style={{ color: '#f0f', marginBottom: '1rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>⚙️</span> DRE (Build Calculation Engine)
-            </h3>
-            <div 
-              ref={dreRef}
-              style={{
-                height: '600px',
-                overflowY: 'auto',
-                background: 'rgba(0, 0, 0, 0.7)',
-                padding: '1rem',
-                borderRadius: '6px',
-                border: '1px solid rgba(255, 0, 255, 0.2)',
-                fontFamily: 'monospace',
-                fontSize: '0.85rem'
-              }}
-            >
-              {dreLog.length === 0 && (
-                <div style={{ color: '#666', textAlign: 'center', padding: '2rem' }}>
-                  Configure your build and click "Calculate Build" to see the breakdown
-                </div>
-              )}
-              {dreLog.map(renderLogEntry)}
-            </div>
+        <div className="glass-card" style={{ padding: '1rem' }}>
+          <h3 style={{ color: '#f0f', marginBottom: '0.75rem', fontSize: '0.9rem' }}>⚙️ DRE</h3>
+          <div 
+            ref={dreRef}
+            style={{
+              height: '500px',
+              overflowY: 'auto',
+              background: 'rgba(0, 0, 0, 0.8)',
+              padding: '0.75rem',
+              borderRadius: '4px',
+              border: '1px solid rgba(255, 0, 255, 0.3)',
+              fontFamily: 'monospace',
+              fontSize: '0.8rem'
+            }}
+          >
+            {dreLog.length === 0 && (
+              <div style={{ color: '#666', textAlign: 'center', padding: '2rem' }}>DRE ready...</div>
+            )}
+            {dreLog.map(entry => renderLogEntry(entry))}
           </div>
+        </div>
 
-          {/* Skill Test Panel */}
-          {attributeBreakdown && Object.keys(attributeBreakdown.finalSkills).length > 0 && (
-            <div className="glass-card" style={{ padding: '1.5rem' }}>
-              <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>
-                🎲 Test Skill Rolls
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
-                {Object.keys(attributeBreakdown.finalSkills).map(skill => (
-                  <button
-                    key={skill}
-                    onClick={() => testRoll(skill)}
-                    className="glass-button"
-                    style={{
-                      padding: '0.75rem',
-                      background: 'rgba(0, 20, 40, 0.5)',
-                      border: '1px solid var(--glass-border-bright)',
-                      borderRadius: '6px',
-                      color: '#fff',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      fontSize: '0.85rem'
-                    }}
-                  >
-                    <div style={{ textTransform: 'capitalize' }}>{skill}</div>
-                    <div style={{ color: '#0f0', fontSize: '0.75rem' }}>
-                      +{attributeBreakdown.finalSkills[skill]}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+        {/* Backend Panel */}
+        <div className="glass-card" style={{ padding: '1rem' }}>
+          <h3 style={{ color: '#0f8', marginBottom: '0.75rem', fontSize: '0.9rem' }}>🖥️ BACKEND</h3>
+          <div 
+            ref={backendRef}
+            style={{
+              height: '500px',
+              overflowY: 'auto',
+              background: 'rgba(0, 0, 0, 0.8)',
+              padding: '0.75rem',
+              borderRadius: '4px',
+              border: '1px solid rgba(0, 255, 136, 0.3)',
+              fontFamily: 'monospace',
+              fontSize: '0.8rem'
+            }}
+          >
+            {backendLog.length === 0 && (
+              <div style={{ color: '#666', textAlign: 'center', padding: '2rem' }}>Backend ready...</div>
+            )}
+            {backendLog.map(entry => renderLogEntry(entry))}
+          </div>
         </div>
       </div>
     </div>

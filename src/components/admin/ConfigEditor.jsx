@@ -112,7 +112,7 @@ export default function ConfigEditor() {
     { id: 'mechanics', label: 'Core Mechanics' },
     { id: 'ships', label: 'Ships' },
     { id: 'factions', label: 'Factions' },
-    { id: 'ai', label: 'AI Crew' },
+    { id: 'ai', label: 'AI Cores' },
     { id: 'skills', label: 'Player Skills' },
     { id: 'loot', label: 'Loot Tables' },
     { id: 'narratives', label: 'Narrative Library' },
@@ -188,7 +188,7 @@ export default function ConfigEditor() {
         <FactionsManager />
       )}
 
-      {/* AI CREW SECTION */}
+      {/* AI CORES SECTION */}
       {activeSection === 'ai' && (
         <AICrewManager />
       )}

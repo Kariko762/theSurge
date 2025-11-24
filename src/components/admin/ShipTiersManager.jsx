@@ -53,10 +53,12 @@ export default function ShipTiersManager() {
     const newBonus = {
       id: `ship_bonus_${Date.now()}`,
       name: 'New Bonus',
-      type: 'standard', // standard or advanced
+      type: 'standard', // standard | advanced | legendary
       tier: 2,
       description: '',
-      effects: {
+      
+      // Standard effects (always present)
+      standardEffects: {
         hull: 0,
         shields: 0,
         power: 0,
@@ -66,8 +68,33 @@ export default function ShipTiersManager() {
         accuracy: 0,
         evasion: 0,
         range: 0,
-        damage: 0
+        damage: 0,
+        initiative: 0,
+        engineering: 0,
+        piloting: 0,
+        combat: 0,
+        navigation: 0
       },
+      
+      // Advanced effects (visible for advanced/legendary)
+      advancedEffects: {
+        criticalChance: 0,
+        damageReduction: 0,
+        detection: 0,
+        stealth: 0,
+        fuelEfficiency: 0,
+        repairRate: 0,
+        shieldRegen: 0,
+        lootBonus: 0
+      },
+      
+      // Legendary passive (visible for legendary only)
+      legendaryPassive: {
+        id: '',
+        name: '',
+        description: ''
+      },
+      
       tags: []
     };
     setEditingBonus(newBonus);
@@ -156,6 +183,7 @@ export default function ShipTiersManager() {
               <option value="all">All Types</option>
               <option value="standard">Standard</option>
               <option value="advanced">Advanced</option>
+              <option value="legendary">Legendary</option>
             </select>
           </div>
 
@@ -198,10 +226,16 @@ export default function ShipTiersManager() {
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.35rem' }}>
                   <span style={{
                     padding: '0.15rem 0.5rem',
-                    background: bonus.type === 'standard' ? 'rgba(0, 200, 255, 0.1)' : 'rgba(200, 100, 255, 0.1)',
-                    border: `1px solid ${bonus.type === 'standard' ? '#0cf' : '#c8f'}`,
+                    background: bonus.type === 'standard' ? 'rgba(0, 200, 255, 0.1)' : 
+                                bonus.type === 'advanced' ? 'rgba(200, 100, 255, 0.1)' : 
+                                'rgba(255, 215, 0, 0.1)',
+                    border: `1px solid ${bonus.type === 'standard' ? '#0cf' : 
+                                          bonus.type === 'advanced' ? '#c8f' : 
+                                          '#ffd700'}`,
                     borderRadius: '3px',
-                    color: bonus.type === 'standard' ? '#0cf' : '#c8f',
+                    color: bonus.type === 'standard' ? '#0cf' : 
+                           bonus.type === 'advanced' ? '#c8f' : 
+                           '#ffd700',
                     fontSize: '0.7rem',
                     textTransform: 'uppercase'
                   }}>
@@ -257,14 +291,37 @@ export default function ShipTiersManager() {
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.35rem', fontSize: '0.75rem' }}>
-              {Object.entries(bonus.effects).filter(([_, value]) => value !== 0).map(([stat, value]) => (
+              {/* Standard Effects */}
+              {bonus.standardEffects && Object.entries(bonus.standardEffects).filter(([_, value]) => value !== 0).map(([stat, value]) => (
                 <div key={stat} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0' }}>
-                  <span style={{ color: '#888', textTransform: 'capitalize' }}>{stat}</span>
+                  <span style={{ color: '#0cf', textTransform: 'capitalize' }}>{stat}</span>
                   <span style={{ color: value > 0 ? '#0f8' : '#f55' }}>
-                    {value > 0 ? '+' : ''}{value}
+                    {value > 0 ? '+' : ''}{value}{stat.includes('Chance') || stat.includes('Reduction') || stat.includes('Efficiency') || stat.includes('Rate') || stat.includes('Bonus') ? '%' : ''}
                   </span>
                 </div>
               ))}
+              
+              {/* Advanced Effects */}
+              {bonus.advancedEffects && Object.entries(bonus.advancedEffects).filter(([_, value]) => value !== 0).map(([stat, value]) => (
+                <div key={stat} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0' }}>
+                  <span style={{ color: '#c8f', textTransform: 'capitalize' }}>{stat}</span>
+                  <span style={{ color: value > 0 ? '#0f8' : '#f55' }}>
+                    {value > 0 ? '+' : ''}{value}%
+                  </span>
+                </div>
+              ))}
+              
+              {/* Legendary Passive */}
+              {bonus.legendaryPassive && bonus.legendaryPassive.name && (
+                <div style={{ gridColumn: '1 / -1', padding: '0.5rem', background: 'rgba(255, 215, 0, 0.05)', border: '1px solid #ffd700', borderRadius: '4px', marginTop: '0.5rem' }}>
+                  <div style={{ color: '#ffd700', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                    ⭐ {bonus.legendaryPassive.name}
+                  </div>
+                  <div style={{ color: '#aaa', fontSize: '0.7rem', lineHeight: 1.3 }}>
+                    {bonus.legendaryPassive.description}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -327,7 +384,12 @@ export default function ShipTiersManager() {
                   </div>
 
                   <div>
-                    <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Type</label>
+                    <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>
+                      Bonus Type
+                      <span style={{ color: '#666', fontSize: '0.75rem', marginLeft: '0.5rem' }}>
+                        (Controls visible panels)
+                      </span>
+                    </label>
                     <select
                       value={editingBonus.type}
                       onChange={(e) => setEditingBonus({ ...editingBonus, type: e.target.value })}
@@ -340,8 +402,9 @@ export default function ShipTiersManager() {
                         color: '#fff'
                       }}
                     >
-                      <option value="standard">Standard</option>
-                      <option value="advanced">Advanced</option>
+                      <option value="standard">Standard (S)</option>
+                      <option value="advanced">Advanced (S + A)</option>
+                      <option value="legendary">Legendary (S + A + L)</option>
                     </select>
                   </div>
 
@@ -384,21 +447,28 @@ export default function ShipTiersManager() {
                 </div>
               </div>
 
-              {/* Stat Effects */}
-              <div className="glass-card" style={{ padding: '1rem' }}>
-                <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>Stat Effects</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-                  {Object.entries(editingBonus.effects).map(([stat, value]) => (
+              {/* STANDARD EFFECTS - Always Visible */}
+              <div className="glass-card" style={{ padding: '1rem', border: '1px solid #0cf' }}>
+                <h3 style={{ color: '#0cf', marginBottom: '0.5rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '1.2rem' }}>●</span> Standard Effects
+                </h3>
+                <p style={{ color: '#666', fontSize: '0.75rem', marginBottom: '1rem' }}>
+                  Core stat bonuses - small to moderate increases
+                </p>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
+                  <div style={{ gridColumn: '1 / -1', color: '#0cf', fontSize: '0.75rem', fontWeight: 'bold', marginTop: '0.5rem' }}>Ship Stats</div>
+                  {['hull', 'shields', 'power', 'cargo', 'speed', 'agility'].map(stat => (
                     <div key={stat}>
-                      <label style={{ color: '#aaa', fontSize: '0.75rem', display: 'block', marginBottom: '0.3rem', textTransform: 'capitalize' }}>
+                      <label style={{ color: '#aaa', fontSize: '0.7rem', display: 'block', marginBottom: '0.3rem', textTransform: 'capitalize' }}>
                         {stat}
                       </label>
                       <input
                         type="number"
-                        value={value}
+                        value={editingBonus.standardEffects?.[stat] || 0}
                         onChange={(e) => setEditingBonus({
                           ...editingBonus,
-                          effects: { ...editingBonus.effects, [stat]: parseInt(e.target.value) || 0 }
+                          standardEffects: { ...editingBonus.standardEffects, [stat]: parseInt(e.target.value) || 0 }
                         })}
                         style={{
                           width: '100%',
@@ -407,13 +477,200 @@ export default function ShipTiersManager() {
                           border: '1px solid var(--glass-border)',
                           borderRadius: '4px',
                           color: '#fff',
-                          fontSize: '0.85rem'
+                          fontSize: '0.8rem'
+                        }}
+                      />
+                    </div>
+                  ))}
+                  
+                  <div style={{ gridColumn: '1 / -1', color: '#0cf', fontSize: '0.75rem', fontWeight: 'bold', marginTop: '0.5rem' }}>Combat Stats</div>
+                  {['accuracy', 'evasion', 'range', 'damage'].map(stat => (
+                    <div key={stat}>
+                      <label style={{ color: '#aaa', fontSize: '0.7rem', display: 'block', marginBottom: '0.3rem', textTransform: 'capitalize' }}>
+                        {stat}
+                      </label>
+                      <input
+                        type="number"
+                        value={editingBonus.standardEffects?.[stat] || 0}
+                        onChange={(e) => setEditingBonus({
+                          ...editingBonus,
+                          standardEffects: { ...editingBonus.standardEffects, [stat]: parseInt(e.target.value) || 0 }
+                        })}
+                        style={{
+                          width: '100%',
+                          padding: '0.4rem',
+                          background: 'rgba(0, 20, 40, 0.5)',
+                          border: '1px solid var(--glass-border)',
+                          borderRadius: '4px',
+                          color: '#fff',
+                          fontSize: '0.8rem'
+                        }}
+                      />
+                    </div>
+                  ))}
+                  
+                  <div style={{ gridColumn: '1 / -1', color: '#0cf', fontSize: '0.75rem', fontWeight: 'bold', marginTop: '0.5rem' }}>Initiative & Skill Checks</div>
+                  {['initiative', 'engineering', 'piloting', 'combat', 'navigation'].map(stat => (
+                    <div key={stat}>
+                      <label style={{ color: '#aaa', fontSize: '0.7rem', display: 'block', marginBottom: '0.3rem', textTransform: 'capitalize' }}>
+                        {stat}
+                      </label>
+                      <input
+                        type="number"
+                        value={editingBonus.standardEffects?.[stat] || 0}
+                        onChange={(e) => setEditingBonus({
+                          ...editingBonus,
+                          standardEffects: { ...editingBonus.standardEffects, [stat]: parseInt(e.target.value) || 0 }
+                        })}
+                        style={{
+                          width: '100%',
+                          padding: '0.4rem',
+                          background: 'rgba(0, 20, 40, 0.5)',
+                          border: '1px solid var(--glass-border)',
+                          borderRadius: '4px',
+                          color: '#fff',
+                          fontSize: '0.8rem'
                         }}
                       />
                     </div>
                   ))}
                 </div>
               </div>
+
+              {/* ADVANCED EFFECTS - Visible for Advanced/Legendary */}
+              {(editingBonus.type === 'advanced' || editingBonus.type === 'legendary') && (
+                <div className="glass-card" style={{ padding: '1rem', border: '1px solid #c8f' }}>
+                  <h3 style={{ color: '#c8f', marginBottom: '0.5rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1.2rem' }}>●</span> Advanced Effects
+                  </h3>
+                  <p style={{ color: '#666', fontSize: '0.75rem', marginBottom: '1rem' }}>
+                    Powerful bonuses - percentage-based or specialized effects
+                  </p>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
+                    {[
+                      { key: 'criticalChance', label: 'Critical Hit Chance (%)' },
+                      { key: 'damageReduction', label: 'Damage Reduction (%)' },
+                      { key: 'detection', label: 'Detection Range' },
+                      { key: 'stealth', label: 'Stealth Rating' },
+                      { key: 'fuelEfficiency', label: 'Fuel Efficiency (%)' },
+                      { key: 'repairRate', label: 'Hull Repair Rate (%)' },
+                      { key: 'shieldRegen', label: 'Shield Regen (%)' },
+                      { key: 'lootBonus', label: 'Loot Bonus (%)' }
+                    ].map(({ key, label }) => (
+                      <div key={key}>
+                        <label style={{ color: '#aaa', fontSize: '0.7rem', display: 'block', marginBottom: '0.3rem' }}>
+                          {label}
+                        </label>
+                        <input
+                          type="number"
+                          value={editingBonus.advancedEffects?.[key] || 0}
+                          onChange={(e) => setEditingBonus({
+                            ...editingBonus,
+                            advancedEffects: { ...editingBonus.advancedEffects, [key]: parseInt(e.target.value) || 0 }
+                          })}
+                          style={{
+                            width: '100%',
+                            padding: '0.4rem',
+                            background: 'rgba(0, 20, 40, 0.5)',
+                            border: '1px solid var(--glass-border)',
+                            borderRadius: '4px',
+                            color: '#fff',
+                            fontSize: '0.8rem'
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* LEGENDARY PASSIVE - Visible for Legendary Only */}
+              {editingBonus.type === 'legendary' && (
+                <div className="glass-card" style={{ padding: '1rem', border: '1px solid #ffd700' }}>
+                  <h3 style={{ color: '#ffd700', marginBottom: '0.5rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1.2rem' }}>⭐</span> Legendary Passive Ability
+                  </h3>
+                  <p style={{ color: '#666', fontSize: '0.75rem', marginBottom: '1rem' }}>
+                    Unique game-changing ability - triggers automatically or provides permanent passive effect
+                  </p>
+                  
+                  <div style={{ display: 'grid', gap: '0.75rem' }}>
+                    <div>
+                      <label style={{ color: '#aaa', fontSize: '0.75rem', display: 'block', marginBottom: '0.3rem' }}>
+                        Passive ID
+                      </label>
+                      <input
+                        type="text"
+                        value={editingBonus.legendaryPassive?.id || ''}
+                        onChange={(e) => setEditingBonus({
+                          ...editingBonus,
+                          legendaryPassive: { ...editingBonus.legendaryPassive, id: e.target.value }
+                        })}
+                        placeholder="phoenix_protocol"
+                        style={{
+                          width: '100%',
+                          padding: '0.4rem',
+                          background: 'rgba(0, 20, 40, 0.5)',
+                          border: '1px solid var(--glass-border)',
+                          borderRadius: '4px',
+                          color: '#fff',
+                          fontSize: '0.8rem'
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label style={{ color: '#aaa', fontSize: '0.75rem', display: 'block', marginBottom: '0.3rem' }}>
+                        Passive Name
+                      </label>
+                      <input
+                        type="text"
+                        value={editingBonus.legendaryPassive?.name || ''}
+                        onChange={(e) => setEditingBonus({
+                          ...editingBonus,
+                          legendaryPassive: { ...editingBonus.legendaryPassive, name: e.target.value }
+                        })}
+                        placeholder="Phoenix Protocol"
+                        style={{
+                          width: '100%',
+                          padding: '0.4rem',
+                          background: 'rgba(0, 20, 40, 0.5)',
+                          border: '1px solid var(--glass-border)',
+                          borderRadius: '4px',
+                          color: '#fff',
+                          fontSize: '0.8rem'
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label style={{ color: '#aaa', fontSize: '0.75rem', display: 'block', marginBottom: '0.3rem' }}>
+                        Description
+                      </label>
+                      <textarea
+                        value={editingBonus.legendaryPassive?.description || ''}
+                        onChange={(e) => setEditingBonus({
+                          ...editingBonus,
+                          legendaryPassive: { ...editingBonus.legendaryPassive, description: e.target.value }
+                        })}
+                        placeholder="Once per combat, if HP drops to 0, restore to 25% HP"
+                        rows={3}
+                        style={{
+                          width: '100%',
+                          padding: '0.4rem',
+                          background: 'rgba(0, 20, 40, 0.5)',
+                          border: '1px solid var(--glass-border)',
+                          borderRadius: '4px',
+                          color: '#fff',
+                          fontSize: '0.8rem',
+                          resize: 'vertical'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Actions */}
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>

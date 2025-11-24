@@ -1,24 +1,42 @@
-import { useState } from 'react';
-import { AI_CREW } from '../../lib/aiCrew';
-import { CORE_MECHANICS, getMechanicOptions } from '../../lib/coreMechanics';
-import { SaveIcon, EditIcon, DeleteIcon, AddIcon } from './HoloIcons';
+import { useState, useEffect } from 'react';
+import api from '../../lib/api/client';
+import { SaveIcon, EditIcon, DeleteIcon, AddIcon, LoadingIcon } from './HoloIcons';
 import '../../styles/AdminGlass.css';
 
 export default function AICrewManager() {
-  const [aiList, setAiList] = useState(AI_CREW);
+  const [aiList, setAiList] = useState({});
+  const [loading, setLoading] = useState(true);
   const [editingAI, setEditingAI] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
 
-  const mechanicOptions = getMechanicOptions();
+  const skillsList = ['combat', 'piloting', 'engineering', 'navigation'];
 
-  const formatAbilityJSON = (ability) => {
-    const effect = {
-      mechanic: ability.mechanic,
-      modifier: ability.modifier
-    };
-    return JSON.stringify(effect, null, 2);
+  useEffect(() => {
+    loadAICores();
+  }, []);
+
+  const loadAICores = async () => {
+    try {
+      setLoading(true);
+      const response = await api.config.get();
+      setAiList(response.config?.aiCores || {});
+    } catch (err) {
+      console.error('Failed to load AI cores:', err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const saveToBackend = async (updatedList) => {
+    try {
+      await api.config.update({ aiCores: updatedList });
+    } catch (err) {
+      console.error('Failed to save AI cores:', err);
+      alert('Failed to save AI cores: ' + err.message);
+    }
+  };
+
+
 
   const handleEdit = (aiId) => {
     setEditingAI({ ...aiList[aiId], id: aiId });
@@ -30,48 +48,45 @@ export default function AICrewManager() {
       id: '',
       name: '',
       role: '',
+      tier: 1,
       description: '',
-      slotSize: 1,
-      powerCost: 20,
-      passives: [],
-      actives: [],
-      integrity: 100
+      skillModifiers: {}
     });
     setIsCreating(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editingAI.id || !editingAI.name) {
-      alert('AI must have an ID and name');
+      alert('AI Core must have an ID and name');
       return;
     }
 
-    setAiList(prev => ({
-      ...prev,
+    const updatedList = {
+      ...aiList,
       [editingAI.id]: {
+        id: editingAI.id,
         name: editingAI.name,
         role: editingAI.role,
+        tier: editingAI.tier,
         description: editingAI.description,
-        slotSize: editingAI.slotSize,
-        powerCost: editingAI.powerCost,
-        passives: editingAI.passives,
-        actives: editingAI.actives,
-        integrity: editingAI.integrity
+        skillModifiers: editingAI.skillModifiers || {}
       }
-    }));
+    };
 
+    setAiList(updatedList);
+    await saveToBackend(updatedList);
     setEditingAI(null);
     setIsCreating(false);
   };
 
-  const handleDelete = (aiId) => {
-    if (!confirm(`Delete AI "${aiList[aiId].name}"? This cannot be undone.`)) return;
+  const handleDelete = async (aiId) => {
+    if (!confirm(`Delete AI Core "${aiList[aiId].name}"? This cannot be undone.`)) return;
     
-    setAiList(prev => {
-      const newList = { ...prev };
-      delete newList[aiId];
-      return newList;
-    });
+    const updatedList = { ...aiList };
+    delete updatedList[aiId];
+    
+    setAiList(updatedList);
+    await saveToBackend(updatedList);
   };
 
   const handleCancel = () => {
@@ -79,74 +94,44 @@ export default function AICrewManager() {
     setIsCreating(false);
   };
 
-  const updateEditingAI = (path, value) => {
-    setEditingAI(prev => {
-      const keys = path.split('.');
-      const updated = { ...prev };
-      let current = updated;
-      
-      for (let i = 0; i < keys.length - 1; i++) {
-        current[keys[i]] = { ...current[keys[i]] };
-        current = current[keys[i]];
+  const updateSkillModifier = (skill, value) => {
+    setEditingAI(prev => ({
+      ...prev,
+      skillModifiers: {
+        ...prev.skillModifiers,
+        [skill]: parseInt(value) || 0
       }
-      
-      current[keys[keys.length - 1]] = value;
-      return updated;
+    }));
+  };
+
+  const removeSkillModifier = (skill) => {
+    setEditingAI(prev => {
+      const newMods = { ...prev.skillModifiers };
+      delete newMods[skill];
+      return { ...prev, skillModifiers: newMods };
     });
   };
 
   const addAbility = (type) => {
-    const newAbility = {
-      name: '',
-      description: '',
-      mechanic: '',
-      modifier: 0
-    };
-
-    if (type === 'active') {
-      newAbility.cooldown = 3;
-      newAbility.actionType = 'action';
-    }
-
-    setEditingAI(prev => ({
-      ...prev,
-      [type === 'passive' ? 'passives' : 'actives']: [
-        ...(prev[type === 'passive' ? 'passives' : 'actives'] || []),
-        newAbility
-      ]
-    }));
-  };
-
-  const updateAbility = (type, index, field, value) => {
-    setEditingAI(prev => {
-      const abilities = [...prev[type === 'passive' ? 'passives' : 'actives']];
-      abilities[index] = { ...abilities[index], [field]: value };
-      return {
-        ...prev,
-        [type === 'passive' ? 'passives' : 'actives']: abilities
-      };
-    });
-  };
-
-  const removeAbility = (type, index) => {
-    setEditingAI(prev => {
-      const abilities = [...prev[type === 'passive' ? 'passives' : 'actives']];
-      abilities.splice(index, 1);
-      return {
-        ...prev,
-        [type === 'passive' ? 'passives' : 'actives']: abilities
-      };
-    });
   };
 
   const filteredAI = Object.entries(aiList);
+
+  if (loading) {
+    return (
+      <div style={{ padding: '4rem', textAlign: 'center' }}>
+        <LoadingIcon size={48} />
+        <p style={{ color: '#aaa', marginTop: '1rem' }}>Loading AI cores...</p>
+      </div>
+    );
+  }
 
   return (
     <div>
       {/* Action Button */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '1rem 2rem' }}>
-        <button className="btn-neon btn-neon-primary" onClick={handleCreate} style={{ fontSize: '0.85rem', padding: '0.6rem 1.2rem' }}>
-          <AddIcon size={16} /> CREATE NEW AI
+        <button className="btn-neon btn-neon-primary" onClick={handleCreate}>
+          <AddIcon size={16} /> CREATE NEW AI CORE
         </button>
       </div>
 
@@ -159,18 +144,16 @@ export default function AICrewManager() {
                 <th>ID</th>
                 <th>Name</th>
                 <th>Role</th>
-                <th>Slot Size</th>
-                <th>Power</th>
-                <th>Passives</th>
-                <th>Actives</th>
+                <th>Tier</th>
+                <th>Skill Modifiers</th>
                 <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredAI.length === 0 ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', color: '#666', padding: '3rem' }}>
-                    No AI crew found
+                  <td colSpan="6" style={{ textAlign: 'center', color: '#666', padding: '3rem' }}>
+                    No AI cores found
                   </td>
                 </tr>
               ) : (
@@ -184,13 +167,17 @@ export default function AICrewManager() {
                     </td>
                     <td style={{ color: '#aaa' }}>{ai.role}</td>
                     <td>
-                      <span className={`badge ${ai.slotSize === 2 ? 'badge-warning' : 'badge-info'}`}>
-                        {ai.slotSize} slot{ai.slotSize > 1 ? 's' : ''}
+                      <span className={`badge ${ai.tier >= 3 ? 'badge-warning' : 'badge-info'}`}>
+                        Tier {ai.tier}
                       </span>
                     </td>
-                    <td style={{ color: '#ffaa00' }}>{ai.powerCost}⚡</td>
-                    <td style={{ color: '#00ff88' }}>{ai.passives?.length || 0}</td>
-                    <td style={{ color: '#00ccff' }}>{ai.actives?.length || 0}</td>
+                    <td style={{ color: '#00ff88' }}>
+                      {Object.entries(ai.skillModifiers || {}).map(([skill, val]) => (
+                        <span key={skill} style={{ marginRight: '0.5rem' }}>
+                          {skill}: +{val}
+                        </span>
+                      ))}
+                    </td>
                     <td style={{ textAlign: 'right' }}>
                       <button
                         className="btn-icon btn-icon-edit"
@@ -218,19 +205,19 @@ export default function AICrewManager() {
       {/* Edit/Create Form */}
       {editingAI && (
         <div className="glass-card" style={{ padding: '2rem' }}>
-          <h4 style={{ color: 'var(--neon-cyan)', marginBottom: '2rem', fontSize: '1.3rem' }}>
-            {isCreating ? 'Create New AI' : `Edit: ${editingAI.name}`}
+          <h4 style={{ color: 'var(--neon-cyan)', marginBottom: '2rem' }}>
+            {isCreating ? 'Create New AI Core' : `Edit: ${editingAI.name}`}
           </h4>
 
           {/* Basic Info */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
             <div className="form-group">
-              <label>AI ID (Unique)</label>
+              <label>AI Core ID (Unique)</label>
               <input
                 type="text"
                 value={editingAI.id}
-                onChange={(e) => updateEditingAI('id', e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
-                placeholder="AI_EXAMPLE"
+                onChange={(e) => setEditingAI({...editingAI, id: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_')})}
+                placeholder="tactical_core_mk1"
                 className="input-neon"
                 disabled={!isCreating}
               />
@@ -241,57 +228,38 @@ export default function AICrewManager() {
               <input
                 type="text"
                 value={editingAI.name}
-                onChange={(e) => updateEditingAI('name', e.target.value)}
-                placeholder="Example AI"
+                onChange={(e) => setEditingAI({...editingAI, name: e.target.value})}
+                placeholder="Tactical Core Mk1"
                 className="input-neon"
               />
             </div>
 
             <div className="form-group">
               <label>Role</label>
-              <input
-                type="text"
-                value={editingAI.role}
-                onChange={(e) => updateEditingAI('role', e.target.value)}
-                placeholder="Tactical Systems"
-                className="input-neon"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Slot Size</label>
               <select
-                value={editingAI.slotSize}
-                onChange={(e) => updateEditingAI('slotSize', parseInt(e.target.value))}
+                value={editingAI.role}
+                onChange={(e) => setEditingAI({...editingAI, role: e.target.value})}
                 className="input-neon"
               >
-                <option value={1}>1 Slot (Normal)</option>
-                <option value={2}>2 Slots (Powerful)</option>
+                <option value="">Select Role...</option>
+                <option value="combat">Combat</option>
+                <option value="navigation">Navigation</option>
+                <option value="engineering">Engineering</option>
+                <option value="general">General</option>
               </select>
             </div>
 
             <div className="form-group">
-              <label>Power Cost per Turn</label>
-              <input
-                type="number"
-                value={editingAI.powerCost}
-                onChange={(e) => updateEditingAI('powerCost', parseInt(e.target.value))}
-                min="10"
-                max="50"
+              <label>Tier</label>
+              <select
+                value={editingAI.tier}
+                onChange={(e) => setEditingAI({...editingAI, tier: parseInt(e.target.value)})}
                 className="input-neon"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Integrity (Health)</label>
-              <input
-                type="number"
-                value={editingAI.integrity}
-                onChange={(e) => updateEditingAI('integrity', parseInt(e.target.value))}
-                min="1"
-                max="200"
-                className="input-neon"
-              />
+              >
+                <option value={1}>Tier 1 (Basic)</option>
+                <option value={2}>Tier 2 (Advanced)</option>
+                <option value={3}>Tier 3 (Elite)</option>
+              </select>
             </div>
           </div>
 
@@ -299,175 +267,49 @@ export default function AICrewManager() {
             <label>Description</label>
             <textarea
               value={editingAI.description}
-              onChange={(e) => updateEditingAI('description', e.target.value)}
-              placeholder="AI description and lore..."
+              onChange={(e) => setEditingAI({...editingAI, description: e.target.value})}
+              placeholder="AI core description..."
               className="input-neon"
               rows={3}
             />
           </div>
 
           {/* Passive Abilities */}
-          <h5 style={{ color: 'var(--neon-cyan)', marginBottom: '1rem', fontSize: '1.1rem' }}>
-            Passive Abilities (Always Active)
+          <h5 style={{ color: 'var(--neon-cyan)', marginBottom: '1rem' }}>
+            Skill Modifiers
           </h5>
-          {editingAI.passives?.map((passive, idx) => (
-            <div key={idx} className="glass-card" style={{ padding: '1rem', marginBottom: '1rem', background: 'rgba(0, 255, 136, 0.05)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                <input
-                  type="text"
-                  value={passive.name}
-                  onChange={(e) => updateAbility('passive', idx, 'name', e.target.value)}
-                  placeholder="Passive Name"
-                  className="input-neon"
-                  style={{ flex: '1' }}
-                />
-                <button
-                  className="btn-icon btn-icon-delete"
-                  onClick={() => removeAbility('passive', idx)}
-                >
-                  <DeleteIcon size={16} />
-                </button>
-              </div>
-              <textarea
-                value={passive.description}
-                onChange={(e) => updateAbility('passive', idx, 'description', e.target.value)}
-                placeholder="Description of passive effect..."
-                className="input-neon"
-                rows={2}
-                style={{ marginBottom: '0.75rem' }}
-              />
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
-                <div className="form-group">
-                  <label>Mechanic</label>
-                  <select
-                    value={passive.mechanic || ''}
-                    onChange={(e) => updateAbility('passive', idx, 'mechanic', e.target.value)}
-                    className="input-neon"
-                  >
-                    <option value="">Select Mechanic...</option>
-                    {mechanicOptions.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Modifier</label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
+            {skillsList.map(skill => (
+              <div key={skill} className="glass-card" style={{ padding: '1rem', background: 'rgba(0, 255, 136, 0.05)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <label style={{ flex: 1, textTransform: 'capitalize', color: '#0ff' }}>{skill}</label>
                   <input
                     type="number"
-                    value={passive.modifier || 0}
-                    onChange={(e) => updateAbility('passive', idx, 'modifier', parseFloat(e.target.value) || 0)}
+                    value={editingAI.skillModifiers?.[skill] || 0}
+                    onChange={(e) => updateSkillModifier(skill, e.target.value)}
                     className="input-neon"
-                    step="0.1"
-                  />
-                </div>
-              </div>
-              {passive.mechanic && (
-                <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(0, 255, 255, 0.05)', borderRadius: '4px', fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--neon-cyan)' }}>
-                  {formatAbilityJSON(passive)}
-                </div>
-              )}
-            </div>
-          ))}
-          <button
-            className="btn-neon btn-neon-success"
-            onClick={() => addAbility('passive')}
-            style={{ marginBottom: '2rem' }}
-          >
-            <AddIcon size={16} /> Add Passive
-          </button>
-
-          {/* Active Abilities */}
-          <h5 style={{ color: 'var(--neon-cyan)', marginBottom: '1rem', fontSize: '1.1rem' }}>
-            Active Abilities (Cooldown-Based)
-          </h5>
-          {editingAI.actives?.map((active, idx) => (
-            <div key={idx} className="glass-card" style={{ padding: '1rem', marginBottom: '1rem', background: 'rgba(0, 204, 255, 0.05)' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr auto', gap: '1rem', marginBottom: '0.5rem' }}>
-                <input
-                  type="text"
-                  value={active.name}
-                  onChange={(e) => updateAbility('active', idx, 'name', e.target.value)}
-                  placeholder="Ability Name"
-                  className="input-neon"
-                />
-                <select
-                  value={active.actionType || 'action'}
-                  onChange={(e) => updateAbility('active', idx, 'actionType', e.target.value)}
-                  className="input-neon"
-                >
-                  <option value="action">Action</option>
-                  <option value="bonus">Bonus Action</option>
-                  <option value="instant">Instant</option>
-                  <option value="reaction">Reaction</option>
-                </select>
-                <button
-                  className="btn-icon btn-icon-delete"
-                  onClick={() => removeAbility('active', idx)}
-                >
-                  <DeleteIcon size={16} />
-                </button>
-              </div>
-              <textarea
-                value={active.description}
-                onChange={(e) => updateAbility('active', idx, 'description', e.target.value)}
-                placeholder="Description of ability effect..."
-                className="input-neon"
-                rows={2}
-                style={{ marginBottom: '0.75rem' }}
-              />
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem' }}>
-                <div className="form-group">
-                  <label>Mechanic</label>
-                  <select
-                    value={active.mechanic || ''}
-                    onChange={(e) => updateAbility('active', idx, 'mechanic', e.target.value)}
-                    className="input-neon"
-                  >
-                    <option value="">Select Mechanic...</option>
-                    {mechanicOptions.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Modifier</label>
-                  <input
-                    type="number"
-                    value={active.modifier || 0}
-                    onChange={(e) => updateAbility('active', idx, 'modifier', parseFloat(e.target.value) || 0)}
-                    className="input-neon"
-                    step="0.1"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Cooldown</label>
-                  <input
-                    type="number"
-                    value={active.cooldown || 0}
-                    onChange={(e) => updateAbility('active', idx, 'cooldown', parseInt(e.target.value) || 0)}
-                    className="input-neon"
+                    style={{ width: '80px' }}
                     min="0"
+                    max="10"
                   />
+                  {editingAI.skillModifiers?.[skill] > 0 && (
+                    <button
+                      className="btn-icon btn-icon-delete"
+                      onClick={() => removeSkillModifier(skill)}
+                      title="Remove"
+                    >
+                      <DeleteIcon size={14} />
+                    </button>
+                  )}
                 </div>
               </div>
-              {active.mechanic && (
-                <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(0, 255, 255, 0.05)', borderRadius: '4px', fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--neon-cyan)' }}>
-                  {formatAbilityJSON(active)}
-                </div>
-              )}
-            </div>
-          ))}
-          <button
-            className="btn-neon btn-neon-success"
-            onClick={() => addAbility('active')}
-          >
-            <AddIcon size={16} /> Add Active
-          </button>
+            ))}
+          </div>
 
           {/* Actions */}
           <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid rgba(0, 204, 255, 0.2)' }}>
             <button className="btn-neon btn-neon-primary" onClick={handleSave}>
-              <SaveIcon size={18} /> {isCreating ? 'CREATE AI' : 'SAVE CHANGES'}
+              <SaveIcon size={18} /> {isCreating ? 'CREATE AI CORE' : 'SAVE CHANGES'}
             </button>
             <button className="btn-neon" onClick={handleCancel}>
               CANCEL

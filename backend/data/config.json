@@ -1226,7 +1226,170 @@
     }
   },
   "_metadata": {
-    "lastModified": "2025-11-24T07:14:40.555Z",
+    "lastModified": "2025-11-24T13:51:11.735Z",
     "modifiedBy": "admin"
-  }
+  },
+  "aiCores": {
+    "tactical_core_mk1": {
+      "id": "tactical_core_mk1",
+      "name": "Tactical Core Mk1",
+      "role": "combat",
+      "tier": 1,
+      "description": "Basic combat AI specializing in weapon targeting and tactical positioning.",
+      "skillModifiers": {
+        "combat": 2,
+        "piloting": 1
+      }
+    },
+    "tactical_core_mk2": {
+      "id": "tactical_core_mk2",
+      "name": "Tactical Core Mk2",
+      "role": "combat",
+      "tier": 2,
+      "description": "Advanced combat AI with improved threat assessment and multi-target tracking.",
+      "skillModifiers": {
+        "combat": 4,
+        "piloting": 2,
+        "engineering": 1
+      }
+    },
+    "navigation_core_mk1": {
+      "id": "navigation_core_mk1",
+      "name": "Navigation Core Mk1",
+      "role": "navigation",
+      "tier": 1,
+      "description": "Specialized navigation AI for route optimization and hazard avoidance.",
+      "skillModifiers": {
+        "navigation": 3,
+        "piloting": 1
+      }
+    },
+    "navigation_core_mk2": {
+      "id": "navigation_core_mk2",
+      "name": "Navigation Core Mk2",
+      "role": "navigation",
+      "tier": 2,
+      "description": "Elite navigation AI with predictive course plotting and FTL optimization.",
+      "skillModifiers": {
+        "navigation": 5,
+        "piloting": 2
+      }
+    },
+    "engineering_core_mk1": {
+      "id": "engineering_core_mk1",
+      "name": "Engineering Core Mk1",
+      "role": "engineering",
+      "tier": 1,
+      "description": "Engineering AI focused on system maintenance and damage control.",
+      "skillModifiers": {
+        "engineering": 3,
+        "combat": 1
+      }
+    },
+    "engineering_core_mk2": {
+      "id": "engineering_core_mk2",
+      "name": "Engineering Core Mk2",
+      "role": "engineering",
+      "tier": 2,
+      "description": "Advanced engineering AI with real-time system optimization and emergency repairs.",
+      "skillModifiers": {
+        "engineering": 5,
+        "combat": 1,
+        "navigation": 1
+      }
+    },
+    "tactical_elite": {
+      "id": "tactical_elite",
+      "name": "Tactical Elite Core",
+      "role": "combat",
+      "tier": 3,
+      "description": "Military-grade combat AI with autonomous weapon systems and predictive targeting.",
+      "skillModifiers": {
+        "combat": 6,
+        "piloting": 3,
+        "engineering": 2
+      }
+    },
+    "omni_core_alpha": {
+      "id": "omni_core_alpha",
+      "name": "Omni-Core Alpha",
+      "role": "general",
+      "tier": 3,
+      "description": "Rare general-purpose AI capable of managing all ship systems simultaneously.",
+      "skillModifiers": {
+        "combat": 3,
+        "piloting": 3,
+        "engineering": 3,
+        "navigation": 3
+      }
+    }
+  },
+  "shipTierBonuses": [
+    {
+      "id": "ship_bonus_1763984365746",
+      "name": "Ceramic Hull Coating",
+      "type": "standard",
+      "tier": 2,
+      "description": "A new composite of ceramic and carbon-fibre filament pressure coated in Nano Granite UV Resin.",
+      "effects": {
+        "hull": 5,
+        "shields": 0,
+        "power": 0,
+        "cargo": 0,
+        "speed": 1,
+        "agility": -1,
+        "accuracy": 0,
+        "evasion": 0,
+        "range": 0,
+        "damage": 0
+      },
+      "tags": []
+    }
+  ],
+  "ships": [
+    {
+      "id": "ship_1763992197382",
+      "name": "Fighter",
+      "class": "fighter",
+      "tier": 1,
+      "manufacturer": "EmberCore",
+      "faction": null,
+      "description": "Basic Core Figher",
+      "playerLevelRequired": 1,
+      "baseStats": {
+        "hull": 100,
+        "shields": 50,
+        "power": 100,
+        "cargo": 50,
+        "speed": 5,
+        "agility": 5
+      },
+      "fuelCapacity": {
+        "min": 50,
+        "max": 100
+      },
+      "engine": "engine_fighter_t1",
+      "weaponSlots": {
+        "slot_1": "pulse_laser_mk1",
+        "slot_2": null
+      },
+      "subsystemSlots": {
+        "slot_1": "shield_generator_mk1",
+        "slot_2": null
+      },
+      "aiCores": {
+        "slot_1": null,
+        "slot_2": null
+      },
+      "aiCoreSlots": 2,
+      "tierBonuses": [],
+      "cost": 10000,
+      "unlockRequirements": {
+        "credits": 10000,
+        "reputation": 0,
+        "tier": 1
+      },
+      "enabled": true
+    }
+  ]
 }

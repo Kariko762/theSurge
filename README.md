@@ -990,6 +990,9 @@ All tests passing ✅
 - Test loot drops in LootSimulator
 - Adjust global config in ConfigEditor
 - Import/export events between files
+- Manage AI cores (8 cores: Tactical, Navigation, Engineering, Omni)
+- Configure ship tier bonuses (Standard/Advanced/Legendary)
+- Build simulator for ship testing with AI assignments
 
 **Game Systems:**
 - Galaxy navigation: Browse Helix Nebula, scan systems
@@ -1282,17 +1285,17 @@ await api.config.update(newConfig);
 ### 📊 Current Sprint Focus
 
 **Week of Nov 24, 2025:**
+- ✅ AI Cores system (backend config-based, 8 cores with skill modifiers)
+- ✅ Ship Tier Bonus system (3-tier: Standard/Advanced/Legendary)
+- ✅ Build Simulator transformation (ship selection, multi-AI assignment, 3-panel testing)
 - ✅ Loot system backend complete (dual-mode pools)
 - ✅ Loot pool editor with visual mode toggle
 - ✅ Item database editor with tag management
 - ✅ Loot simulator with 3-panel testing
-- 🔄 **IN PROGRESS:** End-to-end loot testing in simulator
-- 🔄 **IN PROGRESS:** Event → Loot integration
 
 **Next Week Goals:**
 - [ ] Wire event system to game UI
 - [ ] Test full event → outcome → loot flow
-- [ ] Git commit: Admin Portal + Loot System
 - [ ] Begin save/load system implementation
 
 ---
@@ -1491,6 +1494,9 @@ This is currently a solo development project. Feature requests and bug reports c
 
 **✅ Ready to Use:**
 - Admin Portal with event creation
+- AI Cores management (8 cores with skill modifiers)
+- Ship Tier Bonus system (Standard/Advanced/Legendary)
+- Build Simulator (ship selection + multi-AI + 3-panel testing)
 - Loot pool system (manual + tag-based)
 - Galaxy navigation (21 systems)
 - Inventory & hangar management
