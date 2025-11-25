@@ -321,30 +321,69 @@ export default function ShipsManager() {
         <ShipTiersManager />
       ) : (
         <>
-      {/* Header Actions */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ color: 'var(--neon-cyan)', margin: 0, fontSize: '1.3rem' }}>Ship Builder</h2>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+      {/* Messages */}
+      {successMessage && (
+        <div className="theme-success" style={{ marginBottom: '1rem' }}>
+          {successMessage}
+        </div>
+      )}
+
+      {error && (
+        <div className="theme-error" style={{ marginBottom: '1rem' }}>
+          {error}
+        </div>
+      )}
+
+      {/* Filters & Actions */}
+      <div className="theme-container" style={{ padding: '0.75rem 1rem', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div style={{ flex: 1 }}>
+            <input
+              type="text"
+              placeholder="Search ships..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="theme-input"
+              style={{ fontSize: '0.85rem', padding: '0.5rem' }}
+            />
+          </div>
+          <div>
+            <select
+              value={filterClass}
+              onChange={(e) => setFilterClass(e.target.value)}
+              className="theme-input"
+              style={{ fontSize: '0.85rem', padding: '0.5rem' }}
+            >
+              <option value="all">All Classes</option>
+              <option value="fighter">Fighter</option>
+              <option value="corvette">Corvette</option>
+              <option value="frigate">Frigate</option>
+              <option value="destroyer">Destroyer</option>
+              <option value="cruiser">Cruiser</option>
+              <option value="battleship">Battleship</option>
+              <option value="carrier">Carrier</option>
+              <option value="freighter">Freighter</option>
+            </select>
+          </div>
+          <div style={{ color: '#aaa', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+            {filteredShips.length} ship{filteredShips.length !== 1 ? 's' : ''}
+          </div>
           <div style={{ position: 'relative' }}>
-            <button onClick={() => setShowClassPicker(!showClassPicker)} className="glass-button" style={{
-              padding: '0.6rem 1.2rem',
-              background: 'rgba(0, 255, 255, 0.1)',
-              border: '2px solid var(--neon-cyan)',
-              borderRadius: '6px',
-              color: 'var(--neon-cyan)',
+            <button onClick={() => setShowClassPicker(!showClassPicker)} className="theme-button" style={{
+              padding: '0.5rem 1rem',
+              fontSize: '0.85rem',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              fontSize: '0.85rem'
+              gap: '0.5rem'
             }}>
-              <AddIcon size={16} />
+              <AddIcon size={14} />
               New Ship
             </button>
             {showClassPicker && (
               <div className="glass-card" style={{
                 position: 'absolute',
                 top: '100%',
-                left: 0,
+                right: 0,
                 marginTop: '0.5rem',
                 padding: '0.35rem',
                 minWidth: '240px',
@@ -385,225 +424,106 @@ export default function ShipsManager() {
               </div>
             )}
           </div>
-          <button onClick={handleSave} disabled={saving} className="glass-button" style={{
-            padding: '0.6rem 1.2rem',
-            background: 'rgba(0, 255, 136, 0.1)',
-            border: '2px solid #0f8',
-            borderRadius: '6px',
-            color: '#0f8',
+          <button onClick={handleSave} disabled={saving} className="theme-button" style={{
+            padding: '0.5rem 1rem',
+            fontSize: '0.85rem',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
-            fontSize: '0.85rem'
+            gap: '0.5rem'
           }}>
-            <SaveIcon size={16} />
+            <SaveIcon size={14} />
             {saving ? 'Saving...' : 'Save All'}
           </button>
         </div>
       </div>
 
-      {/* Messages */}
-      {successMessage && (
-        <div className="glass-card" style={{
-          padding: '0.75rem',
-          marginBottom: '1rem',
-          background: 'rgba(0, 255, 136, 0.1)',
-          borderColor: '#0f8',
-          color: '#0f8',
-          fontSize: '0.85rem'
-        }}>
-          {successMessage}
-        </div>
-      )}
-
-      {error && (
-        <div className="glass-card" style={{
-          padding: '0.75rem',
-          marginBottom: '1rem',
-          background: 'rgba(255, 100, 100, 0.1)',
-          borderColor: '#f66',
-          color: '#f66',
-          fontSize: '0.85rem'
-        }}>
-          {error}
-        </div>
-      )}
-
-      {/* Filters */}
-      <div className="glass-card" style={{ padding: '1rem', marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <div style={{ flex: 1 }}>
-            <input
-              type="text"
-              placeholder="Search ships..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                background: 'rgba(0, 20, 40, 0.5)',
-                border: '1px solid var(--glass-border)',
-                borderRadius: '4px',
-                color: '#fff',
-                fontSize: '0.85rem'
-              }}
-            />
-          </div>
-          <div>
-            <select
-              value={filterClass}
-              onChange={(e) => setFilterClass(e.target.value)}
-              style={{
-                padding: '0.5rem',
-                background: 'rgba(0, 20, 40, 0.5)',
-                border: '1px solid var(--glass-border)',
-                borderRadius: '4px',
-                color: '#fff',
-                fontSize: '0.85rem'
-              }}
-            >
-              <option value="all">All Classes</option>
-              <option value="fighter">Fighter</option>
-              <option value="corvette">Corvette</option>
-              <option value="frigate">Frigate</option>
-              <option value="destroyer">Destroyer</option>
-              <option value="cruiser">Cruiser</option>
-              <option value="battleship">Battleship</option>
-              <option value="carrier">Carrier</option>
-              <option value="freighter">Freighter</option>
-            </select>
-          </div>
-          <div style={{ color: '#aaa', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
-            {filteredShips.length} ship{filteredShips.length !== 1 ? 's' : ''}
-          </div>
-        </div>
+      {/* Ships Table */}
+      <div style={{
+        background: 'linear-gradient(var(--theme-gradient-angle), var(--theme-gradient-start), var(--theme-gradient-end))',
+        border: '1px solid rgba(0, 255, 255, 0.15)',
+        borderRadius: '8px',
+        overflow: 'hidden',
+        padding: '1rem'
+      }}>
+        <table className="theme-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Class</th>
+              <th>Tier</th>
+              <th>Manufacturer</th>
+              <th>Hull</th>
+              <th>Shields</th>
+              <th>Power</th>
+              <th>Cargo</th>
+              <th>Weapons</th>
+              <th>Subsystems</th>
+              <th>Cost</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          {filteredShips.map(ship => (
+            <tr key={ship.id}>
+              <td>{ship.name}</td>
+              <td><span className="theme-badge">{ship.class}</span></td>
+              <td><span className="theme-tag">T{ship.tier}</span></td>
+              <td>{ship.manufacturer}</td>
+              <td>{ship.baseStats.hull}</td>
+              <td>{ship.baseStats.shields}</td>
+              <td>{ship.baseStats.power}</td>
+              <td>{ship.baseStats.cargo}</td>
+              <td>{Object.keys(ship.weaponSlots || {}).length}</td>
+              <td>{Object.keys(ship.subsystemSlots || {}).length}</td>
+              <td>{ship.cost?.toLocaleString()} cr</td>
+              <td>
+                {ship.enabled ? (
+                  <span className="theme-badge">ENABLED</span>
+                ) : (
+                  <span className="theme-badge" style={{
+                    background: 'rgba(100, 100, 100, 0.1)',
+                    borderColor: '#666',
+                    color: '#666'
+                  }}>DISABLED</span>
+                )}
+              </td>
+              <td>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    onClick={() => setEditingShip({ ...ship })}
+                    className="theme-button"
+                    style={{ padding: '0.4rem 0.6rem' }}
+                  >
+                    <EditIcon size={14} />
+                  </button>
+                  <button
+                    onClick={() => deleteShip(ship.id)}
+                    className="theme-button"
+                    style={{ 
+                      padding: '0.4rem 0.6rem',
+                      background: 'rgba(255, 100, 100, 0.1)',
+                      borderColor: '#f66',
+                      color: '#f66'
+                    }}
+                  >
+                    <DeleteIcon size={14} />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
       </div>
 
-      {/* Ships List */}
-      <div style={{ display: 'grid', gap: '1rem' }}>
-        {filteredShips.map(ship => (
-          <div key={ship.id} className="glass-card" style={{ padding: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                  <h3 style={{ color: '#fff', margin: 0, fontSize: '1.1rem' }}>{ship.name}</h3>
-                  <span style={{
-                    padding: '0.2rem 0.6rem',
-                    background: 'rgba(0, 255, 255, 0.1)',
-                    border: '1px solid var(--neon-cyan)',
-                    borderRadius: '3px',
-                    color: 'var(--neon-cyan)',
-                    fontSize: '0.7rem',
-                    textTransform: 'uppercase'
-                  }}>
-                    {ship.class}
-                  </span>
-                  <span style={{
-                    padding: '0.2rem 0.6rem',
-                    background: 'rgba(255, 170, 0, 0.1)',
-                    border: '1px solid #fa0',
-                    borderRadius: '3px',
-                    color: '#fa0',
-                    fontSize: '0.7rem'
-                  }}>
-                    T{ship.tier}
-                  </span>
-                  {!ship.enabled && (
-                    <span style={{
-                      padding: '0.2rem 0.6rem',
-                      background: 'rgba(100, 100, 100, 0.1)',
-                      border: '1px solid #666',
-                      borderRadius: '3px',
-                      color: '#666',
-                      fontSize: '0.7rem'
-                    }}>
-                      DISABLED
-                    </span>
-                  )}
-                </div>
-                
-                <div style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
-                  {ship.manufacturer} • {ship.description || 'No description'}
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', fontSize: '0.75rem' }}>
-                  <div>
-                    <div style={{ color: '#888' }}>Hull</div>
-                    <div style={{ color: '#fff' }}>{ship.baseStats.hull}</div>
-                  </div>
-                  <div>
-                    <div style={{ color: '#888' }}>Shields</div>
-                    <div style={{ color: '#0ff' }}>{ship.baseStats.shields}</div>
-                  </div>
-                  <div>
-                    <div style={{ color: '#888' }}>Power</div>
-                    <div style={{ color: '#fa0' }}>{ship.baseStats.power}</div>
-                  </div>
-                  <div>
-                    <div style={{ color: '#888' }}>Cargo</div>
-                    <div style={{ color: '#fff' }}>{ship.baseStats.cargo}</div>
-                  </div>
-                  <div>
-                    <div style={{ color: '#888' }}>Crew</div>
-                    <div style={{ color: '#fff' }}>{ship.baseStats.crew}</div>
-                  </div>
-                  <div>
-                    <div style={{ color: '#888' }}>Weapons</div>
-                    <div style={{ color: '#f55' }}>{Object.keys(ship.weaponSlots || {}).length}</div>
-                  </div>
-                  <div>
-                    <div style={{ color: '#888' }}>Subsystems</div>
-                    <div style={{ color: '#0f8' }}>{Object.keys(ship.subsystemSlots || {}).length}</div>
-                  </div>
-                  <div>
-                    <div style={{ color: '#888' }}>Cost</div>
-                    <div style={{ color: '#fa0' }}>{ship.cost?.toLocaleString()} cr</div>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
-                  onClick={() => setEditingShip({ ...ship })}
-                  className="glass-button"
-                  style={{
-                    padding: '0.5rem',
-                    background: 'rgba(0, 255, 255, 0.1)',
-                    border: '1px solid var(--neon-cyan)',
-                    borderRadius: '4px',
-                    color: 'var(--neon-cyan)',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <EditIcon size={16} />
-                </button>
-                <button
-                  onClick={() => deleteShip(ship.id)}
-                  className="glass-button"
-                  style={{
-                    padding: '0.5rem',
-                    background: 'rgba(255, 100, 100, 0.1)',
-                    border: '1px solid #f66',
-                    borderRadius: '4px',
-                    color: '#f66',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <DeleteIcon size={16} />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {filteredShips.length === 0 && (
-          <div className="glass-card" style={{ padding: '3rem', textAlign: 'center' }}>
-            <p style={{ color: '#666', fontSize: '0.9rem' }}>
-              {searchTerm || filterClass !== 'all' ? 'No ships match your filters' : 'No ships configured'}
-            </p>
-          </div>
-        )}
-      </div>
+      {filteredShips.length === 0 && (
+        <div className="glass-card" style={{ padding: '3rem', textAlign: 'center' }}>
+          <p style={{ color: '#666', fontSize: '0.9rem' }}>
+            {searchTerm || filterClass !== 'all' ? 'No ships match your filters' : 'No ships configured'}
+          </p>
+        </div>
+      )}
 
       {/* Edit Modal */}
       {editingShip && (
@@ -613,81 +533,64 @@ export default function ShipsManager() {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(0, 0, 0, 0.8)',
+          background: 'rgba(0, 0, 0, 0.95)',
+          backgroundImage: `
+            linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px)
+          `,
+          backgroundSize: '20px 20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 1000,
           padding: '2rem'
         }}>
-          <div className="glass-card" style={{
+          <div className="theme-card" style={{
             maxWidth: '1200px',
             width: '100%',
             maxHeight: '90vh',
             overflow: 'auto',
-            padding: '2rem'
+            padding: '1rem'
           }}>
-            <h2 style={{ color: 'var(--neon-cyan)', marginBottom: '1.5rem' }}>
+            <h2 className="theme-subtitle" style={{ marginBottom: '1rem' }}>
               {ships.find(s => s.id === editingShip.id) ? 'Edit Ship' : 'Create New Ship'}
             </h2>
 
             {/* Two-Column Layout */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               {/* LEFT COLUMN */}
               <div style={{ display: 'grid', gap: '1.5rem' }}>
                 {/* Basic Info */}
-                <div className="glass-card" style={{ padding: '1rem', background: 'rgba(0, 20, 40, 0.3)' }}>
-                  <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>Basic Information</h3>
+                <div className="theme-container" style={{ padding: '1rem' }}>
+                  <h3 className="theme-subtitle" style={{ marginBottom: '1rem' }}>Basic Information</h3>
                   <div style={{ display: 'grid', gap: '1rem' }}>
                     <div>
-                      <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Name</label>
+                      <label className="theme-body" style={{ display: 'block', marginBottom: '0.5rem' }}>Name</label>
                       <input
                         type="text"
                         value={editingShip.name}
                         onChange={(e) => setEditingShip({ ...editingShip, name: e.target.value })}
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem',
-                          background: 'rgba(0, 20, 40, 0.5)',
-                          border: '1px solid var(--glass-border)',
-                          borderRadius: '4px',
-                          color: '#fff'
-                        }}
+                        className="theme-input"
                       />
                     </div>
 
                     <div>
-                      <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Manufacturer</label>
+                      <label className="theme-body" style={{ display: 'block', marginBottom: '0.5rem' }}>Manufacturer</label>
                       <input
                         type="text"
                         value={editingShip.manufacturer}
                         onChange={(e) => setEditingShip({ ...editingShip, manufacturer: e.target.value })}
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem',
-                          background: 'rgba(0, 20, 40, 0.5)',
-                          border: '1px solid var(--glass-border)',
-                          borderRadius: '4px',
-                          color: '#fff'
-                        }}
+                        className="theme-input"
                       />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                       <div>
-                        <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Class</label>
+                        <label className="theme-body" style={{ display: 'block', marginBottom: '0.5rem' }}>Class</label>
                         <select
                           value={editingShip.class}
                           onChange={(e) => handleClassChange(e.target.value)}
-                          style={{
-                            width: '100%',
-                            padding: '0.5rem',
-                            background: 'rgba(0, 20, 40, 0.5)',
-                            border: '1px solid var(--glass-border)',
-                            borderRadius: '4px',
-                            color: '#fff',
-                            fontSize: '0.85rem'
-                          }}
+                          className="theme-input"
                         >
                           {Object.entries(SHIP_CLASSES).map(([key, cfg]) => (
                             <option key={key} value={key}>
@@ -698,95 +601,59 @@ export default function ShipsManager() {
                       </div>
 
                       <div>
-                        <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Tier</label>
+                        <label className="theme-body" style={{ display: 'block', marginBottom: '0.5rem' }}>Tier</label>
                         <input
                           type="number"
                           min="1"
                           max="5"
                           value={editingShip.tier}
                           onChange={(e) => setEditingShip({ ...editingShip, tier: parseInt(e.target.value) })}
-                          style={{
-                            width: '100%',
-                            padding: '0.5rem',
-                            background: 'rgba(0, 20, 40, 0.5)',
-                            border: '1px solid var(--glass-border)',
-                            borderRadius: '4px',
-                            color: '#fff'
-                          }}
+                          className="theme-input"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Description</label>
+                      <label className="theme-body" style={{ display: 'block', marginBottom: '0.5rem' }}>Description</label>
                       <textarea
                         value={editingShip.description}
                         onChange={(e) => setEditingShip({ ...editingShip, description: e.target.value })}
                         rows={2}
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem',
-                          background: 'rgba(0, 20, 40, 0.5)',
-                          border: '1px solid var(--glass-border)',
-                          borderRadius: '4px',
-                          color: '#fff',
-                          resize: 'vertical'
-                        }}
+                        className="theme-input"
+                        style={{ resize: 'vertical' }}
                       />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                       <div>
-                        <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Level Req.</label>
+                        <label className="theme-body" style={{ display: 'block', marginBottom: '0.5rem' }}>Level Req.</label>
                         <input
                           type="number"
                           min="1"
                           max="50"
                           value={editingShip.playerLevelRequired || 1}
                           onChange={(e) => setEditingShip({ ...editingShip, playerLevelRequired: parseInt(e.target.value) })}
-                          style={{
-                            width: '100%',
-                            padding: '0.5rem',
-                            background: 'rgba(0, 20, 40, 0.5)',
-                            border: '1px solid var(--glass-border)',
-                            borderRadius: '4px',
-                            color: '#fff'
-                          }}
+                          className="theme-input"
                         />
                       </div>
 
                       <div>
-                        <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Cost</label>
+                        <label className="theme-body" style={{ display: 'block', marginBottom: '0.5rem' }}>Cost</label>
                         <input
                           type="number"
                           value={editingShip.cost}
                           onChange={(e) => setEditingShip({ ...editingShip, cost: parseInt(e.target.value) })}
-                          style={{
-                            width: '100%',
-                            padding: '0.5rem',
-                            background: 'rgba(0, 20, 40, 0.5)',
-                            border: '1px solid var(--glass-border)',
-                            borderRadius: '4px',
-                            color: '#fff'
-                          }}
+                          className="theme-input"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Faction</label>
+                      <label className="theme-body" style={{ display: 'block', marginBottom: '0.5rem' }}>Faction</label>
                       <select
                         value={editingShip.faction || ''}
                         onChange={(e) => setEditingShip({ ...editingShip, faction: e.target.value || null })}
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem',
-                          background: 'rgba(0, 20, 40, 0.5)',
-                          border: '1px solid var(--glass-border)',
-                          borderRadius: '4px',
-                          color: '#fff',
-                          fontSize: '0.85rem'
-                        }}
+                        className="theme-input"
                       >
                         <option value="">-- No Faction --</option>
                         {factions.map(faction => (
@@ -809,8 +676,8 @@ export default function ShipsManager() {
                 </div>
 
                 {/* Base Stats */}
-                <div className="glass-card" style={{ padding: '1rem', background: 'rgba(0, 20, 40, 0.3)' }}>
-                  <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>Base Stats</h3>
+                <div className="theme-container" style={{ padding: '1rem' }}>
+                  <h3 className="theme-subtitle" style={{ marginBottom: '1rem' }}>Base Stats</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                     {Object.entries(editingShip.baseStats || {}).filter(([stat]) => stat !== 'crew').map(([stat, value]) => (
                       <div key={stat}>
@@ -840,9 +707,9 @@ export default function ShipsManager() {
                 </div>
 
                 {/* AI Cores - Dynamic */}
-                <div className="glass-card" style={{ padding: '1rem', background: 'rgba(0, 20, 40, 0.3)' }}>
+                <div className="theme-container" style={{ padding: '1rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h3 style={{ color: '#c0f', margin: 0, fontSize: '1rem' }}>🤖 AI Cores ({editingShip.aiCoreSlots || 2})</h3>
+                    <h3 className="theme-subtitle" style={{ margin: 0 }}>🤖 AI Cores ({editingShip.aiCoreSlots || 2})</h3>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <button
                         onClick={() => adjustAICoreSlots(-1)}
@@ -916,8 +783,8 @@ export default function ShipsManager() {
                 </div>
 
                 {/* Tier Bonuses */}
-                <div className="glass-card" style={{ padding: '1rem', background: 'rgba(0, 20, 40, 0.3)' }}>
-                  <h3 style={{ color: '#fa0', marginBottom: '0.5rem', fontSize: '1rem' }}>⭐ Tier Bonuses</h3>
+                <div className="theme-container" style={{ padding: '1rem' }}>
+                  <h3 className="theme-subtitle" style={{ marginBottom: '0.5rem' }}>⭐ Tier Bonuses</h3>
                   {(() => {
                     const allocation = getTierBonusAllocation(editingShip.tier);
                     const selectedBonuses = editingShip.tierBonuses || [];
@@ -928,89 +795,110 @@ export default function ShipsManager() {
                       shipTierBonuses.find(b => b.id === id && b.type === 'advanced')
                     );
 
+                    const allAvailableBonuses = shipTierBonuses.filter(b => b.tier <= editingShip.tier);
+
                     return (
-                      <div style={{ display: 'grid', gap: '1rem' }}>
+                      <div style={{ display: 'grid', gap: '0.75rem' }}>
                         <div style={{ fontSize: '0.75rem', color: '#888' }}>
                           Tier {editingShip.tier}: {allocation.standard} Standard + {allocation.advanced} Advanced
+                          <span style={{ marginLeft: '0.5rem', color: '#0cf' }}>
+                            ({selectedStandard.length}/{allocation.standard} Standard, {selectedAdvanced.length}/{allocation.advanced} Advanced)
+                          </span>
                         </div>
 
-                        {allocation.standard > 0 && (
-                          <div>
-                            <label style={{ color: '#aaa', fontSize: '0.75rem', display: 'block', marginBottom: '0.5rem' }}>
-                              Standard Bonuses ({selectedStandard.length}/{allocation.standard})
-                            </label>
-                            {shipTierBonuses.filter(b => b.type === 'standard' && b.tier <= editingShip.tier).length > 0 ? (
-                              <div style={{ display: 'grid', gap: '0.35rem' }}>
-                                {shipTierBonuses.filter(b => b.type === 'standard' && b.tier <= editingShip.tier).map(bonus => {
-                                  const isSelected = selectedBonuses.includes(bonus.id);
-                                  const canSelect = !isSelected && selectedStandard.length < allocation.standard;
-                                  return (
-                                    <button
-                                      key={bonus.id}
-                                      onClick={() => isSelected ? removeTierBonus(bonus.id) : (canSelect && addTierBonus(bonus.id))}
-                                      disabled={!isSelected && !canSelect}
-                                      style={{
-                                        padding: '0.5rem',
-                                        background: isSelected ? 'rgba(0, 200, 255, 0.15)' : 'rgba(0, 20, 40, 0.5)',
-                                        border: `1px solid ${isSelected ? '#0cf' : 'var(--glass-border)'}`,
-                                        borderRadius: '4px',
-                                        color: isSelected ? '#0cf' : '#aaa',
-                                        textAlign: 'left',
-                                        cursor: (isSelected || canSelect) ? 'pointer' : 'not-allowed',
-                                        fontSize: '0.75rem',
-                                        opacity: (!isSelected && !canSelect) ? 0.4 : 1
-                                      }}
-                                    >
-                                      {bonus.name} {isSelected && '✓'}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <div style={{ color: '#666', fontSize: '0.75rem', padding: '0.5rem' }}>
-                                No standard bonuses available. Create them in Ship Tiers tab.
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        {allAvailableBonuses.length > 0 ? (
+                          <table className="theme-table">
+                            <thead>
+                              <tr>
+                                <th>Name</th>
+                                <th>Bonuses</th>
+                                <th>Type</th>
+                                <th style={{ textAlign: 'center' }}>Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {allAvailableBonuses.map(bonus => {
+                                const isSelected = selectedBonuses.includes(bonus.id);
+                                const isStandard = bonus.type === 'standard';
+                                const canActivate = !isSelected && (
+                                  (isStandard && selectedStandard.length < allocation.standard) ||
+                                  (!isStandard && selectedAdvanced.length < allocation.advanced)
+                                );
 
-                        {allocation.advanced > 0 && (
-                          <div>
-                            <label style={{ color: '#aaa', fontSize: '0.75rem', display: 'block', marginBottom: '0.5rem' }}>
-                              Advanced Bonuses ({selectedAdvanced.length}/{allocation.advanced})
-                            </label>
-                            {shipTierBonuses.filter(b => b.type === 'advanced' && b.tier <= editingShip.tier).length > 0 ? (
-                              <div style={{ display: 'grid', gap: '0.35rem' }}>
-                                {shipTierBonuses.filter(b => b.type === 'advanced' && b.tier <= editingShip.tier).map(bonus => {
-                                  const isSelected = selectedBonuses.includes(bonus.id);
-                                  const canSelect = !isSelected && selectedAdvanced.length < allocation.advanced;
-                                  return (
-                                    <button
-                                      key={bonus.id}
-                                      onClick={() => isSelected ? removeTierBonus(bonus.id) : (canSelect && addTierBonus(bonus.id))}
-                                      disabled={!isSelected && !canSelect}
-                                      style={{
-                                        padding: '0.5rem',
-                                        background: isSelected ? 'rgba(200, 100, 255, 0.15)' : 'rgba(0, 20, 40, 0.5)',
-                                        border: `1px solid ${isSelected ? '#c8f' : 'var(--glass-border)'}`,
-                                        borderRadius: '4px',
-                                        color: isSelected ? '#c8f' : '#aaa',
-                                        textAlign: 'left',
-                                        cursor: (isSelected || canSelect) ? 'pointer' : 'not-allowed',
-                                        fontSize: '0.75rem',
-                                        opacity: (!isSelected && !canSelect) ? 0.4 : 1
-                                      }}
-                                    >
-                                      {bonus.name} {isSelected && '✓'}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <div style={{ color: '#666', fontSize: '0.75rem', padding: '0.5rem' }}>
-                                No advanced bonuses available. Create them in Ship Tiers tab.
-                              </div>
-                            )}
+                                // Extract bonuses from standardEffects and advancedEffects
+                                const standardBonuses = bonus.standardEffects ? 
+                                  Object.entries(bonus.standardEffects)
+                                    .filter(([key, val]) => val && val !== 0)
+                                    .map(([key, val]) => {
+                                      const unit = (key.includes('Chance') || key.includes('Reduction') || key.includes('Efficiency') || key.includes('Rate') || key.includes('Bonus')) ? '%' : '';
+                                      return `${val > 0 ? '+' : ''}${val}${unit} ${key}`;
+                                    }) : [];
+                                
+                                const advancedBonuses = bonus.advancedEffects ? 
+                                  Object.entries(bonus.advancedEffects)
+                                    .filter(([key, val]) => val && val !== 0)
+                                    .map(([key, val]) => {
+                                      const unit = (key.includes('Chance') || key.includes('Reduction') || key.includes('Efficiency') || key.includes('Rate') || key.includes('Bonus')) ? '%' : '';
+                                      return `${val > 0 ? '+' : ''}${val}${unit} ${key}`;
+                                    }) : [];
+                                
+                                const allBonuses = [...standardBonuses, ...advancedBonuses];
+                                const bonusText = allBonuses.length > 0 ? allBonuses.join(', ') : '';
+
+                                return (
+                                  <tr key={bonus.id} style={{ opacity: (!isSelected && !canActivate) ? 0.4 : 1 }}>
+                                    <td>{bonus.name}</td>
+                                    <td style={{ fontSize: '0.75rem', color: bonusText ? 'inherit' : '#666' }}>
+                                      {bonusText || '—'}
+                                    </td>
+                                    <td>
+                                      <span className="theme-badge" style={{
+                                        background: isStandard ? 'rgba(0, 200, 255, 0.1)' : 'rgba(200, 100, 255, 0.1)',
+                                        borderColor: isStandard ? '#0cf' : '#c8f',
+                                        color: isStandard ? '#0cf' : '#c8f'
+                                      }}>
+                                        {bonus.type}
+                                      </span>
+                                    </td>
+                                    <td style={{ textAlign: 'center' }}>
+                                      {isSelected ? (
+                                        <button
+                                          onClick={() => removeTierBonus(bonus.id)}
+                                          className="theme-button"
+                                          style={{ 
+                                            padding: '0.3rem 0.5rem',
+                                            fontSize: '0.7rem',
+                                            background: 'rgba(255, 100, 100, 0.1)',
+                                            borderColor: '#f66',
+                                            color: '#f66'
+                                          }}
+                                        >
+                                          Disable
+                                        </button>
+                                      ) : (
+                                        <button
+                                          onClick={() => canActivate && addTierBonus(bonus.id)}
+                                          disabled={!canActivate}
+                                          className="theme-button"
+                                          style={{ 
+                                            padding: '0.3rem 0.5rem',
+                                            fontSize: '0.7rem',
+                                            opacity: canActivate ? 1 : 0.3,
+                                            cursor: canActivate ? 'pointer' : 'not-allowed'
+                                          }}
+                                        >
+                                          Activate
+                                        </button>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        ) : (
+                          <div style={{ color: '#666', fontSize: '0.75rem', padding: '0.5rem' }}>
+                            No tier bonuses available. Create them in Ship Tiers tab.
                           </div>
                         )}
                       </div>
@@ -1022,8 +910,8 @@ export default function ShipsManager() {
               {/* RIGHT COLUMN */}
               <div style={{ display: 'grid', gap: '1.5rem' }}>
                 {/* Fuel & Engine */}
-                <div className="glass-card" style={{ padding: '1rem', background: 'rgba(0, 20, 40, 0.3)' }}>
-                  <h3 style={{ color: '#0af', marginBottom: '1rem', fontSize: '1rem' }}>⛽ Fuel & Engine</h3>
+                <div className="theme-container" style={{ padding: '1rem' }}>
+                  <h3 className="theme-subtitle" style={{ marginBottom: '1rem' }}>⛽ Fuel & Engine</h3>
                   <div style={{ display: 'grid', gap: '1rem' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                       <div>
@@ -1097,8 +985,8 @@ export default function ShipsManager() {
                 </div>
 
                 {/* Weapon Slots */}
-                <div className="glass-card" style={{ padding: '1rem', background: 'rgba(0, 20, 40, 0.3)' }}>
-                  <h3 style={{ color: '#f55', marginBottom: '1rem', fontSize: '1rem' }}>⚔️ Weapons ({Object.keys(editingShip.weaponSlots || {}).length})</h3>
+                <div className="theme-container" style={{ padding: '1rem' }}>
+                  <h3 className="theme-subtitle" style={{ marginBottom: '1rem' }}>⚔️ Weapons ({Object.keys(editingShip.weaponSlots || {}).length})</h3>
                   <div style={{ display: 'grid', gap: '0.5rem' }}>
                     {Object.entries(editingShip.weaponSlots || {}).map(([slotId, itemId]) => {
                       const equippedItem = lootItems.find(i => i.id === itemId);
@@ -1137,8 +1025,8 @@ export default function ShipsManager() {
                 </div>
 
                 {/* Subsystem Slots */}
-                <div className="glass-card" style={{ padding: '1rem', background: 'rgba(0, 20, 40, 0.3)' }}>
-                  <h3 style={{ color: '#0f8', marginBottom: '1rem', fontSize: '1rem' }}>🔧 Subsystems ({Object.keys(editingShip.subsystemSlots || {}).length})</h3>
+                <div className="theme-container" style={{ padding: '1rem' }}>
+                  <h3 className="theme-subtitle" style={{ marginBottom: '1rem' }}>🔧 Subsystems ({Object.keys(editingShip.subsystemSlots || {}).length})</h3>
                   <div style={{ display: 'grid', gap: '0.5rem' }}>
                     {Object.entries(editingShip.subsystemSlots || {}).map(([slotId, itemId]) => {
                       const equippedItem = lootItems.find(i => i.id === itemId);
@@ -1210,7 +1098,7 @@ export default function ShipsManager() {
           </div>
         </div>
       )}
-      </> 
+      </>
       )}
     </div>
   );
