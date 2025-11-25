@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../lib/api/client';
 import { SaveIcon, LoadingIcon, WarningIcon, SuccessIcon } from './HoloIcons';
 import LootManager from './LootManager';
+import MarketplaceManager from './MarketplaceManager';
 import NarrativeLibrary from './NarrativeLibrary';
 import POILibrary from './POILibrary';
 import AICrewManager from './AICrewManager';
@@ -115,6 +116,7 @@ export default function ConfigEditor() {
     { id: 'ai', label: 'AI Cores' },
     { id: 'skills', label: 'Player Skills' },
     { id: 'loot', label: 'Loot Tables' },
+    { id: 'marketplace', label: 'Marketplace' },
     { id: 'narratives', label: 'Narrative Library' },
     { id: 'pois', label: 'POI Library' },
     { id: 'scheduler', label: 'Event Scheduler' }
@@ -270,6 +272,11 @@ export default function ConfigEditor() {
       {/* LOOT TABLES SECTION */}
       {activeSection === 'loot' && (
         <LootManager />
+      )}
+
+      {/* MARKETPLACE SECTION */}
+      {activeSection === 'marketplace' && (
+        <MarketplaceManager />
       )}
 
       {/* NARRATIVE LIBRARY SECTION */}
