@@ -50,7 +50,7 @@ export default function LootSimulator() {
 
   const loadLootPools = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/config', {
+      const response = await fetch('http://localhost:3002/api/config', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -126,7 +126,7 @@ export default function LootSimulator() {
       addLog('backend', 'Loading pool configuration', 'info');
       addLog('backend', `Finding pool with ID: ${selectedPool}`, 'info');
       
-      const response = await fetch('http://localhost:3001/api/events/resolve-loot', {
+      const response = await fetch('http://localhost:3002/api/events/resolve-loot', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -70,7 +70,7 @@ export default function APIDocumentation() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <p style={{ color: '#888', margin: 0 }}>
-              <strong style={{ color: 'var(--neon-cyan)' }}>Base URL:</strong> http://localhost:3001
+              <strong style={{ color: 'var(--neon-cyan)' }}>Base URL:</strong> http://localhost:3002
             </p>
             <p style={{ color: '#888', margin: '0.5rem 0 0 0' }}>
               <strong style={{ color: 'var(--neon-cyan)' }}>Authentication:</strong> Bearer token in Authorization header

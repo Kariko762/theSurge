@@ -3,7 +3,8 @@ import api from '../../lib/api/client';
 import { SaveIcon, LoadingIcon, WarningIcon, SuccessIcon } from './HoloIcons';
 import LootManager from './LootManager';
 import MarketplaceManager from './MarketplaceManager';
-import NarrativeLibrary from './NarrativeLibrary';
+import EventSchedulerManager from './EventSchedulerManager';
+import ContentLibrary from './ContentLibrary';
 import POILibrary from './POILibrary';
 import AICrewManager from './AICrewManager';
 import PlayerSkillsManager from './PlayerSkillsManager';
@@ -117,7 +118,7 @@ export default function ConfigEditor() {
     { id: 'skills', label: 'Player Skills' },
     { id: 'loot', label: 'Loot Tables' },
     { id: 'marketplace', label: 'Marketplace' },
-    { id: 'narratives', label: 'Narrative Library' },
+    { id: 'content', label: 'Content Library' },
     { id: 'pois', label: 'POI Library' },
     { id: 'scheduler', label: 'Event Scheduler' }
   ];
@@ -279,9 +280,9 @@ export default function ConfigEditor() {
         <MarketplaceManager />
       )}
 
-      {/* NARRATIVE LIBRARY SECTION */}
-      {activeSection === 'narratives' && (
-        <NarrativeLibrary config={config} updateConfig={updateConfig} />
+      {/* CONTENT LIBRARY SECTION */}
+      {activeSection === 'content' && (
+        <ContentLibrary config={config} updateConfig={updateConfig} />
       )}
 
       {/* POI LIBRARY SECTION */}
@@ -318,74 +319,8 @@ export default function ConfigEditor() {
       )}
 
       {/* EVENT SCHEDULER SECTION */}
-      {activeSection === 'scheduler' && config.eventScheduler && (
-        <div className="glass-card" style={{ padding: '2rem' }}>
-          <h3 style={{ color: 'var(--neon-cyan)', marginBottom: '2rem', fontSize: '1.3rem' }}>
-            Event Scheduler Settings
-          </h3>
-
-          <div className="form-group">
-            <label>Minimum Interval: {config.eventScheduler.minInterval || 5}s</label>
-            <input
-              type="range"
-              min="2"
-              max="30"
-              step="1"
-              value={config.eventScheduler.minInterval || 5}
-              onChange={(e) => updateConfig('eventScheduler.minInterval', parseInt(e.target.value))}
-              className="slider-neon"
-            />
-            <small style={{ color: '#666', fontSize: '0.8rem', display: 'block', marginTop: '0.75rem' }}>
-              Minimum time between event checks (seconds)
-            </small>
-          </div>
-
-          <div className="form-group">
-            <label>Maximum Interval: {config.eventScheduler.maxInterval || 15}s</label>
-            <input
-              type="range"
-              min="10"
-              max="120"
-              step="5"
-              value={config.eventScheduler.maxInterval || 15}
-              onChange={(e) => updateConfig('eventScheduler.maxInterval', parseInt(e.target.value))}
-              className="slider-neon"
-            />
-            <small style={{ color: '#666', fontSize: '0.8rem', display: 'block', marginTop: '0.75rem' }}>
-              Maximum time between event checks (seconds)
-            </small>
-          </div>
-
-          <div className="form-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={config.eventScheduler.pauseOnModal !== false}
-                onChange={(e) => updateConfig('eventScheduler.pauseOnModal', e.target.checked)}
-                style={{ width: '20px', height: '20px', cursor: 'pointer' }}
-              />
-              <span>Pause Scheduler When Modal Open</span>
-            </label>
-            <small style={{ color: '#666', fontSize: '0.8rem', display: 'block', marginTop: '0.5rem' }}>
-              Prevents events from triggering while player is interacting with UI
-            </small>
-          </div>
-
-          <div className="glass-card" style={{ 
-            padding: '1.5rem', 
-            marginTop: '2rem',
-            background: 'rgba(0, 204, 255, 0.05)'
-          }}>
-            <h4 style={{ color: 'var(--neon-cyan)', fontSize: '1rem', marginBottom: '1rem' }}>
-              Timing Info
-            </h4>
-            <p style={{ color: '#888', fontSize: '0.9rem', lineHeight: '1.6' }}>
-              Events will be checked every <strong style={{ color: '#00ff88' }}>
-              {config.eventScheduler.minInterval || 5}-{config.eventScheduler.maxInterval || 15} seconds
-              </strong>. The actual interval is randomized within this range to create natural pacing.
-            </p>
-          </div>
-        </div>
+      {activeSection === 'scheduler' && (
+        <EventSchedulerManager />
       )}
     </div>
   );

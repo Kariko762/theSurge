@@ -15,6 +15,9 @@ import InventoryModal from './InventoryModal.jsx'
 import TerminalFeed from './TerminalFeed.jsx'
 import { executeDREAction, executeAsteroidScan, executeAsteroidMine, executeAsteroidRecovery } from '../lib/dre/engine.js'
 import eventEngine from '../lib/eventEngine.js'
+import { dynamicScheduler } from '../lib/events/dynamicEventScheduler.js'
+import { triggerEvent } from '../lib/events/triggerManager.js'
+import { executeEvent } from '../lib/events/eventEngine.js'
 
 /**
  * TimeControlBar - Minimal time control integrated into ship console
@@ -211,6 +214,175 @@ function TimeControlBar() {
 }
 
 /**
+ * RiskPanel - Compact bottom-left risk display that expands upward
+ */
+function RiskPanel({ currentRisk, schedulerStats, eventHistory, onForceCheck, onResetCooldowns }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  if (!currentRisk) {
+    return (
+      <div style={{
+        position: 'absolute',
+        bottom: '16px',
+        left: '16px',
+        background: 'rgba(0, 20, 40, 0.95)',
+        border: '1px solid rgba(52, 224, 255, 0.3)',
+        borderRadius: '4px',
+        padding: '6px 10px',
+        fontSize: '9px',
+        color: '#666',
+        cursor: 'pointer',
+        zIndex: 100
+      }}>
+        RISK: INITIALIZING...
+      </div>
+    );
+  }
+
+  const { score, level, color, nextCheck, breakdown } = currentRisk;
+
+  return (
+    <div style={{
+      position: 'absolute',
+      bottom: '16px',
+      left: '16px',
+      background: 'rgba(0, 20, 40, 0.95)',
+      border: `1px solid ${color}`,
+      borderRadius: '4px',
+      boxShadow: `0 0 8px ${color}40`,
+      zIndex: 100,
+      cursor: 'pointer'
+    }}>
+      {/* Compact Header - Always Visible */}
+      <div 
+        onClick={() => setIsExpanded(!isExpanded)}
+        style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '8px',
+          padding: '6px 10px',
+          fontSize: '9px'
+        }}
+      >
+        <span style={{ color: '#34e0ff', fontSize: '7px' }}>▲</span>
+        <span style={{ 
+          color: color, 
+          fontWeight: 'bold', 
+          fontSize: '10px',
+          textShadow: `0 0 4px ${color}`,
+          minWidth: '60px'
+        }}>
+          {level}
+        </span>
+        <div style={{ 
+          width: '60px', 
+          height: '4px', 
+          background: 'rgba(0, 0, 0, 0.5)', 
+          borderRadius: '2px',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            height: '100%',
+            width: `${score}%`,
+            background: color,
+            boxShadow: `0 0 4px ${color}`
+          }} />
+        </div>
+        <span style={{ color: '#aaa', fontSize: '9px', minWidth: '30px' }}>
+          {score.toFixed(0)}%
+        </span>
+      </div>
+      
+      {/* Expanded Details - Expands Upward */}
+      {isExpanded && (
+        <div style={{ 
+          borderTop: `1px solid ${color}40`,
+          padding: '8px 10px',
+          minWidth: '220px'
+        }}>
+          {/* Next Check */}
+          <div style={{ color: '#aaa', fontSize: '8px', marginBottom: '6px' }}>
+            Next check: {nextCheck != null && !isNaN(nextCheck) ? nextCheck.toFixed(1) : '?'}s
+          </div>
+          
+          {/* Stats */}
+          {schedulerStats && (
+            <div style={{ color: '#aaa', fontSize: '8px', marginBottom: '8px' }}>
+              Checks: {schedulerStats.totalChecks} | Events: {schedulerStats.totalTriggers}
+            </div>
+          )}
+          
+          {/* Risk Breakdown */}
+          {breakdown && Array.isArray(breakdown) && breakdown.length > 0 && (
+            <div style={{ marginBottom: '8px', paddingTop: '6px', borderTop: '1px solid rgba(52, 224, 255, 0.2)' }}>
+              <div style={{ color: '#34e0ff', fontWeight: 'bold', marginBottom: '4px', fontSize: '8px' }}>
+                RISK FACTORS
+              </div>
+              {breakdown.map(factor => (
+                <div key={factor.name} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                  <span style={{ color: '#aaa', fontSize: '8px' }}>{factor.name}:</span>
+                  <span style={{ color: factor.value > 0 ? '#ff6b6b' : '#aaa', fontSize: '8px' }}>
+                    {factor.value.toFixed(1)}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Debug Controls */}
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); onForceCheck(); }}
+              style={{
+                flex: 1,
+                background: 'rgba(52, 224, 255, 0.1)',
+                border: '1px solid rgba(52, 224, 255, 0.4)',
+                borderRadius: '3px',
+                color: '#34e0ff',
+                fontSize: '7px',
+                padding: '4px 6px',
+                cursor: 'pointer'
+              }}
+            >
+              FORCE CHECK
+            </button>
+            <button
+              onClick={onResetCooldowns}
+              style={{
+                flex: 1,
+                background: 'rgba(255, 107, 107, 0.1)',
+                border: '1px solid rgba(255, 107, 107, 0.4)',
+                borderRadius: '3px',
+                color: '#ff6b6b',
+                fontSize: '8px',
+                padding: '4px 8px',
+                cursor: 'pointer'
+              }}
+            >
+              RESET CD
+            </button>
+          </div>
+          
+          {/* Recent Events */}
+          {eventHistory && eventHistory.length > 0 && (
+            <div style={{ paddingTop: '8px', borderTop: '1px solid rgba(52, 224, 255, 0.2)' }}>
+              <div style={{ color: '#34e0ff', fontWeight: 'bold', marginBottom: '4px' }}>
+                RECENT EVENTS
+              </div>
+              {eventHistory.slice(-3).reverse().map((evt, idx) => (
+                <div key={idx} style={{ color: '#aaa', fontSize: '8px', marginBottom: '2px' }}>
+                  {evt.type} - {new Date(evt.time).toLocaleTimeString()}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
  * FRAME 3: Ship Command Console - Ship Run View
  * Simplified terminal output with power management and system controls
  */
@@ -291,6 +463,13 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
   const [hoveredAction, setHoveredAction] = useState(null); // Hovered action in contextual menu
   const mapRef = useRef(null); // ref for map canvas to compute accurate pixel anchoring
   const terminalRef = useRef(null);
+  
+  // Event Scheduler State
+  const [eventSchedulerEnabled, setEventSchedulerEnabled] = useState(true); // Enable/disable scheduler
+  const [currentRisk, setCurrentRisk] = useState(null); // Current risk assessment {score, level, color, nextCheck}
+  const [schedulerStats, setSchedulerStats] = useState(null); // Scheduler statistics
+  const [eventHistory, setEventHistory] = useState([]); // Recent events triggered
+  const [showRiskPanel, setShowRiskPanel] = useState(true); // Toggle risk display
   
   // Ship state manager (singleton)
   const shipState = getShipState();
@@ -410,6 +589,107 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
     
     console.log('[ShipCommandConsole] Scheduler and UniverseTime initialized');
   }, []);
+
+  // Initialize Dynamic Event Scheduler
+  useEffect(() => {
+    if (!eventSchedulerEnabled) {
+      dynamicScheduler.stop();
+      return;
+    }
+
+    // Load event scheduler config from backend
+    fetch('http://localhost:3002/api/config/event-scheduler')
+      .then(res => res.json())
+      .then(config => {
+        console.log('[EventScheduler] Loaded config:', config);
+        
+        // Build initial game state for scheduler
+        const universeTime = getUniverseTime();
+        const currentPos = shipState.getState().position;
+        
+        const gameState = {
+          wake: shipAttributes.wakeSignature || 0,
+          location: {
+            zone: system?.galactic?.zone || 'quiet',
+            distanceAU: currentPos.distanceAU,
+            radiation: system?.galactic?.surgeBase || 0
+          },
+          timeInSystem: 0, // Will be tracked separately
+          recentEvents: [],
+          activeMissions: [], // TODO: Connect to mission system
+          factionStanding: {
+            // TODO: Connect to faction system
+            // Example: { faction: 'Corsairs', standing: -20 }
+          }
+        };
+        
+        // Define callbacks
+        const onEventTrigger = async (eventId, eventType, eventData) => {
+          console.log(`[EventScheduler] Event triggered: ${eventId} (${eventType})`);
+          
+          // Add event to terminal feed
+          setTerminalEvents(prev => [...prev, {
+            id: `dynamic_event_${Date.now()}`,
+            type: 'dynamic_event',
+            timestamp: Date.now(),
+            conversational: [],
+            stream: [
+              `> ${eventData.scenario.systemMessage}`,
+              `> `,
+              `> ${eventData.scenario.description}`
+            ],
+            meta: {
+              title: eventData.scenario.title || eventData.metadata.title,
+              eventId: eventData.id,
+              eventData: eventData,
+              pendingChoice: true,
+              branches: eventData.branches
+            }
+          }]);
+          
+          // Update event history
+          setEventHistory(prev => [...prev.slice(-9), { 
+            id: eventId, 
+            type: eventType, 
+            time: new Date().toISOString() 
+          }]);
+        };
+        
+        const onRiskUpdate = (riskAssessment) => {
+          setCurrentRisk(riskAssessment);
+        };
+        
+        // Start scheduler
+        dynamicScheduler.start(config, gameState, onEventTrigger, onRiskUpdate);
+        console.log('[EventScheduler] Dynamic scheduler started');
+        
+      })
+      .catch(err => {
+        console.error('[EventScheduler] Failed to load config:', err);
+      });
+
+    return () => {
+      dynamicScheduler.stop();
+    };
+  }, [eventSchedulerEnabled, system, shipAttributes.wakeSignature]);
+
+  // Event Scheduler Game Tick - call scheduler.tick() every second
+  useEffect(() => {
+    if (!eventSchedulerEnabled) return;
+    
+    const universeTime = getUniverseTime();
+    
+    const tickInterval = setInterval(() => {
+      const currentTime = universeTime.getTime();
+      dynamicScheduler.tick(currentTime);
+      
+      // Update stats display
+      const stats = dynamicScheduler.getStats();
+      setSchedulerStats(stats);
+    }, 1000); // Check every 1 real second
+    
+    return () => clearInterval(tickInterval);
+  }, [eventSchedulerEnabled]);
 
   // Simple travel state
   const [activeTravel, setActiveTravel] = useState(null); // {startTime, targetX, targetY, targetName, distance, startPosition, onComplete, accelerationTime: 2.0}
@@ -2670,7 +2950,10 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      height: `${calculateStaticExposure(system, shipPosition.distanceAU)}%`,
+                      height: `${(() => {
+                        const radiation = calculateStaticExposure(system, shipPosition.distanceAU);
+                        return isNaN(radiation) ? 0 : Math.min(100, radiation);
+                      })()}%`,
                       background: 'linear-gradient(to top, rgba(52, 224, 255, 0.6), rgba(52, 224, 255, 0.3))',
                       transition: 'height 0.3s ease',
                       boxShadow: 'inset 0 0 10px rgba(52, 224, 255, 0.5)'
@@ -2686,7 +2969,10 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                       textShadow: '0 0 4px rgba(52, 224, 255, 0.8)',
                       zIndex: 1
                     }}>
-                      {Math.round(calculateStaticExposure(system, shipPosition.distanceAU))}
+                      {(() => {
+                        const radiation = calculateStaticExposure(system, shipPosition.distanceAU);
+                        return isNaN(radiation) ? 0 : Math.round(radiation);
+                      })()}
                     </div>
                   </div>
                   <div style={{ fontSize: '7px', color: '#34e0ff', fontWeight: 'bold', letterSpacing: '0.5px' }}>RADIATION</div>
@@ -2733,7 +3019,9 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
             </div>
             
             {/* Right Side: Time Control Bar */}
-            <TimeControlBar />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-end' }}>
+              <TimeControlBar />
+            </div>
           </div>
           
           {/* Left 2/3: Map Canvas */}
@@ -2756,6 +3044,22 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
               }
             }}
             >
+              {/* Risk Panel - Bottom Left Overlay */}
+              {showRiskPanel && (
+                <RiskPanel
+                  currentRisk={currentRisk}
+                  schedulerStats={schedulerStats}
+                  eventHistory={eventHistory}
+                  onForceCheck={() => {
+                    console.log('[EventScheduler] Force check triggered');
+                    dynamicScheduler.forceCheck();
+                  }}
+                  onResetCooldowns={() => {
+                    console.log('[EventScheduler] Cooldowns reset');
+                    dynamicScheduler.resetCooldowns();
+                  }}
+                />
+              )}
               {/* Background overlay for opacity control */}
               <div style={{
                 position: 'absolute',
@@ -4758,6 +5062,32 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                   evt.id === eventId ? { ...evt, meta: { ...evt.meta, pendingMiningStart: false, cancelled: true } } : evt
                 ));
                 setCurrentMiningPOI(null);
+              }}
+              onEventChoice={(eventId, branchId, eventData) => {
+                console.log(`[EVENT] Player chose branch: ${branchId}`);
+                
+                // Remove pending choice flag
+                setTerminalEvents(prev => prev.map(evt => 
+                  evt.id === eventId ? { ...evt, meta: { ...evt.meta, pendingChoice: false } } : evt
+                ));
+                
+                // Add outcome to terminal (simplified - full implementation would process outcomes)
+                const branch = eventData.branches.find(b => b.id === branchId);
+                if (branch) {
+                  setTerminalEvents(prev => [...prev, {
+                    id: `event_outcome_${Date.now()}`,
+                    type: 'event_outcome',
+                    timestamp: Date.now(),
+                    conversational: [],
+                    stream: [
+                      `> DECISION: ${branch.label}`,
+                      `> `,
+                      `> Processing outcome...`,
+                      `> (Full outcome processing coming soon)`
+                    ],
+                    meta: { title: 'EVENT OUTCOME' }
+                  }]);
+                }
               }}
               onTransferLoot={(eventId, items) => {
                 console.log('[TRANSFER] Transferring items:', items);

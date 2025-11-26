@@ -3,7 +3,7 @@
  * Handles all HTTP requests to the backend API server
  */
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'http://localhost:3002/api';
 
 // ============================================
 // Token Management
@@ -241,6 +241,17 @@ export const config = {
   reset: async () => {
     return await request('/config/reset', {
       method: 'POST'
+    });
+  },
+
+  getEventScheduler: async () => {
+    return await request('/config/event-scheduler');
+  },
+
+  updateEventScheduler: async (schedulerConfig) => {
+    return await request('/config/event-scheduler', {
+      method: 'PUT',
+      body: JSON.stringify(schedulerConfig)
     });
   }
 };

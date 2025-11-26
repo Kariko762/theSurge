@@ -17,7 +17,12 @@
       "range": 0,
       "damage": 0
     },
-    "tags": []
+    "tags": [],
+    "standardEffects": {
+      "hull": 6,
+      "speed": -1,
+      "agility": -1
+    }
   },
   {
     "id": "ship_bonus_001",
@@ -42,7 +47,11 @@
       "combat": 0,
       "navigation": 0
     },
-    "tags": ["hull", "defense", "survivability"]
+    "tags": [
+      "hull",
+      "defense",
+      "survivability"
+    ]
   },
   {
     "id": "ship_bonus_002",
@@ -67,7 +76,11 @@
       "combat": 0,
       "navigation": 0
     },
-    "tags": ["shields", "defense", "energy"]
+    "tags": [
+      "shields",
+      "defense",
+      "energy"
+    ]
   },
   {
     "id": "ship_bonus_003",
@@ -92,7 +105,11 @@
       "combat": 0,
       "navigation": 0
     },
-    "tags": ["speed", "agility", "maneuverability"]
+    "tags": [
+      "speed",
+      "agility",
+      "maneuverability"
+    ]
   },
   {
     "id": "ship_bonus_004",
@@ -117,7 +134,11 @@
       "combat": 0,
       "navigation": 0
     },
-    "tags": ["accuracy", "targeting", "range"]
+    "tags": [
+      "accuracy",
+      "targeting",
+      "range"
+    ]
   },
   {
     "id": "ship_bonus_005",
@@ -142,7 +163,11 @@
       "combat": 0,
       "navigation": 0
     },
-    "tags": ["cargo", "storage", "hauling"]
+    "tags": [
+      "cargo",
+      "storage",
+      "hauling"
+    ]
   },
   {
     "id": "ship_bonus_006",
@@ -167,6 +192,50 @@
       "combat": 1,
       "navigation": 0
     },
-    "tags": ["initiative", "combat", "tactical"]
+    "tags": [
+      "initiative",
+      "combat",
+      "tactical"
+    ]
+  },
+  {
+    "id": "ship_bonus_1764105223678",
+    "name": "Honed Gunnery",
+    "type": "advanced",
+    "tier": 3,
+    "description": "Increase critical hit change and combat",
+    "standardEffects": {
+      "hull": 0,
+      "shields": 0,
+      "power": 0,
+      "cargo": 0,
+      "speed": 0,
+      "agility": 0,
+      "accuracy": 0,
+      "evasion": 0,
+      "range": 0,
+      "damage": 0,
+      "initiative": 0,
+      "engineering": 0,
+      "piloting": 0,
+      "combat": 1,
+      "navigation": 0
+    },
+    "advancedEffects": {
+      "criticalChance": 5,
+      "damageReduction": 0,
+      "detection": 0,
+      "stealth": 0,
+      "fuelEfficiency": 0,
+      "repairRate": 0,
+      "shieldRegen": 0,
+      "lootBonus": 0
+    },
+    "legendaryPassive": {
+      "id": "",
+      "name": "",
+      "description": ""
+    },
+    "tags": []
   }
 ]

@@ -23,7 +23,8 @@ const TerminalFeed = ({
   onStartMining, 
   onCancelMining, 
   onTransferLoot, 
-  onLeaveLoot 
+  onLeaveLoot,
+  onEventChoice // NEW: callback for dynamic event choices
 }) => {
   const containerRef = useRef(null);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
@@ -428,6 +429,71 @@ const TerminalFeed = ({
                           >
                             CANCEL
                           </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Dynamic Event Choices */}
+                    {evt.meta && evt.meta.pendingChoice && evt.meta.branches && (
+                      <div style={{
+                        marginTop: '12px',
+                        padding: '12px',
+                        border: '1px solid rgba(255,200,0,0.5)',
+                        borderRadius: '4px',
+                        background: 'rgba(40,30,0,0.6)',
+                        boxShadow: '0 0 12px rgba(255,200,0,0.2)'
+                      }}>
+                        <div style={{
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          color: '#ffc800',
+                          marginBottom: '10px',
+                          letterSpacing: '0.5px',
+                          textTransform: 'uppercase'
+                        }}>DECISION REQUIRED</div>
+                        <div style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px'
+                        }}>
+                          {evt.meta.branches.map((branch, idx) => (
+                            <button
+                              key={branch.id}
+                              onClick={() => onEventChoice && onEventChoice(evt.id, branch.id, evt.meta.eventData)}
+                              style={{
+                                padding: '10px 12px',
+                                background: 'rgba(52, 224, 255, 0.12)',
+                                border: '1px solid rgba(52, 224, 255, 0.5)',
+                                borderRadius: '4px',
+                                color: '#34e0ff',
+                                fontSize: '10px',
+                                fontWeight: '500',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                textAlign: 'left',
+                                lineHeight: '1.4'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(52, 224, 255, 0.25)';
+                                e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.8)';
+                                e.currentTarget.style.boxShadow = '0 0 12px rgba(52, 224, 255, 0.4)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(52, 224, 255, 0.12)';
+                                e.currentTarget.style.borderColor = 'rgba(52, 224, 255, 0.5)';
+                                e.currentTarget.style.boxShadow = 'none';
+                              }}
+                            >
+                              <div style={{ fontWeight: '600', marginBottom: '4px', color: '#ffc800' }}>
+                                {String.fromCharCode(65 + idx)}. {branch.label}
+                              </div>
+                              {branch.challenge && (
+                                <div style={{ fontSize: '9px', color: 'rgba(255,100,100,0.8)', marginTop: '4px' }}>
+                                  ⚠ {branch.challenge.description}
+                                </div>
+                              )}
+                            </button>
+                          ))}
                         </div>
                       </div>
                     )}

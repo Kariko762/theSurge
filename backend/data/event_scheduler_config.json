@@ -1,0 +1,65 @@
+{
+  "enabled": true,
+  "globalCooldown": 30,
+  "checkIntervals": {
+    "low": 60,
+    "moderate": 30,
+    "high": 15,
+    "critical": 5,
+    "extreme": 2
+  },
+  "riskWeights": {
+    "wake": 40,
+    "location": 30,
+    "timeInSystem": 15,
+    "recentEvents": 10,
+    "activeMissions": 15
+  },
+  "locationRisk": {
+    "quiet": 10,
+    "normal": 30,
+    "dark": 60,
+    "static": 85,
+    "void": 95
+  },
+  "radiationRisk": {
+    "low": 0,
+    "moderate": 10,
+    "high": 25,
+    "extreme": 50
+  },
+  "factionStandingRisk": {
+    "enabled": true,
+    "weight": 20,
+    "threshold": -50,
+    "multiplier": 0.5,
+    "factions": [
+      {
+        "id": "faction_freebelt",
+        "baseEncounterChance": 15
+      },
+      {
+        "id": "faction_threxul",
+        "baseEncounterChance": 30
+      },
+      {
+        "id": "faction_hexcorp",
+        "baseEncounterChance": 10
+      },
+      {
+        "id": "faction_utd",
+        "baseEncounterChance": 8
+      }
+    ]
+  },
+  "eventCooldowns": {
+    "trader": 300,
+    "pirate": 600,
+    "derelict": 900,
+    "hazard": 400
+  },
+  "_metadata": {
+    "lastModified": "2025-11-25T05:39:39.482Z",
+    "modifiedBy": "admin"
+  }
+}

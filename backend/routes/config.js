@@ -140,6 +140,64 @@ router.post('/reset', authenticateToken, requireRole('admin'), async (req, res) 
 });
 
 /**
+ * GET /api/config/event-scheduler
+ * Get event scheduler configuration
+ */
+router.get('/event-scheduler', async (req, res) => {
+  try {
+    const schedulerConfig = await readJSON('event_scheduler_config.json');
+
+    res.json({
+      success: true,
+      config: schedulerConfig
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * PUT /api/config/event-scheduler
+ * Update event scheduler configuration
+ */
+router.put('/event-scheduler', authenticateToken, requireRole('editor', 'admin'), async (req, res) => {
+  try {
+    const updates = req.body;
+
+    // Backup before modification
+    await backupFile('event_scheduler_config.json');
+
+    // Load current config
+    let config = await readJSON('event_scheduler_config.json');
+
+    // Merge updates
+    config = deepMerge(config, updates);
+
+    // Add metadata
+    config._metadata = {
+      lastModified: new Date().toISOString(),
+      modifiedBy: req.user.username
+    };
+
+    await writeJSON('event_scheduler_config.json', config);
+
+    res.json({
+      success: true,
+      config,
+      message: 'Event scheduler configuration updated successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
  * Deep merge two objects
  */
 function deepMerge(target, source) {

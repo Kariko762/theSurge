@@ -1,0 +1,376 @@
+[
+  {
+    "id": "dynamic_pirate_ambush",
+    "metadata": {
+      "title": "Pirate Ambush",
+      "description": "Pirates intercept your ship while traveling through dangerous space",
+      "tags": ["combat", "pirate", "danger"],
+      "enabled": true,
+      "author": "system",
+      "created": "2025-11-25T00:00:00.000Z"
+    },
+    "trigger": {
+      "type": "dynamic",
+      "weight": 30,
+      "conditions": {
+        "wake": { "min": 0.3 },
+        "zone": ["frontier", "dark", "fringe"]
+      }
+    },
+    "scenario": {
+      "title": "Hostile Contact!",
+      "description": "Warning klaxons blare as your sensors detect multiple ships closing fast. Their transponders are masked - pirates! They're moving to intercept!",
+      "location": "open_space",
+      "systemMessage": "[ALERT] Multiple hostile contacts detected! Distance: 50,000km and closing. Weapons systems: ARMED. Recommend evasive action!"
+    },
+    "branches": [
+      {
+        "id": "fight",
+        "label": "Engage the pirates!",
+        "challenge": {
+          "mode": "combat",
+          "difficulty": "hard",
+          "description": "Fight off the pirate raiders"
+        },
+        "outcomes": [
+          {
+            "weight": 0.4,
+            "type": "victory",
+            "narrative": "Your superior piloting turns the tide! The pirate ships explode one by one. You salvage their wreckage for valuable components.",
+            "rewards": {
+              "credits": 800,
+              "xp": 300,
+              "items": ["pirate_salvage", "weapons_components"]
+            }
+          },
+          {
+            "weight": 0.3,
+            "type": "success",
+            "narrative": "After a brutal exchange, the remaining pirates retreat. Your ship is damaged but you survived.",
+            "rewards": {
+              "credits": 400,
+              "xp": 200,
+              "damage": "moderate"
+            }
+          },
+          {
+            "weight": 0.3,
+            "type": "defeat",
+            "narrative": "They're too strong! Your shields fail and your hull takes critical damage. You surrender before they destroy you completely.",
+            "rewards": {
+              "credits": -500,
+              "xp": 100,
+              "damage": "major"
+            }
+          }
+        ]
+      },
+      {
+        "id": "flee",
+        "label": "Attempt to escape",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "medium",
+          "skills": ["piloting", "engines"],
+          "baseTarget": 12,
+          "description": "Outmaneuver the pirates and escape"
+        },
+        "outcomes": [
+          {
+            "weight": 0.6,
+            "type": "success",
+            "narrative": "You push your engines to maximum and execute a series of evasive maneuvers. The pirates can't keep up - you're free!",
+            "rewards": {
+              "xp": 150
+            }
+          },
+          {
+            "weight": 0.4,
+            "type": "failure",
+            "narrative": "They cut off your escape! You take heavy fire as you desperately maneuver. You eventually break free but your ship is badly damaged.",
+            "rewards": {
+              "xp": 100,
+              "damage": "major"
+            }
+          }
+        ]
+      },
+      {
+        "id": "surrender",
+        "label": "Surrender and pay tribute",
+        "challenge": null,
+        "outcomes": [
+          {
+            "weight": 1.0,
+            "type": "peaceful",
+            "narrative": "You power down weapons and transfer credits to their ship. The pirates take your payment and leave without further violence.",
+            "rewards": {
+              "credits": -300,
+              "xp": 50
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dynamic_trader_encounter",
+    "metadata": {
+      "title": "Independent Trader",
+      "description": "A friendly trader ship hails you with offers of trade",
+      "tags": ["trade", "merchant", "safe"],
+      "enabled": true,
+      "author": "system",
+      "created": "2025-11-25T00:00:00.000Z"
+    },
+    "trigger": {
+      "type": "dynamic",
+      "weight": 50,
+      "conditions": {
+        "wake": { "min": 0.2, "max": 0.7 },
+        "zone": ["quiet", "frontier", "core"]
+      }
+    },
+    "scenario": {
+      "title": "Trader Hail",
+      "description": "A well-maintained merchant vessel approaches on a parallel course. They're broadcasting a friendly greeting and trade offers.",
+      "location": "open_space",
+      "systemMessage": "[HAIL RECEIVED] Greetings, traveler! Captain Zheng here. Interested in some honest trade? I've got goods from three sectors over!"
+    },
+    "branches": [
+      {
+        "id": "trade",
+        "label": "Open trade menu",
+        "challenge": null,
+        "outcomes": [
+          {
+            "weight": 1.0,
+            "type": "trade",
+            "narrative": "You dock with the trader's ship and browse their inventory. They have a interesting selection of goods.",
+            "rewards": {
+              "unlocks": ["trader_zheng_inventory"],
+              "xp": 50
+            }
+          }
+        ]
+      },
+      {
+        "id": "ask_news",
+        "label": "Ask about news and rumors",
+        "challenge": null,
+        "outcomes": [
+          {
+            "weight": 0.5,
+            "type": "information",
+            "narrative": "The trader shares rumors of a derelict freighter spotted in the next system. Could be valuable salvage if you can find it!",
+            "rewards": {
+              "xp": 75,
+              "unlocks": ["rumor_derelict_freighter"]
+            }
+          },
+          {
+            "weight": 0.3,
+            "type": "information",
+            "narrative": "They mention that pirates have been active in nearby systems. Best to avoid high-wake travel for now.",
+            "rewards": {
+              "xp": 50
+            }
+          },
+          {
+            "weight": 0.2,
+            "type": "quest",
+            "narrative": "The trader mentions they're looking for someone to transport sensitive cargo to a nearby station. They'll pay well for discretion.",
+            "rewards": {
+              "xp": 60,
+              "unlocks": ["quest_trader_delivery"]
+            }
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "label": "Politely decline and continue on",
+        "challenge": null,
+        "outcomes": [
+          {
+            "weight": 1.0,
+            "type": "safe_exit",
+            "narrative": "You thank them for the offer but continue on your way. The trader wishes you safe travels.",
+            "rewards": {
+              "xp": 20
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dynamic_radiation_storm",
+    "metadata": {
+      "title": "Radiation Storm",
+      "description": "A dangerous surge of galactic radiation sweeps through your location",
+      "tags": ["hazard", "radiation", "damage"],
+      "enabled": true,
+      "author": "system",
+      "created": "2025-11-25T00:00:00.000Z"
+    },
+    "trigger": {
+      "type": "dynamic",
+      "weight": 20,
+      "conditions": {
+        "radiation": { "min": 30 }
+      }
+    },
+    "scenario": {
+      "title": "Radiation Spike!",
+      "description": "Your radiation alarms scream as a massive surge of galactic energy sweeps toward your ship. You have seconds to react!",
+      "location": "open_space",
+      "systemMessage": "[RADIATION WARNING] Extreme surge detected! Exposure level: CRITICAL. Hull integrity at risk!"
+    },
+    "branches": [
+      {
+        "id": "shield_up",
+        "label": "Divert all power to radiation shielding",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "medium",
+          "skills": ["engineering", "shields"],
+          "baseTarget": 11,
+          "description": "Manage power systems to minimize radiation damage"
+        },
+        "outcomes": [
+          {
+            "weight": 0.6,
+            "type": "success",
+            "narrative": "Your quick thinking pays off! The shields hold against the radiation surge. Your ship weathers the storm with only minor system strain.",
+            "rewards": {
+              "xp": 100,
+              "damage": "minor"
+            }
+          },
+          {
+            "weight": 0.4,
+            "type": "failure",
+            "narrative": "The surge overwhelms your shields! Radiation penetrates your hull, damaging sensitive electronics and exposing the crew to dangerous levels.",
+            "rewards": {
+              "xp": 75,
+              "damage": "major"
+            }
+          }
+        ]
+      },
+      {
+        "id": "take_damage",
+        "label": "Brace for impact and ride it out",
+        "challenge": null,
+        "outcomes": [
+          {
+            "weight": 1.0,
+            "type": "damage",
+            "narrative": "The radiation storm batters your ship. Hull plating absorbs most of it, but several systems are fried by the intense energy.",
+            "rewards": {
+              "xp": 50,
+              "damage": "moderate"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dynamic_derelict_discovery",
+    "metadata": {
+      "title": "Derelict Ship Discovery",
+      "description": "Your sensors detect a derelict vessel drifting nearby",
+      "tags": ["exploration", "salvage", "mystery"],
+      "enabled": true,
+      "author": "system",
+      "created": "2025-11-25T00:00:00.000Z"
+    },
+    "trigger": {
+      "type": "dynamic",
+      "weight": 25,
+      "conditions": {
+        "wake": { "max": 0.5 },
+        "zone": ["frontier", "fringe", "dark"]
+      }
+    },
+    "scenario": {
+      "title": "Derelict Detected",
+      "description": "Your passive sensors pick up a faint metallic signature. It's a ship, adrift with no power. Life support appears offline.",
+      "location": "open_space",
+      "systemMessage": "[PASSIVE SCAN] Derelict vessel detected. Classification: Transport. Age: Unknown. Life signs: Negative."
+    },
+    "branches": [
+      {
+        "id": "investigate",
+        "label": "Board and investigate the derelict",
+        "challenge": {
+          "mode": "skillCheck",
+          "difficulty": "medium",
+          "skills": ["technical", "perception"],
+          "baseTarget": 10,
+          "description": "Search the derelict for salvage and clues"
+        },
+        "outcomes": [
+          {
+            "weight": 0.4,
+            "type": "treasure",
+            "narrative": "The cargo hold contains intact containers of valuable goods! Whatever happened here, they left in a hurry.",
+            "rewards": {
+              "credits": 900,
+              "xp": 200,
+              "items": ["salvaged_cargo", "ship_components"]
+            }
+          },
+          {
+            "weight": 0.3,
+            "type": "minor_success",
+            "narrative": "You find some useful components and spare parts, but nothing extraordinary. The ship's logs are corrupted.",
+            "rewards": {
+              "credits": 400,
+              "xp": 100,
+              "items": ["salvaged_parts"]
+            }
+          },
+          {
+            "weight": 0.2,
+            "type": "danger",
+            "narrative": "As you search the ship, automated defense systems activate! You're forced to flee as security drones attack!",
+            "rewards": {
+              "xp": 150,
+              "damage": "moderate"
+            }
+          },
+          {
+            "weight": 0.1,
+            "type": "mystery",
+            "narrative": "You find the ship's black box. The final log entry is disturbing: 'They found us. They're not human. They're...' The recording cuts off.",
+            "rewards": {
+              "credits": 200,
+              "xp": 250,
+              "items": ["black_box_data"],
+              "unlocks": ["mystery_they_are_not_human"]
+            }
+          }
+        ]
+      },
+      {
+        "id": "ignore",
+        "label": "Mark its location and continue on",
+        "challenge": null,
+        "outcomes": [
+          {
+            "weight": 1.0,
+            "type": "safe_exit",
+            "narrative": "You log the coordinates for potential salvage later and continue your journey.",
+            "rewards": {
+              "xp": 30,
+              "unlocks": ["derelict_location_marker"]
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

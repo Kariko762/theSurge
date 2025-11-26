@@ -10,8 +10,10 @@ import EventSystemGuide from './EventSystemGuide';
 import TelemetryDashboard from './TelemetryDashboard';
 import SimulationPanel from './SimulationPanel';
 import EncounterManager from './EncounterManager';
+import POILibrary from './POILibrary';
 import { EventsIcon, MissionsIcon, ConfigIcon, UsersIcon, APIIcon, LogoutIcon, LoadingIcon, InfoIcon, WarningIcon, TestIcon } from './HoloIcons';
 import '../../styles/AdminGlass.css';
+import '../../styles/AdminCompact.css';
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -68,7 +70,7 @@ export default function AdminPanel() {
 
   if (loading) {
     return (
-      <div className="admin-container" style={{
+      <div className="admin-container digital-grid-bg" style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -86,6 +88,7 @@ export default function AdminPanel() {
     { id: 'events', label: 'Events', Icon: EventsIcon, minRole: 'editor' },
     { id: 'encounters', label: 'Encounters', Icon: ({ size }) => <span style={{ fontSize: `${size}px` }}>👾</span>, minRole: 'editor' },
     { id: 'missions', label: 'Missions', Icon: MissionsIcon, minRole: 'editor' },
+    { id: 'poi', label: 'POI Library', Icon: ({ size }) => <span style={{ fontSize: `${size}px` }}>🌍</span>, minRole: 'editor' },
     { id: 'simulation', label: 'Simulation', Icon: TestIcon, minRole: 'viewer' },
     { id: 'config', label: 'Config', Icon: ConfigIcon, minRole: 'editor' },
     { id: 'users', label: 'Users', Icon: UsersIcon, minRole: 'admin' },
@@ -102,7 +105,7 @@ export default function AdminPanel() {
   const isCompactView = isModalOpen || activeTab === 'config';
 
   return (
-    <div className="admin-container">
+    <div className="admin-container digital-grid-bg">
       {/* Header */}
       <header className="admin-header" style={{
         display: 'flex',
@@ -172,6 +175,7 @@ export default function AdminPanel() {
         {activeTab === 'events' && <EventEditor />}
         {activeTab === 'encounters' && <EncounterManager />}
         {activeTab === 'missions' && <MissionEditor />}
+        {activeTab === 'poi' && <POILibrary />}
         {activeTab === 'config' && <ConfigEditor />}
         {activeTab === 'users' && <UserManagement />}
         {activeTab === 'api' && <APIDocumentation />}

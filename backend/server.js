@@ -7,7 +7,7 @@ const { ensureDataDir } = require('./utils/fileHandler');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 // Middleware
 app.use(cors({
@@ -16,6 +16,9 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files (images)
+app.use('/images', express.static('public/images'));
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -39,6 +42,8 @@ app.use('/api/factions', require('./routes/factions'));
 app.use('/api/items', require('./routes/items'));
 app.use('/api/narratives', require('./routes/narratives'));
 app.use('/api/ai-cores', require('./routes/ai-cores'));
+app.use('/api/image-pools', require('./routes/image-pools'));
+app.use('/api/poi-library', require('./routes/poi-library'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

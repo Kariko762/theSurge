@@ -14,7 +14,7 @@ export default function TelemetryDashboard() {
   const loadTelemetry = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3001/api/telemetry?timeRange=${timeRange}`, {
+      const response = await fetch(`http://localhost:3002/api/telemetry?timeRange=${timeRange}`, {
         credentials: 'include'
       });
       

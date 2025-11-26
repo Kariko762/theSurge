@@ -302,15 +302,15 @@ export default function ShipsManager() {
   return (
     <div style={{ padding: '1rem' }}>
       {/* Sub-Tabs */}
-      <div className="tab-container-sub2">
+      <div className="theme-menu">
         <button
-          className={`tab-button ${activeTab === 'builder' ? 'active' : ''}`}
+          className={`theme-menu-tab ${activeTab === 'builder' ? 'active' : ''}`}
           onClick={() => setActiveTab('builder')}
         >
           Ship Builder
         </button>
         <button
-          className={`tab-button ${activeTab === 'tiers' ? 'active' : ''}`}
+          className={`theme-menu-tab ${activeTab === 'tiers' ? 'active' : ''}`}
           onClick={() => setActiveTab('tiers')}
         >
           Ship Tiers

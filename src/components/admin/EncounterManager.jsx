@@ -56,7 +56,7 @@ export default function EncounterManager() {
     setError(null);
     try {
       const params = filter !== 'all' ? { disposition: filter } : {};
-      const response = await fetch(`http://localhost:3001/api/encounters?${new URLSearchParams(params)}`);
+      const response = await fetch(`http://localhost:3002/api/encounters?${new URLSearchParams(params)}`);
       const data = await response.json();
       
       if (data.success) {

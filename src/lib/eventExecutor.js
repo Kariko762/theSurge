@@ -270,7 +270,7 @@ class EventExecutor {
    */
   async trackTelemetry(eventId, scenarioId, telemetryData) {
     try {
-      const response = await fetch('http://localhost:3001/api/telemetry/track', {
+      const response = await fetch('http://localhost:3002/api/telemetry/track', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

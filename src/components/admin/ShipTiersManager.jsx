@@ -171,22 +171,15 @@ export default function ShipTiersManager() {
       </div>
 
       {/* Filters */}
-      <div className="glass-card" style={{ padding: '0.75rem 1rem', marginBottom: '1rem' }}>
+      <div className="theme-container" style={{ padding: '0.75rem 1rem', marginBottom: '1rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.75rem', alignItems: 'center' }}>
           <div>
-            <label style={{ color: '#aaa', fontSize: '0.75rem', display: 'block', marginBottom: '0.3rem' }}>Type</label>
+            <label className="theme-body" style={{ fontSize: '0.75rem', display: 'block', marginBottom: '0.3rem' }}>Type</label>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.4rem',
-                background: 'rgba(0, 20, 40, 0.5)',
-                border: '1px solid var(--glass-border)',
-                borderRadius: '4px',
-                color: '#fff',
-                fontSize: '0.8rem'
-              }}
+              className="theme-input"
+              style={{ fontSize: '0.8rem' }}
             >
               <option value="all">All Types</option>
               <option value="standard">Standard</option>
@@ -196,19 +189,12 @@ export default function ShipTiersManager() {
           </div>
 
           <div>
-            <label style={{ color: '#aaa', fontSize: '0.75rem', display: 'block', marginBottom: '0.3rem' }}>Tier</label>
+            <label className="theme-body" style={{ fontSize: '0.75rem', display: 'block', marginBottom: '0.3rem' }}>Tier</label>
             <select
               value={filterTier}
               onChange={(e) => setFilterTier(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.4rem',
-                background: 'rgba(0, 20, 40, 0.5)',
-                border: '1px solid var(--glass-border)',
-                borderRadius: '4px',
-                color: '#fff',
-                fontSize: '0.8rem'
-              }}
+              className="theme-input"
+              style={{ fontSize: '0.8rem' }}
             >
               <option value="all">All Tiers</option>
               <option value="2">Tier 2</option>
@@ -227,10 +213,10 @@ export default function ShipTiersManager() {
       {/* Bonuses Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1rem' }}>
         {filteredBonuses.map(bonus => (
-          <div key={bonus.id} className="glass-card" style={{ padding: '1rem' }}>
+          <div key={bonus.id} className="theme-card" style={{ padding: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
               <div style={{ flex: 1 }}>
-                <h4 style={{ color: '#fff', margin: 0, fontSize: '0.95rem' }}>{bonus.name}</h4>
+                <h4 className="theme-subtitle" style={{ margin: 0, fontSize: '0.95rem' }}>{bonus.name}</h4>
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.35rem' }}>
                   <span style={{
                     padding: '0.15rem 0.5rem',
@@ -371,23 +357,16 @@ export default function ShipTiersManager() {
 
             <div style={{ display: 'grid', gap: '1.5rem' }}>
               {/* Basic Info */}
-              <div className="glass-card" style={{ padding: '1rem' }}>
-                <h3 style={{ color: '#fff', marginBottom: '1rem', fontSize: '1rem' }}>Basic Information</h3>
+              <div className="theme-container" style={{ padding: '1rem' }}>
+                <h3 className="theme-subtitle" style={{ marginBottom: '1rem' }}>Basic Information</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div style={{ gridColumn: '1 / -1' }}>
-                    <label style={{ color: '#aaa', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Name</label>
+                    <label className="theme-body" style={{ display: 'block', marginBottom: '0.5rem' }}>Name</label>
                     <input
                       type="text"
                       value={editingBonus.name}
                       onChange={(e) => setEditingBonus({ ...editingBonus, name: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        background: 'rgba(0, 20, 40, 0.5)',
-                        border: '1px solid var(--glass-border)',
-                        borderRadius: '4px',
-                        color: '#fff'
-                      }}
+                      className="theme-input"
                     />
                   </div>
 
@@ -422,8 +401,8 @@ export default function ShipTiersManager() {
                       type="number"
                       min="2"
                       max="5"
-                      value={editingBonus.tier}
-                      onChange={(e) => setEditingBonus({ ...editingBonus, tier: parseInt(e.target.value) })}
+                      value={editingBonus.tier ?? 2}
+                      onChange={(e) => setEditingBonus({ ...editingBonus, tier: parseInt(e.target.value, 10) || 2 })}
                       style={{
                         width: '100%',
                         padding: '0.5rem',
@@ -473,10 +452,10 @@ export default function ShipTiersManager() {
                       </label>
                       <input
                         type="number"
-                        value={editingBonus.standardEffects?.[stat] || 0}
+                        value={editingBonus.standardEffects?.[stat] ?? 0}
                         onChange={(e) => setEditingBonus({
                           ...editingBonus,
-                          standardEffects: { ...editingBonus.standardEffects, [stat]: parseInt(e.target.value) || 0 }
+                          standardEffects: { ...editingBonus.standardEffects, [stat]: parseInt(e.target.value, 10) || 0 }
                         })}
                         style={{
                           width: '100%',
@@ -499,10 +478,10 @@ export default function ShipTiersManager() {
                       </label>
                       <input
                         type="number"
-                        value={editingBonus.standardEffects?.[stat] || 0}
+                        value={editingBonus.standardEffects?.[stat] ?? 0}
                         onChange={(e) => setEditingBonus({
                           ...editingBonus,
-                          standardEffects: { ...editingBonus.standardEffects, [stat]: parseInt(e.target.value) || 0 }
+                          standardEffects: { ...editingBonus.standardEffects, [stat]: parseInt(e.target.value, 10) || 0 }
                         })}
                         style={{
                           width: '100%',
@@ -517,7 +496,7 @@ export default function ShipTiersManager() {
                     </div>
                   ))}
                   
-                  <div style={{ gridColumn: '1 / -1', color: '#0cf', fontSize: '0.75rem', fontWeight: 'bold', marginTop: '0.5rem' }}>Initiative & Skill Checks</div>
+                  <div style={{ gridColumn: '1 / -1', color: '#0cf', fontSize: '0.75rem', fontWeight: 'bold', marginTop: '0.5rem' }}>Crew Stats</div>
                   {['initiative', 'engineering', 'piloting', 'combat', 'navigation'].map(stat => (
                     <div key={stat}>
                       <label style={{ color: '#aaa', fontSize: '0.7rem', display: 'block', marginBottom: '0.3rem', textTransform: 'capitalize' }}>
@@ -525,10 +504,10 @@ export default function ShipTiersManager() {
                       </label>
                       <input
                         type="number"
-                        value={editingBonus.standardEffects?.[stat] || 0}
+                        value={editingBonus.standardEffects?.[stat] ?? 0}
                         onChange={(e) => setEditingBonus({
                           ...editingBonus,
-                          standardEffects: { ...editingBonus.standardEffects, [stat]: parseInt(e.target.value) || 0 }
+                          standardEffects: { ...editingBonus.standardEffects, [stat]: parseInt(e.target.value, 10) || 0 }
                         })}
                         style={{
                           width: '100%',
@@ -547,11 +526,11 @@ export default function ShipTiersManager() {
 
               {/* ADVANCED EFFECTS - Visible for Advanced/Legendary */}
               {(editingBonus.type === 'advanced' || editingBonus.type === 'legendary') && (
-                <div className="glass-card" style={{ padding: '1rem', border: '1px solid #c8f' }}>
-                  <h3 style={{ color: '#c8f', marginBottom: '0.5rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div className="theme-container" style={{ padding: '1rem', border: '1px solid #c8f' }}>
+                  <h3 className="theme-subtitle" style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <span style={{ fontSize: '1.2rem' }}>●</span> Advanced Effects
                   </h3>
-                  <p style={{ color: '#666', fontSize: '0.75rem', marginBottom: '1rem' }}>
+                  <p className="theme-body" style={{ fontSize: '0.75rem', marginBottom: '1rem' }}>
                     Powerful bonuses - percentage-based or specialized effects
                   </p>
                   
@@ -575,7 +554,7 @@ export default function ShipTiersManager() {
                           value={editingBonus.advancedEffects?.[key] || 0}
                           onChange={(e) => setEditingBonus({
                             ...editingBonus,
-                            advancedEffects: { ...editingBonus.advancedEffects, [key]: parseInt(e.target.value) || 0 }
+                            advancedEffects: { ...editingBonus.advancedEffects, [key]: parseInt(e.target.value, 10) || 0 }
                           })}
                           style={{
                             width: '100%',
@@ -595,11 +574,11 @@ export default function ShipTiersManager() {
 
               {/* LEGENDARY PASSIVE - Visible for Legendary Only */}
               {editingBonus.type === 'legendary' && (
-                <div className="glass-card" style={{ padding: '1rem', border: '1px solid #ffd700' }}>
-                  <h3 style={{ color: '#ffd700', marginBottom: '0.5rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div className="theme-container" style={{ padding: '1rem', border: '1px solid #ffd700' }}>
+                  <h3 className="theme-subtitle" style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <span style={{ fontSize: '1.2rem' }}>⭐</span> Legendary Passive Ability
                   </h3>
-                  <p style={{ color: '#666', fontSize: '0.75rem', marginBottom: '1rem' }}>
+                  <p className="theme-body" style={{ fontSize: '0.75rem', marginBottom: '1rem' }}>
                     Unique game-changing ability - triggers automatically or provides permanent passive effect
                   </p>
                   

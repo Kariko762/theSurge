@@ -5,7 +5,7 @@
  * Interfaces with the backend event system and updates game state.
  */
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = 'http://localhost:3002/api';
 
 class EventEngine {
   constructor() {
