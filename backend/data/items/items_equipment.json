@@ -1,7 +1,7 @@
 [
   {
-    "id": "engine_fighter_t1",
-    "name": "Fighter Engine T1",
+    "id": "engine_fighter_mk1",
+    "name": "Fighter Engine Mk1",
     "description": "Compact high-thrust engine for small craft. Excellent agility.",
     "category": "equipment",
     "subcategory": "engine",
@@ -10,20 +10,85 @@
     "size": 15,
     "maxStack": 1,
     "value": 2000,
-    "tags": {
-      "0": "equipment",
-      "1": "engine",
-      "2": "fighter"
-    },
+    "tags": [
+      "equipment",
+      "engine",
+      "fighter",
+      "tier_1"
+    ],
     "properties": {
       "thrust": 80,
       "agility": 95,
       "class": "fighter"
+    },
+    "combatProperties": {
+      "speedBonus": 2,
+      "agilityBonus": 2,
+      "escapeBonus": 1,
+      "tier": 1
     }
   },
   {
-    "id": "engine_corvette_t1",
-    "name": "Corvette Engine T1",
+    "id": "engine_fighter_mk2",
+    "name": "Fighter Engine Mk2",
+    "description": "Enhanced fighter-class drive with improved thrust-to-weight ratio.",
+    "category": "equipment",
+    "subcategory": "engine",
+    "tier": "uncommon",
+    "weight": 32,
+    "size": 15,
+    "maxStack": 1,
+    "value": 4000,
+    "tags": [
+      "equipment",
+      "engine",
+      "fighter",
+      "tier_2"
+    ],
+    "properties": {
+      "thrust": 120,
+      "agility": 110,
+      "class": "fighter"
+    },
+    "combatProperties": {
+      "speedBonus": 3,
+      "agilityBonus": 3,
+      "escapeBonus": 1,
+      "tier": 2
+    }
+  },
+  {
+    "id": "engine_fighter_mk3",
+    "name": "Fighter Engine Mk3",
+    "description": "Military-grade fighter engine. Maximum speed and maneuverability.",
+    "category": "equipment",
+    "subcategory": "engine",
+    "tier": "rare",
+    "weight": 34,
+    "size": 15,
+    "maxStack": 1,
+    "value": 7000,
+    "tags": [
+      "equipment",
+      "engine",
+      "fighter",
+      "tier_3"
+    ],
+    "properties": {
+      "thrust": 160,
+      "agility": 125,
+      "class": "fighter"
+    },
+    "combatProperties": {
+      "speedBonus": 4,
+      "agilityBonus": 4,
+      "escapeBonus": 2,
+      "tier": 3
+    }
+  },
+  {
+    "id": "engine_corvette_mk1",
+    "name": "Corvette Engine Mk1",
     "description": "Balanced engine for corvette-class vessels. Good speed and maneuverability.",
     "category": "equipment",
     "subcategory": "engine",
@@ -32,62 +97,320 @@
     "size": 20,
     "maxStack": 1,
     "value": 3500,
-    "tags": {
-      "0": "equipment",
-      "1": "engine",
-      "2": "corvette"
-    },
+    "tags": [
+      "equipment",
+      "engine",
+      "corvette",
+      "tier_1"
+    ],
     "properties": {
       "thrust": 100,
       "agility": 75,
       "class": "corvette"
+    },
+    "combatProperties": {
+      "speedBonus": 2,
+      "agilityBonus": 1,
+      "escapeBonus": 1,
+      "tier": 1
     }
   },
   {
-    "id": "engine_frigate_t2",
-    "name": "Frigate Engine T2",
+    "id": "engine_corvette_mk2",
+    "name": "Corvette Engine Mk2",
+    "description": "Improved corvette drive system with enhanced acceleration.",
+    "category": "equipment",
+    "subcategory": "engine",
+    "tier": "uncommon",
+    "weight": 45,
+    "size": 20,
+    "maxStack": 1,
+    "value": 6000,
+    "tags": [
+      "equipment",
+      "engine",
+      "corvette",
+      "tier_2"
+    ],
+    "properties": {
+      "thrust": 140,
+      "agility": 90,
+      "class": "corvette"
+    },
+    "combatProperties": {
+      "speedBonus": 3,
+      "agilityBonus": 2,
+      "escapeBonus": 1,
+      "tier": 2
+    }
+  },
+  {
+    "id": "engine_corvette_mk3",
+    "name": "Corvette Engine Mk3",
+    "description": "Advanced corvette propulsion. Optimized for patrol and escort operations.",
+    "category": "equipment",
+    "subcategory": "engine",
+    "tier": "rare",
+    "weight": 50,
+    "size": 20,
+    "maxStack": 1,
+    "value": 9500,
+    "tags": [
+      "equipment",
+      "engine",
+      "corvette",
+      "tier_3"
+    ],
+    "properties": {
+      "thrust": 180,
+      "agility": 105,
+      "class": "corvette"
+    },
+    "combatProperties": {
+      "speedBonus": 4,
+      "agilityBonus": 2,
+      "escapeBonus": 2,
+      "tier": 3
+    }
+  },
+  {
+    "id": "engine_frigate_mk1",
+    "name": "Frigate Engine Mk1",
+    "description": "Standard drive system for frigate-class vessels. Reliable performance.",
+    "category": "equipment",
+    "subcategory": "engine",
+    "tier": "common",
+    "weight": 60,
+    "size": 30,
+    "maxStack": 1,
+    "value": 4500,
+    "tags": [
+      "equipment",
+      "engine",
+      "frigate",
+      "tier_1"
+    ],
+    "properties": {
+      "thrust": 100,
+      "agility": 50,
+      "class": "frigate",
+      "efficiency": 100
+    },
+    "combatProperties": {
+      "speedBonus": 1,
+      "agilityBonus": 1,
+      "escapeBonus": 0,
+      "tier": 1
+    }
+  },
+  {
+    "id": "engine_frigate_mk2",
+    "name": "Frigate Engine Mk2",
     "description": "Medium-power drive system for frigate-class ships. Improved efficiency.",
     "category": "equipment",
     "subcategory": "engine",
     "tier": "uncommon",
-    "weight": 60,
+    "weight": 65,
     "size": 30,
     "maxStack": 1,
-    "value": 6000,
-    "tags": {
-      "0": "equipment",
-      "1": "engine",
-      "2": "frigate"
-    },
+    "value": 7500,
+    "tags": [
+      "equipment",
+      "engine",
+      "frigate",
+      "tier_2"
+    ],
     "properties": {
       "thrust": 130,
       "agility": 60,
       "class": "frigate",
       "efficiency": 110
+    },
+    "combatProperties": {
+      "speedBonus": 2,
+      "agilityBonus": 2,
+      "escapeBonus": 1,
+      "tier": 2
     }
   },
   {
-    "id": "engine_cruiser_t3",
-    "name": "Cruiser Engine T3",
-    "description": "Heavy-duty propulsion for cruiser-class vessels. High power output.",
+    "id": "engine_frigate_mk3",
+    "name": "Frigate Engine Mk3",
+    "description": "Advanced frigate propulsion with superior thrust vectoring.",
     "category": "equipment",
     "subcategory": "engine",
     "tier": "rare",
-    "weight": 100,
-    "size": 50,
+    "weight": 70,
+    "size": 30,
     "maxStack": 1,
     "value": 12000,
-    "tags": {
-      "0": "equipment",
-      "1": "engine",
-      "2": "cruiser",
-      "3": "heavy"
+    "tags": [
+      "equipment",
+      "engine",
+      "frigate",
+      "tier_3"
+    ],
+    "properties": {
+      "thrust": 170,
+      "agility": 75,
+      "class": "frigate",
+      "efficiency": 120
     },
+    "combatProperties": {
+      "speedBonus": 3,
+      "agilityBonus": 2,
+      "escapeBonus": 1,
+      "tier": 3
+    }
+  },
+  {
+    "id": "engine_destroyer_mk1",
+    "name": "Destroyer Engine Mk1",
+    "description": "Heavy-duty drive for destroyer-class warships. Prioritizes power over agility.",
+    "category": "equipment",
+    "subcategory": "engine",
+    "tier": "uncommon",
+    "weight": 90,
+    "size": 45,
+    "maxStack": 1,
+    "value": 9000,
+    "tags": [
+      "equipment",
+      "engine",
+      "destroyer",
+      "tier_1"
+    ],
+    "properties": {
+      "thrust": 140,
+      "agility": 35,
+      "class": "destroyer",
+      "efficiency": 105
+    },
+    "combatProperties": {
+      "speedBonus": 1,
+      "agilityBonus": 0,
+      "escapeBonus": 0,
+      "tier": 1
+    }
+  },
+  {
+    "id": "engine_destroyer_mk2",
+    "name": "Destroyer Engine Mk2",
+    "description": "Improved destroyer propulsion with enhanced power output.",
+    "category": "equipment",
+    "subcategory": "engine",
+    "tier": "rare",
+    "weight": 95,
+    "size": 45,
+    "maxStack": 1,
+    "value": 14000,
+    "tags": [
+      "equipment",
+      "engine",
+      "destroyer",
+      "tier_2"
+    ],
     "properties": {
       "thrust": 180,
       "agility": 45,
+      "class": "destroyer",
+      "efficiency": 115
+    },
+    "combatProperties": {
+      "speedBonus": 2,
+      "agilityBonus": 1,
+      "escapeBonus": 1,
+      "tier": 2
+    }
+  },
+  {
+    "id": "engine_cruiser_mk1",
+    "name": "Cruiser Engine Mk1",
+    "description": "Standard cruiser-class drive. Balanced performance for capital ships.",
+    "category": "equipment",
+    "subcategory": "engine",
+    "tier": "uncommon",
+    "weight": 110,
+    "size": 55,
+    "maxStack": 1,
+    "value": 11000,
+    "tags": [
+      "equipment",
+      "engine",
+      "cruiser",
+      "tier_1"
+    ],
+    "properties": {
+      "thrust": 120,
+      "agility": 25,
+      "class": "cruiser",
+      "efficiency": 110
+    },
+    "combatProperties": {
+      "speedBonus": 1,
+      "agilityBonus": 0,
+      "escapeBonus": 0,
+      "tier": 1
+    }
+  },
+  {
+    "id": "engine_cruiser_mk2",
+    "name": "Cruiser Engine Mk2",
+    "description": "Enhanced cruiser propulsion with improved acceleration.",
+    "category": "equipment",
+    "subcategory": "engine",
+    "tier": "rare",
+    "weight": 115,
+    "size": 55,
+    "maxStack": 1,
+    "value": 16000,
+    "tags": [
+      "equipment",
+      "engine",
+      "cruiser",
+      "tier_2"
+    ],
+    "properties": {
+      "thrust": 160,
+      "agility": 35,
       "class": "cruiser",
       "efficiency": 120
+    },
+    "combatProperties": {
+      "speedBonus": 2,
+      "agilityBonus": 1,
+      "escapeBonus": 1,
+      "tier": 2
+    }
+  },
+  {
+    "id": "engine_cruiser_mk3",
+    "name": "Cruiser Engine Mk3",
+    "description": "High-performance cruiser drive. Capital-grade propulsion system.",
+    "category": "equipment",
+    "subcategory": "engine",
+    "tier": "epic",
+    "weight": 120,
+    "size": 55,
+    "maxStack": 1,
+    "value": 22000,
+    "tags": [
+      "equipment",
+      "engine",
+      "cruiser",
+      "tier_3"
+    ],
+    "properties": {
+      "thrust": 200,
+      "agility": 45,
+      "class": "cruiser",
+      "efficiency": 130
+    },
+    "combatProperties": {
+      "speedBonus": 3,
+      "agilityBonus": 1,
+      "escapeBonus": 1,
+      "tier": 3
     }
   },
   {
@@ -101,11 +424,11 @@
     "size": 25,
     "maxStack": 1,
     "value": 15000,
-    "tags": {
-      "0": "equipment",
-      "1": "ftl",
-      "2": "jump"
-    },
+    "tags": [
+      "equipment",
+      "ftl",
+      "jump"
+    ],
     "properties": {
       "range": 10,
       "chargeTime": 30

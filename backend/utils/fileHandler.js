@@ -99,7 +99,7 @@ async function readItems(category = null) {
     return await readJSON(`items/items_${category}.json`);
   } else {
     // Read all item categories and combine
-    const categories = ['weapons', 'subsystems', 'resources', 'consumables', 'equipment', 'artifacts', 'core'];
+    const categories = ['weapons', 'subsystems', 'resources', 'consumables', 'equipment', 'artifacts', 'ships', 'core'];
     const allItems = [];
     
     for (const cat of categories) {

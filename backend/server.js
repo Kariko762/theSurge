@@ -10,8 +10,17 @@ const app = express();
 const PORT = process.env.PORT || 3002;
 
 // Middleware
+// CORS: allow multiple dev origins (3000 Vite, legacy 5173) unless overridden
+const rawOrigins = process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:5173';
+const allowedOrigins = rawOrigins.split(',').map(o => o.trim());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, origin);
+    }
+    console.warn('Blocked CORS origin:', origin);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 app.use(express.json());

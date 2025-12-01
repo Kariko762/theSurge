@@ -18,7 +18,7 @@ export default function CoreMechanicsViewer() {
             className={`tab-button ${activeCategory === id ? 'active' : ''}`}
             onClick={() => setActiveCategory(id)}
           >
-            {cat.icon} {cat.name}
+            {cat.name}
           </button>
         ))}
       </div>

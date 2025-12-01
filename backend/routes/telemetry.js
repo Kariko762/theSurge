@@ -187,6 +187,30 @@ router.get('/', (req, res) => {
   }
 });
 
+// POST /api/telemetry - Log AI debug messages to server console
+router.post('/', (req, res) => {
+  try {
+    const { type, message, timestamp, stack } = req.body;
+    
+    // Log to server console with colored output
+    if (type === 'AI_DEBUG') {
+      console.log(`\x1b[36m${timestamp} [AI_DEBUG]\x1b[0m ${message}`);
+    } else if (type === 'AI_ERROR') {
+      console.error(`\x1b[31m${timestamp} [AI_ERROR]\x1b[0m ${message}`);
+      if (stack) {
+        console.error(`\x1b[31mStack:\x1b[0m ${stack}`);
+      }
+    } else {
+      console.log(`${timestamp} [${type}] ${message}`);
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error logging to console:', error);
+    res.status(500).json({ error: 'Failed to log message' });
+  }
+});
+
 // POST /api/telemetry/track - Track a new event
 router.post('/track', (req, res) => {
   try {

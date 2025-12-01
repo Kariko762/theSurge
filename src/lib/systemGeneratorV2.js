@@ -4,10 +4,11 @@
 // - Oval heliosphere (radius + 10 AU buffer)
 // - Outside-in generation with 5 AU collision detection
 // - Nested POIs (planets with orbitals as children)
-// - Configuration-driven parameters
+// - Configuration-driven parameters from POI Library (backend)
 
 import { makeRng, randInt, lerp, pick, weighted } from './rng.js';
 import config from './systemGenerator.config.json';
+import { loadPOILibrary } from './poiLibraryLoader.js';
 
 const STAR_CLASSES = ['O', 'B', 'A', 'F', 'G', 'K', 'M'];
 
@@ -69,20 +70,26 @@ function calculateEncounterActivity(starClass, luminosity) {
  * Generate random name for POI
  */
 function generatePOIName(rng, type, index) {
-  const prefixes = {
-    planet: ['Kepler', 'Gliese', 'Proxima', 'Ross', 'Wolf', 'Lacaille'],
-    belt: ['Kuiper', 'Oort', 'Scattered', 'Trojan', 'Greek', 'Main'],
-    moon: ['Luna', 'Io', 'Europa', 'Titan', 'Callisto', 'Ganymede'],
-    station: ['Outpost', 'Station', 'Waypoint', 'Hub', 'Gateway', 'Beacon'],
-    habitat: ['Cylinder', 'Torus', 'Colony', 'Haven', 'Ark', 'Refuge'],
-    anomaly: ['Signal', 'Rift', 'Anomaly', 'Nexus', 'Vortex', 'Echo']
+  const typeNames = {
+    PLANET: 'Planet',
+    MOON: 'Moon',
+    BELT: 'Asteroid Cluster',
+    STATION: 'Station',
+    HABITAT: 'Habitat',
+    ANOMALY: 'Anomaly',
+    CONFLICT: 'Conflict Zone',
+    DISTRESS: 'Distress Signal',
+    FACILITY: 'Facility',
+    NEBULA: 'Nebula',
+    WAKE: 'Wake Signature'
   };
   
-  const prefix = pick(prefixes[type] || ['Object'], rng);
+  // Get type name (try uppercase first, then lowercase)
+  const typeName = typeNames[type] || typeNames[type?.toUpperCase()] || 'Object';
   const suffix = String.fromCharCode(65 + (index % 26)); // A, B, C, etc.
   const number = Math.floor(randInt(rng, 100, 999));
   
-  return `${prefix}-${number}${suffix}`;
+  return `${typeName}-${number}${suffix}`;
 }
 
 /**
@@ -102,10 +109,19 @@ function checkCollision(x, y, existingPOIs, minSpacing = config.constraints.minP
 
 /**
  * Generate POI at specific distance from star
+ * @param {Function} rng - Random number generator
+ * @param {string} type - POI type
+ * @param {number} distance - Distance from star in AU
+ * @param {number} angle - Angle in radians
+ * @param {number} index - POI index
+ * @param {string|null} parentId - Parent POI ID if orbital
+ * @param {Object} typeConfig - Type configuration from POI library
+ * @returns {Object} Generated POI
  */
-function generatePOI(rng, type, distance, angle, index, parentId = null) {
-  const typeConfig = config.poiTypes[type];
-  const size = lerp(typeConfig.sizeRange[0], typeConfig.sizeRange[1], rng());
+function generatePOI(rng, type, distance, angle, index, parentId = null, typeConfig = null) {
+  // Use type config if provided, otherwise fall back to default config
+  const cfg = typeConfig || config.poiTypes[type] || {};
+  const size = lerp(cfg.sizeRange[0], cfg.sizeRange[1], rng());
   
   const x = distance * Math.cos(angle);
   const y = distance * Math.sin(angle);
@@ -120,16 +136,27 @@ function generatePOI(rng, type, distance, angle, index, parentId = null) {
     angleRad: angle,
     size,
     parentId,
-    orbitals: [] // Will be populated if this POI can have orbitals
+    orbitals: [], // Will be populated if this POI can have orbitals
+    // Additional metadata from POI library
+    orbitType: cfg.orbitType || 'circular',
+    orbitSpeed: cfg.orbitSpeed || 1,
+    tierMultiplier: cfg.tierMultiplier || 1,
+    imagePool: cfg.imagePool || '',
+    description: cfg.description || ''
   };
 }
 
 /**
  * Generate orbital POIs around a parent
+ * @param {Function} rng - Random number generator
+ * @param {Object} parent - Parent POI
+ * @param {number} poiIndex - Starting index for orbitals
+ * @param {Object} poiConfig - POI library configuration
+ * @returns {Array} Generated orbital POIs
  */
-function generateOrbitals(rng, parent, poiIndex) {
-  const parentConfig = config.poiTypes[parent.type];
-  if (!parentConfig.canHaveOrbitals) return [];
+function generateOrbitals(rng, parent, poiIndex, poiConfig) {
+  const parentConfig = poiConfig.poiTypes[parent.type];
+  if (!parentConfig || !parentConfig.canHaveOrbitals) return [];
   
   // Roll for orbitals
   if (rng() > parentConfig.orbitalProbability) return [];
@@ -139,7 +166,14 @@ function generateOrbitals(rng, parent, poiIndex) {
   const orbitalDistance = 0.8; // AU offset from parent (close proximity)
   
   for (let i = 0; i < numOrbitals; i++) {
-    const orbitalType = pick(config.orbitalTypes, rng);
+    const orbitalType = pick(poiConfig.orbitalTypes, rng);
+    const orbitalConfig = poiConfig.poiTypes[orbitalType];
+    
+    if (!orbitalConfig) {
+      console.warn(`[SystemGenV2] No config found for orbital type: ${orbitalType}`);
+      continue;
+    }
+    
     const angle = (Math.PI * 2 / numOrbitals) * i; // Evenly spaced around parent
     
     const orbitalX = parent.x + orbitalDistance * Math.cos(angle);
@@ -147,7 +181,7 @@ function generateOrbitals(rng, parent, poiIndex) {
     const orbitalDist = Math.sqrt(orbitalX * orbitalX + orbitalY * orbitalY);
     const orbitalAngle = Math.atan2(orbitalY, orbitalX);
     
-    const orbital = generatePOI(rng, orbitalType, orbitalDist, orbitalAngle, poiIndex + i, parent.id);
+    const orbital = generatePOI(rng, orbitalType, orbitalDist, orbitalAngle, poiIndex + i, parent.id, orbitalConfig);
     orbitals.push(orbital);
   }
   
@@ -157,28 +191,44 @@ function generateOrbitals(rng, parent, poiIndex) {
 /**
  * Generate POIs using outside-in approach
  * Starts at max radius and works inward, ensuring 5 AU spacing
+ * @param {Function} rng - Random number generator
+ * @param {number} maxRadius - Maximum system radius in AU
+ * @param {Object} poiConfig - POI library configuration (from loadPOILibrary)
+ * @returns {Array} Generated POIs
  */
-function generatePOIs(rng, maxRadius) {
+function generatePOIs(rng, maxRadius, poiConfig) {
   const pois = [];
   let poiIndex = 0;
+  const typeCounters = {}; // Track how many of each type spawned
   
   // Determine total number of POIs based on system size
   const minPOIs = 8;
   const maxPOIs = 20;
-  const numPOIs = randInt(rng, minPOIs, maxPOIs);
+  const targetPOICount = randInt(rng, minPOIs, maxPOIs);
   
-  // Create weighted POI type selection
-  const poiTypeWeights = Object.entries(config.poiTypes)
+  // Create weighted POI type selection from loaded config
+  const poiTypeWeights = Object.entries(poiConfig.poiTypes)
     .filter(([type, cfg]) => !cfg.isOrbital) // Exclude orbital-only types
     .map(([type, cfg]) => [type, cfg.weight]);
   
-  // Outside-in generation: start at maxRadius, work toward center
-  const attempts = numPOIs * 10; // Allow multiple attempts to place each POI
+  if (poiTypeWeights.length === 0) {
+    console.warn('[SystemGenV2] No non-orbital POI types found in config!');
+    return [];
+  }
   
-  for (let attempt = 0; attempt < attempts && pois.length < numPOIs; attempt++) {
+  // Outside-in generation: start at maxRadius, work toward center
+  const attempts = targetPOICount * 10; // Allow multiple attempts to place each POI
+  
+  for (let attempt = 0; attempt < attempts && pois.length < targetPOICount; attempt++) {
     // Pick POI type
     const type = weighted(poiTypeWeights, rng);
-    const typeConfig = config.poiTypes[type];
+    const typeConfig = poiConfig.poiTypes[type];
+    
+    // Check maxCount limit
+    const currentCount = typeCounters[type] || 0;
+    if (currentCount >= typeConfig.maxCount) {
+      continue; // Skip this type, already at max
+    }
     
     // Roll distance within valid range for this type
     const minDist = Math.max(typeConfig.minDistance, 5); // Never closer than 5 AU
@@ -187,7 +237,7 @@ function generatePOIs(rng, maxRadius) {
     if (minDist >= maxDist) continue; // Skip if no valid range
     
     // Bias toward outer regions early, inner regions later
-    const distanceBias = 1 - (pois.length / numPOIs); // 1.0 at start, 0.0 at end
+    const distanceBias = 1 - (pois.length / targetPOICount); // 1.0 at start, 0.0 at end
     const distance = lerp(maxDist, minDist, Math.pow(rng(), 1 - distanceBias));
     const angle = rng() * Math.PI * 2;
     
@@ -197,15 +247,18 @@ function generatePOIs(rng, maxRadius) {
     // Check collision with existing POIs
     if (checkCollision(x, y, pois)) continue;
     
-    // Generate POI
-    const poi = generatePOI(rng, type, distance, angle, poiIndex);
+    // Generate POI with config from library
+    const poi = generatePOI(rng, type, distance, angle, poiIndex, null, typeConfig);
     
-    // Generate orbitals if applicable
-    const orbitals = generateOrbitals(rng, poi, poiIndex + 1000);
+    // Generate orbitals if applicable (using loaded config)
+    const orbitals = generateOrbitals(rng, poi, poiIndex + 1000, poiConfig);
     poi.orbitals = orbitals;
     
     pois.push(poi);
     poiIndex++;
+    
+    // Increment type counter
+    typeCounters[type] = currentCount + 1;
   }
   
   return pois;
@@ -213,10 +266,19 @@ function generatePOIs(rng, maxRadius) {
 
 /**
  * Generate complete solar system
+ * @param {string} seedStr - Seed string (format: SSG2-G:SECTOR:PAYLOAD)
+ * @param {Object|null} poiConfig - Optional POI library config (from loadPOILibrary)
+ * @returns {Object} Generated solar system
  */
-export function generateSystemV2(seedStr) {
+export async function generateSystemV2(seedStr, poiConfig = null) {
   const { ver, starClassHint, label, payload, baseSeed } = parseSeed(seedStr);
   const rng = makeRng(baseSeed);
+  
+  // Load POI config if not provided
+  if (!poiConfig) {
+    console.log('[SystemGenV2] No POI config provided, loading from backend...');
+    poiConfig = await loadPOILibrary();
+  }
   
   // Star properties
   const starClass = rollStarClass(rng, starClassHint);
@@ -236,8 +298,8 @@ export function generateSystemV2(seedStr) {
   // Heliosphere (oval shape: radius + 10 AU buffer, stretched 1.3x on one axis)
   const heliosphereRadiusAU = systemRadiusAU + config.constraints.heliosphereBuffer;
   
-  // Generate POIs
-  const pois = generatePOIs(rng, systemRadiusAU);
+  // Generate POIs using loaded config
+  const pois = generatePOIs(rng, systemRadiusAU, poiConfig);
   
   // Build system object
   const system = {
@@ -263,7 +325,8 @@ export function generateSystemV2(seedStr) {
     metadata: {
       generated: new Date().toISOString(),
       poiCount: pois.length,
-      orbitalCount: pois.reduce((sum, poi) => sum + poi.orbitals.length, 0)
+      orbitalCount: pois.reduce((sum, poi) => sum + poi.orbitals.length, 0),
+      usedPOIConfig: !!poiConfig // Flag whether custom config was used
     }
   };
   

@@ -42,5 +42,1570 @@
       "tier": 1
     },
     "enabled": true
+  },
+  {
+    "id": "utd_sentinel_mk1",
+    "name": "UTD Sentinel Mk1",
+    "class": "fighter",
+    "tier": 1,
+    "manufacturer": "UTD Shipyards",
+    "faction": "UTD",
+    "description": "Standard UTD fighter. Fast and maneuverable for early patrol operations.",
+    "playerLevelRequired": 2,
+    "baseStats": {
+      "hull": 8,
+      "shields": 6,
+      "power": 100,
+      "cargo": 20,
+      "speed": 17,
+      "agility": 17
+    },
+    "fuelCapacity": {
+      "min": 40,
+      "max": 80
+    },
+    "engine": "engine_fighter_mk1",
+    "weaponSlots": {
+      "slot_1": "pulse_laser_mk1",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk1",
+      "slot_2": "sensor_array_standard"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null
+    },
+    "aiCoreSlots": 1,
+    "tierBonuses": [],
+    "cost": 15000,
+    "unlockRequirements": {
+      "credits": 15000,
+      "reputation": 0,
+      "tier": 1
+    },
+    "enabled": true
+  },
+  {
+    "id": "utd_talon_mk2",
+    "name": "UTD Talon Mk2",
+    "class": "fighter",
+    "tier": 1,
+    "manufacturer": "UTD Shipyards",
+    "faction": "UTD",
+    "description": "Upgraded UTD fighter with improved systems and firepower.",
+    "playerLevelRequired": 3,
+    "baseStats": {
+      "hull": 10,
+      "shields": 8,
+      "power": 120,
+      "cargo": 25,
+      "speed": 17,
+      "agility": 17
+    },
+    "fuelCapacity": {
+      "min": 50,
+      "max": 100
+    },
+    "engine": "engine_fighter_mk2",
+    "weaponSlots": {
+      "slot_1": "pulse_laser_mk2",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk2",
+      "slot_2": "sensor_array_improved"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null
+    },
+    "aiCoreSlots": 1,
+    "tierBonuses": [],
+    "cost": 22000,
+    "unlockRequirements": {
+      "credits": 22000,
+      "reputation": 100,
+      "tier": 1
+    },
+    "enabled": true
+  },
+  {
+    "id": "utd_phalanx_escort",
+    "name": "UTD Phalanx Escort",
+    "class": "corvette",
+    "tier": 2,
+    "manufacturer": "UTD Shipyards",
+    "faction": "UTD",
+    "description": "UTD escort corvette designed for convoy protection and light combat.",
+    "playerLevelRequired": 4,
+    "baseStats": {
+      "hull": 12,
+      "shields": 10,
+      "power": 150,
+      "cargo": 50,
+      "speed": 16,
+      "agility": 16
+    },
+    "fuelCapacity": {
+      "min": 80,
+      "max": 150
+    },
+    "engine": "engine_corvette_mk2",
+    "weaponSlots": {
+      "slot_1": "pulse_laser_mk2",
+      "slot_2": "missile_launcher_light"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk2",
+      "slot_2": "ecm_suite_basic"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null
+    },
+    "aiCoreSlots": 2,
+    "tierBonuses": [],
+    "cost": 35000,
+    "unlockRequirements": {
+      "credits": 35000,
+      "reputation": 250,
+      "tier": 2
+    },
+    "enabled": true
+  },
+  {
+    "id": "utd_rampart_patrol",
+    "name": "UTD Rampart Patrol",
+    "class": "corvette",
+    "tier": 2,
+    "manufacturer": "UTD Shipyards",
+    "faction": "UTD",
+    "description": "Enhanced patrol corvette with advanced ECM and heavier armament.",
+    "playerLevelRequired": 6,
+    "baseStats": {
+      "hull": 14,
+      "shields": 12,
+      "power": 180,
+      "cargo": 60,
+      "speed": 15,
+      "agility": 15
+    },
+    "fuelCapacity": {
+      "min": 100,
+      "max": 180
+    },
+    "engine": "engine_corvette_mk3",
+    "weaponSlots": {
+      "slot_1": "pulse_laser_mk3",
+      "slot_2": "autocannon_mk2"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3",
+      "slot_2": "ecm_suite_enhanced"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null
+    },
+    "aiCoreSlots": 2,
+    "tierBonuses": [],
+    "cost": 55000,
+    "unlockRequirements": {
+      "credits": 55000,
+      "reputation": 500,
+      "tier": 2
+    },
+    "enabled": true
+  },
+  {
+    "id": "utd_hammer_frigate",
+    "name": "UTD Hammer Frigate",
+    "class": "frigate",
+    "tier": 2,
+    "manufacturer": "UTD Shipyards",
+    "faction": "UTD",
+    "description": "Frontline UTD frigate. Balanced firepower and defense for sector patrol.",
+    "playerLevelRequired": 7,
+    "baseStats": {
+      "hull": 22,
+      "shields": 14,
+      "power": 220,
+      "cargo": 100,
+      "speed": 14,
+      "agility": 14
+    },
+    "fuelCapacity": {
+      "min": 150,
+      "max": 300
+    },
+    "engine": "engine_frigate_mk2",
+    "weaponSlots": {
+      "slot_1": "beam_laser_mk1",
+      "slot_2": "railgun_mk1"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3",
+      "slot_2": "ecm_suite_basic",
+      "slot_3": "sensor_array_improved"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null,
+      "slot_3": null
+    },
+    "aiCoreSlots": 3,
+    "tierBonuses": [],
+    "cost": 85000,
+    "unlockRequirements": {
+      "credits": 85000,
+      "reputation": 800,
+      "tier": 2
+    },
+    "enabled": true
+  },
+  {
+    "id": "utd_vanguard_frigate",
+    "name": "UTD Vanguard Frigate",
+    "class": "frigate",
+    "tier": 3,
+    "manufacturer": "UTD Shipyards",
+    "faction": "UTD",
+    "description": "Advanced UTD frigate with long-range sensors and missile systems.",
+    "playerLevelRequired": 9,
+    "baseStats": {
+      "hull": 26,
+      "shields": 16,
+      "power": 260,
+      "cargo": 120,
+      "speed": 14,
+      "agility": 14
+    },
+    "fuelCapacity": {
+      "min": 200,
+      "max": 400
+    },
+    "engine": "engine_frigate_mk3",
+    "weaponSlots": {
+      "slot_1": "beam_laser_mk2",
+      "slot_2": "missile_launcher_medium",
+      "slot_3": "railgun_mk1"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3",
+      "slot_2": "sensor_array_longrange"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null,
+      "slot_3": null
+    },
+    "aiCoreSlots": 3,
+    "tierBonuses": [],
+    "cost": 125000,
+    "unlockRequirements": {
+      "credits": 125000,
+      "reputation": 1200,
+      "tier": 3
+    },
+    "enabled": true
+  },
+  {
+    "id": "utd_bastion_cruiser",
+    "name": "UTD Bastion Cruiser",
+    "class": "cruiser",
+    "tier": 3,
+    "manufacturer": "UTD Shipyards",
+    "faction": "UTD",
+    "description": "Heavy UTD cruiser. Multi-weapon platform for sustained operations.",
+    "playerLevelRequired": 11,
+    "baseStats": {
+      "hull": 32,
+      "shields": 20,
+      "power": 320,
+      "cargo": 200,
+      "speed": 12,
+      "agility": 12
+    },
+    "fuelCapacity": {
+      "min": 300,
+      "max": 600
+    },
+    "engine": "engine_cruiser_mk3",
+    "weaponSlots": {
+      "slot_1": "beam_laser_mk2",
+      "slot_2": "railgun_mk2",
+      "slot_3": "missile_launcher_heavy"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3",
+      "slot_2": "ecm_suite_enhanced",
+      "slot_3": "sensor_array_longrange"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null,
+      "slot_3": null,
+      "slot_4": null
+    },
+    "aiCoreSlots": 4,
+    "tierBonuses": [],
+    "cost": 250000,
+    "unlockRequirements": {
+      "credits": 250000,
+      "reputation": 2000,
+      "tier": 3
+    },
+    "enabled": true
+  },
+  {
+    "id": "utd_citadel_command_cruiser",
+    "name": "UTD Citadel Command Cruiser",
+    "class": "cruiser",
+    "tier": 3,
+    "manufacturer": "UTD Shipyards",
+    "faction": "UTD",
+    "description": "UTD command cruiser with dual beam lasers and advanced C3 systems.",
+    "playerLevelRequired": 13,
+    "baseStats": {
+      "hull": 36,
+      "shields": 24,
+      "power": 360,
+      "cargo": 220,
+      "speed": 12,
+      "agility": 12
+    },
+    "fuelCapacity": {
+      "min": 350,
+      "max": 700
+    },
+    "engine": "engine_cruiser_mk3",
+    "weaponSlots": {
+      "slot_1": "beam_laser_mk2",
+      "slot_2": "beam_laser_mk2",
+      "slot_3": "railgun_mk2",
+      "slot_4": "missile_launcher_heavy"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3",
+      "slot_2": "sensor_array_longrange",
+      "slot_3": "ecm_suite_advanced"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null,
+      "slot_3": null,
+      "slot_4": null
+    },
+    "aiCoreSlots": 4,
+    "tierBonuses": [],
+    "cost": 350000,
+    "unlockRequirements": {
+      "credits": 350000,
+      "reputation": 3000,
+      "tier": 3
+    },
+    "enabled": true
+  },
+  {
+    "id": "hex_vector_skirmisher",
+    "name": "HEX Vector Skirmisher",
+    "class": "fighter",
+    "tier": 1,
+    "manufacturer": "HEX-Corp Industries",
+    "faction": "HEX-CORP",
+    "description": "HEX-Corp mass-produced fighter. Cost-efficient for corporate security.",
+    "playerLevelRequired": 2,
+    "baseStats": {
+      "hull": 7,
+      "shields": 6,
+      "power": 95,
+      "cargo": 18,
+      "speed": 17,
+      "agility": 17
+    },
+    "fuelCapacity": {
+      "min": 35,
+      "max": 75
+    },
+    "engine": "engine_fighter_mk1",
+    "weaponSlots": {
+      "slot_1": "pulse_laser_mk1",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk1",
+      "slot_2": "sensor_array_standard"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null
+    },
+    "aiCoreSlots": 1,
+    "tierBonuses": [],
+    "cost": 14000,
+    "unlockRequirements": {
+      "credits": 14000,
+      "reputation": 0,
+      "tier": 1
+    },
+    "enabled": true
+  },
+  {
+    "id": "hex_asset_reclaimer",
+    "name": "HEX Asset Reclaimer",
+    "class": "fighter",
+    "tier": 1,
+    "manufacturer": "HEX-Corp Industries",
+    "faction": "HEX-CORP",
+    "description": "HEX salvage fighter optimized for asset recovery operations.",
+    "playerLevelRequired": 3,
+    "baseStats": {
+      "hull": 8,
+      "shields": 7,
+      "power": 110,
+      "cargo": 30,
+      "speed": 17,
+      "agility": 17
+    },
+    "fuelCapacity": {
+      "min": 45,
+      "max": 90
+    },
+    "engine": "engine_fighter_mk2",
+    "weaponSlots": {
+      "slot_1": "pulse_laser_mk2",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk2",
+      "slot_2": "sensor_array_improved"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null
+    },
+    "aiCoreSlots": 1,
+    "tierBonuses": [],
+    "cost": 20000,
+    "unlockRequirements": {
+      "credits": 20000,
+      "reputation": 100,
+      "tier": 1
+    },
+    "enabled": true
+  },
+  {
+    "id": "hex_cutlogic_corvette",
+    "name": "HEX CutLogic Corvette",
+    "class": "corvette",
+    "tier": 2,
+    "manufacturer": "HEX-Corp Industries",
+    "faction": "HEX-CORP",
+    "description": "Corporate enforcement corvette with standardized loadout.",
+    "playerLevelRequired": 4,
+    "baseStats": {
+      "hull": 12,
+      "shields": 10,
+      "power": 145,
+      "cargo": 48,
+      "speed": 16,
+      "agility": 16
+    },
+    "fuelCapacity": {
+      "min": 75,
+      "max": 145
+    },
+    "engine": "engine_corvette_mk2",
+    "weaponSlots": {
+      "slot_1": "pulse_laser_mk2",
+      "slot_2": "missile_launcher_light"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk2",
+      "slot_2": "ecm_suite_basic"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null
+    },
+    "aiCoreSlots": 2,
+    "tierBonuses": [],
+    "cost": 33000,
+    "unlockRequirements": {
+      "credits": 33000,
+      "reputation": 200,
+      "tier": 2
+    },
+    "enabled": true
+  },
+  {
+    "id": "hex_extractor_corvette",
+    "name": "HEX Extractor Corvette",
+    "class": "corvette",
+    "tier": 2,
+    "manufacturer": "HEX-Corp Industries",
+    "faction": "HEX-CORP",
+    "description": "Resource extraction escort with beam weaponry and sensors.",
+    "playerLevelRequired": 6,
+    "baseStats": {
+      "hull": 14,
+      "shields": 11,
+      "power": 175,
+      "cargo": 65,
+      "speed": 15,
+      "agility": 15
+    },
+    "fuelCapacity": {
+      "min": 95,
+      "max": 175
+    },
+    "engine": "engine_corvette_mk3",
+    "weaponSlots": {
+      "slot_1": "beam_laser_mk1",
+      "slot_2": "autocannon_mk2"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3",
+      "slot_2": "sensor_array_improved"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null
+    },
+    "aiCoreSlots": 2,
+    "tierBonuses": [],
+    "cost": 52000,
+    "unlockRequirements": {
+      "credits": 52000,
+      "reputation": 450,
+      "tier": 2
+    },
+    "enabled": true
+  },
+  {
+    "id": "hex_proxy_drone_frigate",
+    "name": "HEX Proxy Drone Frigate",
+    "class": "frigate",
+    "tier": 2,
+    "manufacturer": "HEX-Corp Industries",
+    "faction": "HEX-CORP",
+    "description": "Drone carrier frigate for automated defense operations.",
+    "playerLevelRequired": 7,
+    "baseStats": {
+      "hull": 20,
+      "shields": 14,
+      "power": 210,
+      "cargo": 95,
+      "speed": 14,
+      "agility": 14
+    },
+    "fuelCapacity": {
+      "min": 145,
+      "max": 290
+    },
+    "engine": "engine_frigate_mk2",
+    "weaponSlots": {
+      "slot_1": "pulse_laser_mk3",
+      "slot_2": "missile_launcher_medium"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3",
+      "slot_2": "ecm_suite_basic"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null,
+      "slot_3": null
+    },
+    "aiCoreSlots": 3,
+    "tierBonuses": [],
+    "cost": 80000,
+    "unlockRequirements": {
+      "credits": 80000,
+      "reputation": 750,
+      "tier": 2
+    },
+    "enabled": true
+  },
+  {
+    "id": "hex_fulcrum_overcharger",
+    "name": "HEX Fulcrum-Overcharger",
+    "class": "frigate",
+    "tier": 3,
+    "manufacturer": "HEX-Corp Industries",
+    "faction": "HEX-CORP",
+    "description": "High-powered HEX frigate with experimental overcharge systems.",
+    "playerLevelRequired": 9,
+    "baseStats": {
+      "hull": 24,
+      "shields": 16,
+      "power": 250,
+      "cargo": 115,
+      "speed": 14,
+      "agility": 14
+    },
+    "fuelCapacity": {
+      "min": 190,
+      "max": 385
+    },
+    "engine": "engine_frigate_mk3",
+    "weaponSlots": {
+      "slot_1": "beam_laser_mk2",
+      "slot_2": "railgun_mk1",
+      "slot_3": "missile_launcher_medium"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null,
+      "slot_3": null
+    },
+    "aiCoreSlots": 3,
+    "tierBonuses": [],
+    "cost": 120000,
+    "unlockRequirements": {
+      "credits": 120000,
+      "reputation": 1100,
+      "tier": 3
+    },
+    "enabled": true
+  },
+  {
+    "id": "hex_dominion_cruiser",
+    "name": "HEX Dominion Cruiser",
+    "class": "cruiser",
+    "tier": 3,
+    "manufacturer": "HEX-Corp Industries",
+    "faction": "HEX-CORP",
+    "description": "Corporate battlecruiser with plasma weaponry for territory control.",
+    "playerLevelRequired": 11,
+    "baseStats": {
+      "hull": 30,
+      "shields": 20,
+      "power": 310,
+      "cargo": 190,
+      "speed": 12,
+      "agility": 12
+    },
+    "fuelCapacity": {
+      "min": 290,
+      "max": 580
+    },
+    "engine": "engine_cruiser_mk3",
+    "weaponSlots": {
+      "slot_1": "plasma_cannon_mk1",
+      "slot_2": "beam_laser_mk2",
+      "slot_3": "railgun_mk2"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3",
+      "slot_2": "ecm_suite_enhanced"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null,
+      "slot_3": null,
+      "slot_4": null
+    },
+    "aiCoreSlots": 4,
+    "tierBonuses": [],
+    "cost": 240000,
+    "unlockRequirements": {
+      "credits": 240000,
+      "reputation": 1900,
+      "tier": 3
+    },
+    "enabled": true
+  },
+  {
+    "id": "hex_vault_enforcer_cruiser",
+    "name": "HEX Vault-Enforcer Cruiser",
+    "class": "cruiser",
+    "tier": 3,
+    "manufacturer": "HEX-Corp Industries",
+    "faction": "HEX-CORP",
+    "description": "Heavy HEX cruiser with dual plasma cannons for asset protection.",
+    "playerLevelRequired": 13,
+    "baseStats": {
+      "hull": 34,
+      "shields": 22,
+      "power": 350,
+      "cargo": 210,
+      "speed": 12,
+      "agility": 12
+    },
+    "fuelCapacity": {
+      "min": 340,
+      "max": 680
+    },
+    "engine": "engine_cruiser_mk3",
+    "weaponSlots": {
+      "slot_1": "plasma_cannon_mk1",
+      "slot_2": "plasma_cannon_mk1",
+      "slot_3": "railgun_mk2",
+      "slot_4": "missile_launcher_heavy"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null,
+      "slot_3": null,
+      "slot_4": null
+    },
+    "aiCoreSlots": 4,
+    "tierBonuses": [],
+    "cost": 340000,
+    "unlockRequirements": {
+      "credits": 340000,
+      "reputation": 2800,
+      "tier": 3
+    },
+    "enabled": true
+  },
+  {
+    "id": "scrapwing_fighter",
+    "name": "Scrapwing Fighter",
+    "class": "fighter",
+    "tier": 1,
+    "manufacturer": "Freebelt Cooperative",
+    "faction": "FREEBELT",
+    "description": "Improvised Freebelt fighter. Light on shields, high on agility.",
+    "playerLevelRequired": 1,
+    "baseStats": {
+      "hull": 6,
+      "shields": 3,
+      "power": 85,
+      "cargo": 15,
+      "speed": 18,
+      "agility": 18
+    },
+    "fuelCapacity": {
+      "min": 30,
+      "max": 60
+    },
+    "engine": "engine_fighter_mk1",
+    "weaponSlots": {
+      "slot_1": "pulse_laser_mk1",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "ecm_suite_basic"
+    },
+    "aiCores": {
+      "slot_1": null
+    },
+    "aiCoreSlots": 1,
+    "tierBonuses": [],
+    "cost": 8000,
+    "unlockRequirements": {
+      "credits": 8000,
+      "reputation": 0,
+      "tier": 1
+    },
+    "enabled": true
+  },
+  {
+    "id": "razorwing_fighter",
+    "name": "Razorwing Fighter",
+    "class": "fighter",
+    "tier": 1,
+    "manufacturer": "Freebelt Cooperative",
+    "faction": "FREEBELT",
+    "description": "Enhanced Freebelt fighter with improved engines and sensors.",
+    "playerLevelRequired": 3,
+    "baseStats": {
+      "hull": 8,
+      "shields": 4,
+      "power": 105,
+      "cargo": 20,
+      "speed": 18,
+      "agility": 18
+    },
+    "fuelCapacity": {
+      "min": 40,
+      "max": 80
+    },
+    "engine": "engine_fighter_mk2",
+    "weaponSlots": {
+      "slot_1": "pulse_laser_mk2",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "sensor_array_standard"
+    },
+    "aiCores": {
+      "slot_1": null
+    },
+    "aiCoreSlots": 1,
+    "tierBonuses": [],
+    "cost": 18000,
+    "unlockRequirements": {
+      "credits": 18000,
+      "reputation": 50,
+      "tier": 1
+    },
+    "enabled": true
+  },
+  {
+    "id": "freebelt_cutlass_raider",
+    "name": "Freebelt Cutlass Raider",
+    "class": "corvette",
+    "tier": 2,
+    "manufacturer": "Freebelt Cooperative",
+    "faction": "FREEBELT",
+    "description": "Fast-attack Freebelt raider optimized for hit-and-run tactics.",
+    "playerLevelRequired": 4,
+    "baseStats": {
+      "hull": 12,
+      "shields": 6,
+      "power": 135,
+      "cargo": 45,
+      "speed": 16,
+      "agility": 16
+    },
+    "fuelCapacity": {
+      "min": 70,
+      "max": 135
+    },
+    "engine": "engine_corvette_mk2",
+    "weaponSlots": {
+      "slot_1": "missile_launcher_light",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "ecm_suite_enhanced"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null
+    },
+    "aiCoreSlots": 2,
+    "tierBonuses": [],
+    "cost": 30000,
+    "unlockRequirements": {
+      "credits": 30000,
+      "reputation": 150,
+      "tier": 2
+    },
+    "enabled": true
+  },
+  {
+    "id": "freebelt_gutterfire_corvette",
+    "name": "Freebelt Gutterfire Corvette",
+    "class": "corvette",
+    "tier": 2,
+    "manufacturer": "Freebelt Cooperative",
+    "faction": "FREEBELT",
+    "description": "Advanced Freebelt corvette with military-grade ECM systems.",
+    "playerLevelRequired": 6,
+    "baseStats": {
+      "hull": 14,
+      "shields": 7,
+      "power": 165,
+      "cargo": 55,
+      "speed": 15,
+      "agility": 15
+    },
+    "fuelCapacity": {
+      "min": 85,
+      "max": 165
+    },
+    "engine": "engine_corvette_mk3",
+    "weaponSlots": {
+      "slot_1": "pulse_laser_mk3",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "ecm_suite_advanced"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null
+    },
+    "aiCoreSlots": 2,
+    "tierBonuses": [],
+    "cost": 48000,
+    "unlockRequirements": {
+      "credits": 48000,
+      "reputation": 400,
+      "tier": 2
+    },
+    "enabled": true
+  },
+  {
+    "id": "breaker_frigate",
+    "name": "Breaker Frigate",
+    "class": "frigate",
+    "tier": 2,
+    "manufacturer": "Freebelt Cooperative",
+    "faction": "FREEBELT",
+    "description": "Freebelt assault frigate with railgun and autocannon armament.",
+    "playerLevelRequired": 7,
+    "baseStats": {
+      "hull": 18,
+      "shields": 10,
+      "power": 200,
+      "cargo": 90,
+      "speed": 14,
+      "agility": 14
+    },
+    "fuelCapacity": {
+      "min": 135,
+      "max": 275
+    },
+    "engine": "engine_frigate_mk2",
+    "weaponSlots": {
+      "slot_1": "railgun_mk1",
+      "slot_2": "autocannon_mk2"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk2"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null,
+      "slot_3": null
+    },
+    "aiCoreSlots": 3,
+    "tierBonuses": [],
+    "cost": 75000,
+    "unlockRequirements": {
+      "credits": 75000,
+      "reputation": 700,
+      "tier": 2
+    },
+    "enabled": true
+  },
+  {
+    "id": "ghostline_stealth_frigate",
+    "name": "Ghostline Stealth Frigate",
+    "class": "frigate",
+    "tier": 3,
+    "manufacturer": "Freebelt Cooperative",
+    "faction": "FREEBELT",
+    "description": "Stealth frigate with advanced ECM and long-range sensors.",
+    "playerLevelRequired": 9,
+    "baseStats": {
+      "hull": 20,
+      "shields": 12,
+      "power": 240,
+      "cargo": 110,
+      "speed": 15,
+      "agility": 15
+    },
+    "fuelCapacity": {
+      "min": 180,
+      "max": 365
+    },
+    "engine": "engine_frigate_mk3",
+    "weaponSlots": {
+      "slot_1": "pulse_laser_mk3",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "ecm_suite_advanced",
+      "slot_2": "sensor_array_longrange"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null,
+      "slot_3": null
+    },
+    "aiCoreSlots": 3,
+    "tierBonuses": [],
+    "cost": 115000,
+    "unlockRequirements": {
+      "credits": 115000,
+      "reputation": 1050,
+      "tier": 3
+    },
+    "enabled": true
+  },
+  {
+    "id": "lumenet_scout",
+    "name": "Lumenet Scout",
+    "class": "fighter",
+    "tier": 1,
+    "manufacturer": "Kaelori Ascendancy",
+    "faction": "KAELORI",
+    "description": "Kaelori scout fighter with advanced shield systems.",
+    "playerLevelRequired": 1,
+    "baseStats": {
+      "hull": 5,
+      "shields": 6,
+      "power": 90,
+      "cargo": 15,
+      "speed": 17,
+      "agility": 17
+    },
+    "fuelCapacity": {
+      "min": 35,
+      "max": 70
+    },
+    "engine": "engine_fighter_mk1",
+    "weaponSlots": {
+      "slot_1": "pulse_laser_mk1",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk1"
+    },
+    "aiCores": {
+      "slot_1": null
+    },
+    "aiCoreSlots": 1,
+    "tierBonuses": [],
+    "cost": 12000,
+    "unlockRequirements": {
+      "credits": 12000,
+      "reputation": 0,
+      "tier": 1
+    },
+    "enabled": true
+  },
+  {
+    "id": "auralis_wing",
+    "name": "Auralis Wing",
+    "class": "fighter",
+    "tier": 1,
+    "manufacturer": "Kaelori Ascendancy",
+    "faction": "KAELORI",
+    "description": "Elegant Kaelori fighter emphasizing shields over armor.",
+    "playerLevelRequired": 3,
+    "baseStats": {
+      "hull": 7,
+      "shields": 8,
+      "power": 115,
+      "cargo": 20,
+      "speed": 17,
+      "agility": 17
+    },
+    "fuelCapacity": {
+      "min": 45,
+      "max": 90
+    },
+    "engine": "engine_fighter_mk2",
+    "weaponSlots": {
+      "slot_1": "pulse_laser_mk2",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk2"
+    },
+    "aiCores": {
+      "slot_1": null
+    },
+    "aiCoreSlots": 1,
+    "tierBonuses": [],
+    "cost": 21000,
+    "unlockRequirements": {
+      "credits": 21000,
+      "reputation": 100,
+      "tier": 1
+    },
+    "enabled": true
+  },
+  {
+    "id": "harmonic_cutter",
+    "name": "Harmonic Cutter",
+    "class": "corvette",
+    "tier": 2,
+    "manufacturer": "Kaelori Ascendancy",
+    "faction": "KAELORI",
+    "description": "Kaelori corvette with beam weaponry and superior shielding.",
+    "playerLevelRequired": 4,
+    "baseStats": {
+      "hull": 10,
+      "shields": 12,
+      "power": 150,
+      "cargo": 50,
+      "speed": 16,
+      "agility": 16
+    },
+    "fuelCapacity": {
+      "min": 80,
+      "max": 150
+    },
+    "engine": "engine_corvette_mk2",
+    "weaponSlots": {
+      "slot_1": "beam_laser_mk1",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3",
+      "slot_2": "sensor_array_improved"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null
+    },
+    "aiCoreSlots": 2,
+    "tierBonuses": [],
+    "cost": 36000,
+    "unlockRequirements": {
+      "credits": 36000,
+      "reputation": 250,
+      "tier": 2
+    },
+    "enabled": true
+  },
+  {
+    "id": "resonant_spear_corvette",
+    "name": "Resonant Spear Corvette",
+    "class": "corvette",
+    "tier": 2,
+    "manufacturer": "Kaelori Ascendancy",
+    "faction": "KAELORI",
+    "description": "Advanced Kaelori corvette with enhanced beam laser systems.",
+    "playerLevelRequired": 6,
+    "baseStats": {
+      "hull": 12,
+      "shields": 14,
+      "power": 180,
+      "cargo": 60,
+      "speed": 15,
+      "agility": 15
+    },
+    "fuelCapacity": {
+      "min": 100,
+      "max": 180
+    },
+    "engine": "engine_corvette_mk3",
+    "weaponSlots": {
+      "slot_1": "beam_laser_mk2",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3",
+      "slot_2": "ecm_suite_basic"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null
+    },
+    "aiCoreSlots": 2,
+    "tierBonuses": [],
+    "cost": 54000,
+    "unlockRequirements": {
+      "credits": 54000,
+      "reputation": 500,
+      "tier": 2
+    },
+    "enabled": true
+  },
+  {
+    "id": "auralis_frigate",
+    "name": "Auralis Frigate",
+    "class": "frigate",
+    "tier": 2,
+    "manufacturer": "Kaelori Ascendancy",
+    "faction": "KAELORI",
+    "description": "Kaelori frigate with exceptional shield capacity and beam weapons.",
+    "playerLevelRequired": 7,
+    "baseStats": {
+      "hull": 18,
+      "shields": 16,
+      "power": 225,
+      "cargo": 105,
+      "speed": 14,
+      "agility": 14
+    },
+    "fuelCapacity": {
+      "min": 155,
+      "max": 310
+    },
+    "engine": "engine_frigate_mk2",
+    "weaponSlots": {
+      "slot_1": "beam_laser_mk2",
+      "slot_2": "missile_launcher_medium"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null,
+      "slot_3": null
+    },
+    "aiCoreSlots": 3,
+    "tierBonuses": [],
+    "cost": 88000,
+    "unlockRequirements": {
+      "credits": 88000,
+      "reputation": 850,
+      "tier": 2
+    },
+    "enabled": true
+  },
+  {
+    "id": "crystalborn_frigate",
+    "name": "Crystalborn Frigate",
+    "class": "frigate",
+    "tier": 3,
+    "manufacturer": "Kaelori Ascendancy",
+    "faction": "KAELORI",
+    "description": "High-tech Kaelori frigate with railgun and long-range sensors.",
+    "playerLevelRequired": 9,
+    "baseStats": {
+      "hull": 20,
+      "shields": 18,
+      "power": 265,
+      "cargo": 125,
+      "speed": 14,
+      "agility": 14
+    },
+    "fuelCapacity": {
+      "min": 205,
+      "max": 410
+    },
+    "engine": "engine_frigate_mk3",
+    "weaponSlots": {
+      "slot_1": "beam_laser_mk2",
+      "slot_2": "railgun_mk1"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3",
+      "slot_2": "sensor_array_longrange"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null,
+      "slot_3": null
+    },
+    "aiCoreSlots": 3,
+    "tierBonuses": [],
+    "cost": 130000,
+    "unlockRequirements": {
+      "credits": 130000,
+      "reputation": 1250,
+      "tier": 3
+    },
+    "enabled": true
+  },
+  {
+    "id": "seraphim_cruiser",
+    "name": "Seraphim Cruiser",
+    "class": "cruiser",
+    "tier": 3,
+    "manufacturer": "Kaelori Ascendancy",
+    "faction": "KAELORI",
+    "description": "Majestic Kaelori cruiser with dual beam lasers and heavy shielding.",
+    "playerLevelRequired": 11,
+    "baseStats": {
+      "hull": 28,
+      "shields": 24,
+      "power": 330,
+      "cargo": 205,
+      "speed": 12,
+      "agility": 12
+    },
+    "fuelCapacity": {
+      "min": 310,
+      "max": 620
+    },
+    "engine": "engine_cruiser_mk3",
+    "weaponSlots": {
+      "slot_1": "beam_laser_mk2",
+      "slot_2": "beam_laser_mk2",
+      "slot_3": "missile_launcher_heavy"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null,
+      "slot_3": null,
+      "slot_4": null
+    },
+    "aiCoreSlots": 4,
+    "tierBonuses": [],
+    "cost": 260000,
+    "unlockRequirements": {
+      "credits": 260000,
+      "reputation": 2100,
+      "tier": 3
+    },
+    "enabled": true
+  },
+  {
+    "id": "crescendum_battleship_lite",
+    "name": "Crescendum Battleship-lite Cruiser",
+    "class": "cruiser",
+    "tier": 3,
+    "manufacturer": "Kaelori Ascendancy",
+    "faction": "KAELORI",
+    "description": "Heavy Kaelori cruiser approaching battleship-class capabilities.",
+    "playerLevelRequired": 13,
+    "baseStats": {
+      "hull": 32,
+      "shields": 26,
+      "power": 370,
+      "cargo": 225,
+      "speed": 12,
+      "agility": 12
+    },
+    "fuelCapacity": {
+      "min": 360,
+      "max": 720
+    },
+    "engine": "engine_cruiser_mk3",
+    "weaponSlots": {
+      "slot_1": "beam_laser_mk2",
+      "slot_2": "beam_laser_mk2",
+      "slot_3": "railgun_mk2"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3",
+      "slot_2": "ecm_suite_enhanced"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null,
+      "slot_3": null,
+      "slot_4": null
+    },
+    "aiCoreSlots": 4,
+    "tierBonuses": [],
+    "cost": 360000,
+    "unlockRequirements": {
+      "credits": 360000,
+      "reputation": 3100,
+      "tier": 3
+    },
+    "enabled": true
+  },
+  {
+    "id": "corsair_kingpin_raider",
+    "name": "Corsair Kingpin Raider",
+    "class": "frigate",
+    "tier": 2,
+    "manufacturer": "Pirate Shipyards",
+    "faction": "PIRATES",
+    "description": "Pirate raider frigate with reinforced hull and heavy weapons.",
+    "playerLevelRequired": 7,
+    "baseStats": {
+      "hull": 20,
+      "shields": 12,
+      "power": 205,
+      "cargo": 95,
+      "speed": 14,
+      "agility": 14
+    },
+    "fuelCapacity": {
+      "min": 140,
+      "max": 280
+    },
+    "engine": "engine_frigate_mk2",
+    "weaponSlots": {
+      "slot_1": "autocannon_mk2",
+      "slot_2": "missile_launcher_light"
+    },
+    "subsystemSlots": {
+      "slot_1": "hull_plating_reinforced"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null,
+      "slot_3": null
+    },
+    "aiCoreSlots": 3,
+    "tierBonuses": [],
+    "cost": 70000,
+    "unlockRequirements": {
+      "credits": 70000,
+      "reputation": -500,
+      "tier": 2
+    },
+    "enabled": true
+  },
+  {
+    "id": "atlas_of_the_fold",
+    "name": "Atlas of the Fold",
+    "class": "cruiser",
+    "tier": 5,
+    "manufacturer": "Pre-Surge Legacy",
+    "faction": "RELIC",
+    "description": "Pre-Surge relic cruiser with unique Fold Core technology. Extremely rare and powerful.",
+    "playerLevelRequired": 18,
+    "baseStats": {
+      "hull": 60,
+      "shields": 50,
+      "power": 600,
+      "cargo": 500,
+      "speed": 11,
+      "agility": 11
+    },
+    "fuelCapacity": {
+      "min": 1000,
+      "max": 2000
+    },
+    "engine": "engine_cruiser_mk3",
+    "weaponSlots": {
+      "slot_1": "plasma_cannon_mk1",
+      "slot_2": "plasma_cannon_mk1",
+      "slot_3": "beam_laser_mk2"
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk3",
+      "slot_2": "relic_fold_core",
+      "slot_3": "ecm_suite_advanced",
+      "slot_4": "sensor_array_longrange"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null,
+      "slot_3": null,
+      "slot_4": null,
+      "slot_5": null
+    },
+    "aiCoreSlots": 5,
+    "tierBonuses": [],
+    "cost": 2500000,
+    "unlockRequirements": {
+      "credits": 2500000,
+      "reputation": 10000,
+      "tier": 5
+    },
+    "enabled": false
+  },
+  {
+    "id": "whisperblade_fighter",
+    "name": "Whisperblade Fighter",
+    "class": "fighter",
+    "tier": 2,
+    "manufacturer": "Ashinari Blades",
+    "faction": "ASHINARI",
+    "description": "Ashinari stealth fighter with enhanced evasion and ECM.",
+    "playerLevelRequired": 2,
+    "baseStats": {
+      "hull": 6,
+      "shields": 5,
+      "power": 110,
+      "cargo": 18,
+      "speed": 18,
+      "agility": 18
+    },
+    "fuelCapacity": {
+      "min": 40,
+      "max": 80
+    },
+    "engine": "engine_fighter_mk2",
+    "weaponSlots": {
+      "slot_1": "pulse_laser_mk2",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk1",
+      "slot_2": "ecm_suite_enhanced"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null
+    },
+    "aiCoreSlots": 2,
+    "tierBonuses": [],
+    "cost": 24000,
+    "unlockRequirements": {
+      "credits": 24000,
+      "reputation": 150,
+      "tier": 2
+    },
+    "enabled": true
+  },
+  {
+    "id": "umbral_warden",
+    "name": "Umbral Warden",
+    "class": "fighter",
+    "tier": 2,
+    "manufacturer": "Ashinari Blades",
+    "faction": "ASHINARI",
+    "description": "Advanced Ashinari stealth fighter with exceptional agility.",
+    "playerLevelRequired": 3,
+    "baseStats": {
+      "hull": 7,
+      "shields": 6,
+      "power": 125,
+      "cargo": 20,
+      "speed": 19,
+      "agility": 19
+    },
+    "fuelCapacity": {
+      "min": 50,
+      "max": 100
+    },
+    "engine": "engine_fighter_mk3",
+    "weaponSlots": {
+      "slot_1": "beam_laser_mk1",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk2",
+      "slot_2": "ecm_suite_advanced"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null
+    },
+    "aiCoreSlots": 2,
+    "tierBonuses": [],
+    "cost": 32000,
+    "unlockRequirements": {
+      "credits": 32000,
+      "reputation": 300,
+      "tier": 2
+    },
+    "enabled": true
+  },
+  {
+    "id": "shusai_ghost_corvette",
+    "name": "Shūsai Ghost Corvette",
+    "class": "corvette",
+    "tier": 2,
+    "manufacturer": "Ashinari Blades",
+    "faction": "ASHINARI",
+    "description": "Elite Ashinari stealth corvette with precision beam weaponry.",
+    "playerLevelRequired": 5,
+    "baseStats": {
+      "hull": 10,
+      "shields": 8,
+      "power": 160,
+      "cargo": 45,
+      "speed": 17,
+      "agility": 17
+    },
+    "fuelCapacity": {
+      "min": 90,
+      "max": 170
+    },
+    "engine": "engine_corvette_mk3",
+    "weaponSlots": {
+      "slot_1": "precision_beam_1d8+3",
+      "slot_2": null
+    },
+    "subsystemSlots": {
+      "slot_1": "shield_generator_mk2",
+      "slot_2": "ecm_suite_advanced",
+      "slot_3": "sensor_array_improved"
+    },
+    "aiCores": {
+      "slot_1": null,
+      "slot_2": null
+    },
+    "aiCoreSlots": 2,
+    "tierBonuses": [],
+    "cost": 68000,
+    "unlockRequirements": {
+      "credits": 68000,
+      "reputation": 600,
+      "tier": 2
+    },
+    "enabled": true
   }
 ]

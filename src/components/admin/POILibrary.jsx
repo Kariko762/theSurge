@@ -160,15 +160,16 @@ const POILibrary = () => {
   const filteredPOIs = pois.filter(poi => {
     if (filterType !== 'ALL' && poi.type !== filterType) return false;
     if (filterParent !== 'ALL') {
-      if (filterParent === 'NONE' && poi.parentId !== null) return false;
-      if (filterParent !== 'NONE' && poi.parentId !== filterParent) return false;
+      const parentIds = poi.parentIds || (poi.parentId ? [poi.parentId] : []);
+      if (filterParent === 'NONE' && parentIds.length > 0) return false;
+      if (filterParent !== 'NONE' && !parentIds.includes(filterParent)) return false;
     }
     if (searchQuery && !poi.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
         !poi.id.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
 
-  const parentPOIs = pois.filter(p => POI_TYPES.find(t => t.id === p.type)?.canHaveChildren);
+  const parentPOIs = pois.filter(p => p.isParent === true);
 
   if (loading) {
     return (
@@ -336,11 +337,12 @@ const POILibrary = () => {
         <table className="data-table-compact" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, background: 'transparent', border: 'none' }}>
         <thead>
           <tr style={{ background: 'rgba(0, 255, 255, 0.08)' }}>
-            <th style={{ padding: '0.4rem 0.6rem', fontSize: '0.65rem', color: '#34e0ff', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '1px', borderTop: 'none', borderBottom: '1px solid rgba(0, 255, 255, 0.1)' }}>Type</th>
-            <th style={{ padding: '0.4rem 0.6rem', fontSize: '0.65rem', color: '#34e0ff', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '1px', borderTop: 'none', borderBottom: '1px solid rgba(0, 255, 255, 0.1)' }}>ID</th>
             <th style={{ padding: '0.4rem 0.6rem', fontSize: '0.65rem', color: '#34e0ff', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '1px', borderTop: 'none', borderBottom: '1px solid rgba(0, 255, 255, 0.1)' }}>Name</th>
             <th style={{ padding: '0.4rem 0.6rem', fontSize: '0.65rem', color: '#34e0ff', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '1px', borderTop: 'none', borderBottom: '1px solid rgba(0, 255, 255, 0.1)' }}>Size</th>
-            <th style={{ padding: '0.4rem 0.6rem', fontSize: '0.65rem', color: '#34e0ff', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '1px', borderTop: 'none', borderBottom: '1px solid rgba(0, 255, 255, 0.1)' }}>Parent</th>
+            <th style={{ padding: '0.4rem 0.6rem', fontSize: '0.65rem', color: '#34e0ff', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '1px', borderTop: 'none', borderBottom: '1px solid rgba(0, 255, 255, 0.1)' }}>Rarity (%)</th>
+            <th style={{ padding: '0.4rem 0.6rem', fontSize: '0.65rem', color: '#34e0ff', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '1px', borderTop: 'none', borderBottom: '1px solid rgba(0, 255, 255, 0.1)' }}>Max Count</th>
+            <th style={{ padding: '0.4rem 0.6rem', fontSize: '0.65rem', color: '#34e0ff', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '1px', borderTop: 'none', borderBottom: '1px solid rgba(0, 255, 255, 0.1)' }}>Is Parent</th>
+            <th style={{ padding: '0.4rem 0.6rem', fontSize: '0.65rem', color: '#34e0ff', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '1px', borderTop: 'none', borderBottom: '1px solid rgba(0, 255, 255, 0.1)' }}>Parents</th>
             <th style={{ padding: '0.4rem 0.6rem', fontSize: '0.65rem', color: '#34e0ff', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '1px', borderTop: 'none', borderBottom: '1px solid rgba(0, 255, 255, 0.1)' }}>Description</th>
             <th style={{ padding: '0.4rem 0.6rem', fontSize: '0.65rem', color: '#34e0ff', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '1px', borderTop: 'none', borderBottom: '1px solid rgba(0, 255, 255, 0.1)' }}>Actions</th>
           </tr>
@@ -348,7 +350,8 @@ const POILibrary = () => {
         <tbody>
           {filteredPOIs.map(poi => {
             const typeInfo = POI_TYPES.find(t => t.id === poi.type);
-            const parent = pois.find(p => p.id === poi.parentId);
+            const parentIds = poi.parentIds || (poi.parentId ? [poi.parentId] : []);
+            const parents = pois.filter(p => parentIds.includes(p.id));
             
             return (
               <tr 
@@ -360,29 +363,60 @@ const POILibrary = () => {
                 onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 255, 255, 0.05)'}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
-                <td style={{ padding: '0.5rem 0.6rem', fontSize: '0.75rem' }}>
-                  <span title={typeInfo?.name}>{typeInfo?.icon}</span>
-                </td>
-                <td style={{ padding: '0.5rem 0.6rem', fontSize: '0.7rem', fontFamily: 'monospace', color: '#00ccff' }}>
-                  {poi.id}
-                </td>
                 <td style={{ padding: '0.5rem 0.6rem', fontSize: '0.75rem', fontWeight: '600' }}>
+                  <span style={{ marginRight: '0.5rem' }} title={typeInfo?.name}>{typeInfo?.icon}</span>
                   {poi.name}
                 </td>
                 <td style={{ padding: '0.5rem 0.6rem', fontSize: '0.7rem' }}>
                   {poi.size}
                 </td>
-                <td style={{ padding: '0.5rem 0.6rem', fontSize: '0.7rem' }}>
-                  {parent ? (
+                <td style={{ padding: '0.5rem 0.6rem', fontSize: '0.7rem', textAlign: 'center' }}>
+                  <span style={{ 
+                    background: 'rgba(52, 224, 255, 0.1)',
+                    border: '1px solid rgba(52, 224, 255, 0.3)',
+                    borderRadius: '10px',
+                    padding: '0.15rem 0.5rem',
+                    fontSize: '0.65rem',
+                    whiteSpace: 'nowrap',
+                    display: 'inline-block'
+                  }}>
+                    {poi.rarity || 50}%
+                  </span>
+                </td>
+                <td style={{ padding: '0.5rem 0.6rem', fontSize: '0.7rem', textAlign: 'center', color: '#34e0ff' }}>
+                  {poi.maxCount || 3}
+                </td>
+                <td style={{ padding: '0.5rem 0.6rem', fontSize: '0.7rem', textAlign: 'center' }}>
+                  {poi.isParent ? (
                     <span style={{ 
-                      background: 'rgba(0, 204, 255, 0.15)',
-                      border: '1px solid rgba(0, 204, 255, 0.3)',
-                      borderRadius: '10px',
-                      padding: '0.15rem 0.5rem',
-                      fontSize: '0.65rem'
-                    }}>
-                      {parent.name}
+                      color: '#00ff88',
+                      fontSize: '0.9rem'
+                    }} title="Can be a parent for other POIs">
+                      ✓
                     </span>
+                  ) : (
+                    <span style={{ color: '#666' }}>—</span>
+                  )}
+                </td>
+                <td style={{ padding: '0.5rem 0.6rem', fontSize: '0.7rem' }}>
+                  {parents.length > 0 ? (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                      {parents.map(parent => (
+                        <span
+                          key={parent.id}
+                          style={{ 
+                            background: 'rgba(0, 204, 255, 0.15)',
+                            border: '1px solid rgba(0, 204, 255, 0.3)',
+                            borderRadius: '10px',
+                            padding: '0.15rem 0.5rem',
+                            fontSize: '0.65rem',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {parent.name}
+                        </span>
+                      ))}
+                    </div>
                   ) : (
                     <span style={{ color: '#666' }}>—</span>
                   )}
@@ -480,9 +514,10 @@ const POIEditorModal = ({ poi, parentPOIs, onSave, onCancel }) => {
     name: '',
     type: 'PLANET',
     size: 'Medium',
-    parentId: null,
+    parentIds: [],
     description: '',
     properties: {},
+    isParent: false,
     // New generation properties with defaults
     rarity: 50,
     maxCount: 3,
@@ -494,7 +529,11 @@ const POIEditorModal = ({ poi, parentPOIs, onSave, onCancel }) => {
     zoneRestrictions: [],
     imagePool: null,
     // Merge with existing POI data (if editing)
-    ...(poi || {})
+    ...(poi ? {
+      ...poi,
+      // Ensure backward compatibility: convert old parentId to parentIds array
+      parentIds: poi.parentIds || (poi.parentId ? [poi.parentId] : [])
+    } : {})
   });
 
   // Load image pools from backend
@@ -634,28 +673,66 @@ const POIEditorModal = ({ poi, parentPOIs, onSave, onCancel }) => {
                 </select>
               </div>
 
-              {/* Parent POI */}
-              <div className="form-inline" style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '0.75rem', alignItems: 'center' }}>
-                <label style={{ fontSize: '0.75rem', textAlign: 'right' }}>Parent POI:</label>
-                <select
-                  value={formData.parentId || ''}
-                  onChange={(e) => setFormData({ ...formData, parentId: e.target.value || null })}
-                  style={{
-                    padding: '0.4rem 0.6rem',
-                    background: 'rgba(0, 10, 20, 0.8)',
-                    border: '1px solid rgba(52, 224, 255, 0.3)',
-                    borderRadius: '4px',
-                    color: '#cfd8df',
-                    fontSize: '0.75rem'
-                  }}
-                >
-                  <option value="">None (Parent POI)</option>
-                  {parentPOIs.map(parent => (
-                    <option key={parent.id} value={parent.id}>
-                      {parent.name} ({parent.type})
-                    </option>
-                  ))}
-                </select>
+              {/* Parent POIs */}
+              <div className="form-inline" style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '0.75rem', alignItems: 'start' }}>
+                <label style={{ fontSize: '0.75rem', textAlign: 'right', paddingTop: '0.4rem' }}>Parent POIs:</label>
+                <div style={{
+                  padding: '0.5rem',
+                  background: 'rgba(0, 10, 20, 0.8)',
+                  border: '1px solid rgba(52, 224, 255, 0.3)',
+                  borderRadius: '4px',
+                  maxHeight: '150px',
+                  overflowY: 'auto'
+                }}>
+                  {parentPOIs.length === 0 ? (
+                    <div style={{ fontSize: '0.7rem', color: '#666', fontStyle: 'italic' }}>
+                      No parent POIs available (mark POIs as "Is Parent" first)
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      {parentPOIs.map(parent => {
+                        const isSelected = (formData.parentIds || []).includes(parent.id);
+                        return (
+                          <label
+                            key={parent.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              cursor: 'pointer',
+                              padding: '0.3rem',
+                              borderRadius: '3px',
+                              background: isSelected ? 'rgba(52, 224, 255, 0.1)' : 'transparent',
+                              transition: 'background 0.2s'
+                            }}
+                            onMouseEnter={(e) => !isSelected && (e.currentTarget.style.background = 'rgba(52, 224, 255, 0.05)')}
+                            onMouseLeave={(e) => !isSelected && (e.currentTarget.style.background = 'transparent')}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                const newParentIds = e.target.checked
+                                  ? [...(formData.parentIds || []), parent.id]
+                                  : (formData.parentIds || []).filter(id => id !== parent.id);
+                                setFormData({ ...formData, parentIds: newParentIds });
+                              }}
+                              style={{
+                                width: '14px',
+                                height: '14px',
+                                cursor: 'pointer',
+                                accentColor: '#34e0ff'
+                              }}
+                            />
+                            <span style={{ fontSize: '0.75rem', color: '#cfd8df' }}>
+                              {parent.name} ({parent.type})
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Description */}
@@ -677,6 +754,25 @@ const POIEditorModal = ({ poi, parentPOIs, onSave, onCancel }) => {
                   }}
                   placeholder="POI description..."
                 />
+              </div>
+
+              {/* Is Parent */}
+              <div className="form-inline" style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '0.75rem', alignItems: 'center' }}>
+                <label style={{ fontSize: '0.75rem', textAlign: 'right' }}>Is Parent:</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.75rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.isParent || false}
+                    onChange={(e) => setFormData({ ...formData, isParent: e.target.checked })}
+                    style={{
+                      width: '16px',
+                      height: '16px',
+                      cursor: 'pointer',
+                      accentColor: '#34e0ff'
+                    }}
+                  />
+                  <span style={{ color: '#cfd8df' }}>Allow other POIs to orbit this one</span>
+                </label>
               </div>
             </div>
           </div>

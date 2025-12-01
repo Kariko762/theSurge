@@ -110,7 +110,6 @@ const ContentLibrary = ({ config, updateConfig }) => {
                 }
               }}
             >
-              <span style={{ marginRight: '0.5rem' }}>{tab.icon}</span>
               {tab.label}
               {tab.disabled && <span style={{ marginLeft: '0.5rem', fontSize: '0.6rem' }}>(Coming Soon)</span>}
             </button>

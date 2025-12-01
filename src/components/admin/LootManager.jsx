@@ -31,27 +31,22 @@ export default function LootManager() {
   const [lootChanged, setLootChanged] = useState(false);
 
   useEffect(() => {
-    loadConfig();
+    loadData();
   }, []);
 
-  const loadConfig = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
+      
+      // Load items from items API instead of config
+      const allItems = await api.items.getAll();
+      setItems(Array.isArray(allItems) ? allItems : []);
+      
+      // Load config for pools and factions
       const response = await api.config.get();
       const cfg = response.config || response;
       setConfig(cfg);
       
-      // Only set items/pools/factions on initial load
-      if (cfg?.lootTables?.items) {
-        // Convert object to array if needed (PowerShell sometimes converts arrays to objects)
-        let itemsData = cfg.lootTables.items;
-        if (!Array.isArray(itemsData)) {
-          itemsData = Object.values(itemsData);
-        }
-        setItems(itemsData);
-      } else {
-        setItems([]);
-      }
       if (cfg?.lootTables?.pools) {
         let poolsData = cfg.lootTables.pools;
         if (!Array.isArray(poolsData)) {
@@ -61,6 +56,7 @@ export default function LootManager() {
       } else {
         setLootPools([]);
       }
+      
       if (cfg?.factions) {
         let factionsData = cfg.factions;
         if (!Array.isArray(factionsData)) {
@@ -73,7 +69,7 @@ export default function LootManager() {
       
       setError('');
     } catch (err) {
-      setError(err.message || 'Failed to load configuration');
+      setError(err.message || 'Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -85,28 +81,28 @@ export default function LootManager() {
       setError('');
       setSuccessMessage('');
       
+      // Save pools to config (pools still live in config.json)
       const response = await api.config.get();
       const updatedConfig = { 
         ...response.config, 
         lootTables: {
           ...(response.config.lootTables || {}),
-          items,
           pools: lootPools
         }
       };
       await api.config.update(updatedConfig);
       
       setLootChanged(false);
-      setSuccessMessage('Loot tables saved successfully!');
+      setSuccessMessage('Loot pools saved successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
-      setError(err.message || 'Failed to save loot tables');
+      setError(err.message || 'Failed to save loot pools');
     } finally {
       setSaving(false);
     }
   };
 
-  const categories = ['all', 'resource', 'weapon', 'subsystem', 'equipment', 'consumable', 'artifact', 'data', 'contraband'];
+  const categories = ['all', 'resource', 'weapon', 'subsystem', 'equipment', 'consumable', 'artifact', 'ship', 'data', 'contraband'];
   const tiers = ['all', 'common', 'uncommon', 'rare', 'epic', 'legendary'];
 
   const filteredItems = items.filter(item => {
@@ -136,20 +132,29 @@ export default function LootManager() {
     setShowItemEditor(true);
   };
 
-  const saveItem = (itemData) => {
-    let newItems;
-    if (editingIndex !== null) {
-      // Edit existing
-      newItems = [...items];
-      newItems[editingIndex] = itemData;
-    } else {
-      // Add new
-      newItems = [...items, itemData];
+  const saveItem = async (itemData) => {
+    try {
+      const category = itemData.category || 'weapons';
+      
+      if (editingIndex !== null) {
+        // Update existing item
+        const existingItem = items[editingIndex];
+        await api.items.update(category, existingItem.id, itemData);
+      } else {
+        // Create new item
+        await api.items.create(category, itemData);
+      }
+      
+      // Reload items from API
+      const allItems = await api.items.getAll();
+      setItems(Array.isArray(allItems) ? allItems : []);
+      
+      setSuccessMessage(`Item ${editingIndex !== null ? 'updated' : 'created'} successfully!`);
+      setTimeout(() => setSuccessMessage(''), 3000);
+      closeItemEditor();
+    } catch (err) {
+      setError(err.message || `Failed to ${editingIndex !== null ? 'update' : 'create'} item`);
     }
-    
-    setItems(newItems);
-    setLootChanged(true);
-    closeItemEditor();
   };
 
   const closeItemEditor = () => {
@@ -189,19 +194,34 @@ export default function LootManager() {
     setShowDeleteConfirm(true);
   };
 
-  const deleteItem = () => {
+  const deleteItem = async () => {
     if (itemToDelete !== null) {
-      if (itemToDelete.type === 'pool') {
-        const newPools = lootPools.filter((_, i) => i !== itemToDelete.index);
-        setLootPools(newPools);
-      } else {
-        const newItems = items.filter((_, i) => i !== itemToDelete.index);
-        setItems(newItems);
+      try {
+        if (itemToDelete.type === 'pool') {
+          const newPools = lootPools.filter((_, i) => i !== itemToDelete.index);
+          setLootPools(newPools);
+          setLootChanged(true);
+        } else {
+          // Delete item via API
+          const itemToRemove = items[itemToDelete.index];
+          const category = itemToRemove.category || 'weapons';
+          await api.items.delete(category, itemToRemove.id);
+          
+          // Reload items
+          const allItems = await api.items.getAll();
+          setItems(Array.isArray(allItems) ? allItems : []);
+          
+          setSuccessMessage('Item deleted successfully!');
+          setTimeout(() => setSuccessMessage(''), 3000);
+        }
+        
+        setShowDeleteConfirm(false);
+        setItemToDelete(null);
+      } catch (err) {
+        setError(err.message || 'Failed to delete item');
+        setShowDeleteConfirm(false);
+        setItemToDelete(null);
       }
-      
-      setLootChanged(true);
-      setShowDeleteConfirm(false);
-      setItemToDelete(null);
     }
   };
 
@@ -272,13 +292,56 @@ export default function LootManager() {
         </div>
       )}
 
-      {/* Save Button */}
+      {/* Tabs and Save Button */}
       <div style={{ 
         display: 'flex', 
-        justifyContent: 'flex-end',
+        gap: '0.5rem', 
+        marginBottom: '1rem',
+        borderBottom: '1px solid rgba(0, 255, 255, 0.1)',
+        paddingBottom: '0.5rem',
         margin: '1rem 2rem',
-        marginBottom: '0.5rem'
+        marginBottom: '1rem',
+        alignItems: 'center',
+        justifyContent: 'space-between'
       }}>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            onClick={() => setActiveTab('items')}
+            style={{
+              padding: '0.4rem 0.75rem',
+              fontSize: '0.75rem',
+              background: activeTab === 'items' ? 'rgba(0, 255, 255, 0.15)' : 'transparent',
+              border: activeTab === 'items' ? '1px solid rgba(0, 255, 255, 0.4)' : '1px solid transparent',
+              borderRadius: '4px',
+              color: activeTab === 'items' ? '#34e0ff' : '#7ab8c4',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              fontWeight: activeTab === 'items' ? 'bold' : 'normal'
+            }}
+          >
+            Items ({items.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('pools')}
+            style={{
+              padding: '0.4rem 0.75rem',
+              fontSize: '0.75rem',
+              background: activeTab === 'pools' ? 'rgba(0, 255, 255, 0.15)' : 'transparent',
+              border: activeTab === 'pools' ? '1px solid rgba(0, 255, 255, 0.4)' : '1px solid transparent',
+              borderRadius: '4px',
+              color: activeTab === 'pools' ? '#34e0ff' : '#7ab8c4',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              fontWeight: activeTab === 'pools' ? 'bold' : 'normal'
+            }}
+          >
+            Loot Pools ({lootPools.length})
+          </button>
+        </div>
         <button
           className="btn-neon"
           onClick={handleSave}
@@ -286,30 +349,16 @@ export default function LootManager() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
+            gap: '0.35rem',
+            padding: '0.4rem 0.75rem',
+            fontSize: '0.75rem',
             opacity: (saving || loading) ? 0.5 : 1,
             borderColor: lootChanged ? '#ffa500' : undefined,
             animation: lootChanged ? 'pulse 2s infinite' : undefined
           }}
         >
-          {saving ? <LoadingIcon size={16} /> : <SaveIcon size={16} />}
-          {saving ? 'Saving...' : lootChanged ? 'Save Changes *' : 'Save Changes'}
-        </button>
-      </div>
-
-      {/* Tabs */}
-      <div className="tab-container-sub2">
-        <button
-          className={`tab-button ${activeTab === 'items' ? 'active' : ''}`}
-          onClick={() => setActiveTab('items')}
-        >
-          Items ({items.length})
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'pools' ? 'active' : ''}`}
-          onClick={() => setActiveTab('pools')}
-        >
-          Loot Pools ({lootPools.length})
+          {saving ? <LoadingIcon size={14} /> : <SaveIcon size={14} />}
+          {saving ? 'Saving...' : lootChanged ? 'Save *' : 'Save'}
         </button>
       </div>
 
@@ -423,8 +472,8 @@ export default function LootManager() {
             </div>
           </div>
 
-      {/* Items Grid */}
-      {filteredItems.length === 0 && (
+      {/* Items Table */}
+      {filteredItems.length === 0 ? (
         <div className="glass-card" style={{
           padding: '3rem',
           textAlign: 'center',
@@ -441,146 +490,91 @@ export default function LootManager() {
             Click "Add Item" to create your first item
           </div>
         </div>
+      ) : (
+        <div style={{
+          background: 'linear-gradient(var(--theme-gradient-angle), var(--theme-gradient-start), var(--theme-gradient-end))',
+          border: '1px solid rgba(0, 255, 255, 0.15)',
+          borderRadius: '8px',
+          overflow: 'hidden',
+          padding: '1rem',
+          margin: '0 2rem 2rem 2rem'
+        }}>
+          <table className="theme-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>ID</th>
+                <th>Category</th>
+                <th>Subcategory</th>
+                <th>Tier</th>
+                <th>Weight</th>
+                <th>Value</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredItems.map((item, index) => {
+                const actualIndex = items.findIndex(i => i.id === item.id);
+                return (
+                  <tr 
+                    key={item.id || index}
+                    onClick={() => openItemEditor(item, actualIndex)}
+                  >
+                    <td>{item.name || 'Unnamed'}</td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: '#7ab8c4' }}>
+                      {item.id || 'no_id'}
+                    </td>
+                    <td>
+                      <span className="theme-badge">{item.category || 'N/A'}</span>
+                    </td>
+                    <td>{item.subcategory || '-'}</td>
+                    <td>
+                      <span className="theme-tag" style={{
+                        background: `${getTierColor(item.tier)}20`,
+                        borderColor: getTierColor(item.tier),
+                        color: getTierColor(item.tier)
+                      }}>
+                        {item.tier || 'common'}
+                      </span>
+                    </td>
+                    <td>{item.weight || 0} kg</td>
+                    <td style={{ color: '#0f0', fontWeight: 'bold' }}>{item.value || 0} cr</td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.3rem', justifyContent: 'center' }}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openItemEditor(item, actualIndex);
+                          }}
+                          className="theme-button"
+                          style={{ padding: '0.4rem 0.6rem' }}
+                        >
+                          <EditIcon size={14} />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            confirmDelete(item, actualIndex);
+                          }}
+                          className="theme-button"
+                          style={{ 
+                            padding: '0.4rem 0.6rem',
+                            background: 'rgba(255, 100, 100, 0.1)',
+                            borderColor: '#f66',
+                            color: '#f66'
+                          }}
+                        >
+                          <DeleteIcon size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem', margin: '0 2rem 2rem 2rem' }}>
-        {filteredItems.map((item, index) => {
-          const actualIndex = items.findIndex(i => i.id === item.id);
-          return (
-            <div
-              key={item.id || index}
-              className="glass-card"
-              style={{
-                padding: '1.5rem',
-                background: 'rgba(0, 20, 40, 0.4)',
-                border: `1px solid ${getTierColor(item.tier)}40`,
-                position: 'relative',
-                transition: 'all 0.3s ease',
-                cursor: 'pointer'
-              }}
-              onClick={() => openItemEditor(item, actualIndex)}
-            >
-              {/* Tier Badge */}
-              <div style={{
-                position: 'absolute',
-                top: '0.75rem',
-                right: '0.75rem',
-                padding: '0.25rem 0.75rem',
-                background: `${getTierColor(item.tier)}20`,
-                border: `1px solid ${getTierColor(item.tier)}`,
-                borderRadius: '4px',
-                fontSize: '0.7rem',
-                fontWeight: 'bold',
-                color: getTierColor(item.tier),
-                textTransform: 'uppercase'
-              }}>
-                {item.tier || 'common'}
-              </div>
-
-              {/* Item Name */}
-              <h4 style={{
-                color: getTierColor(item.tier),
-                fontSize: '1.1rem',
-                marginBottom: '0.5rem',
-                marginRight: '5rem'
-              }}>
-                {item.name || 'Unnamed Item'}
-              </h4>
-
-              {/* Item ID */}
-              <div style={{ color: '#666', fontSize: '0.75rem', marginBottom: '0.75rem', fontFamily: 'monospace' }}>
-                {item.id || 'no_id'}
-              </div>
-
-              {/* Category */}
-              <div style={{
-                display: 'inline-block',
-                padding: '0.2rem 0.5rem',
-                background: 'rgba(0, 255, 255, 0.1)',
-                border: '1px solid rgba(0, 255, 255, 0.3)',
-                borderRadius: '4px',
-                fontSize: '0.75rem',
-                color: '#0ff',
-                marginBottom: '0.75rem'
-              }}>
-                {item.category || 'uncategorized'}
-              </div>
-
-              {/* Description */}
-              <p style={{
-                color: '#aaa',
-                fontSize: '0.85rem',
-                lineHeight: '1.5',
-                marginBottom: '1rem',
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden'
-              }}>
-                {item.description || 'No description'}
-              </p>
-
-              {/* Stats */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '0.5rem',
-                marginBottom: '1rem',
-                padding: '0.75rem',
-                background: 'rgba(0, 0, 0, 0.3)',
-                borderRadius: '4px'
-              }}>
-                <div>
-                  <div style={{ color: '#666', fontSize: '0.7rem' }}>Weight</div>
-                  <div style={{ color: '#fff', fontSize: '0.85rem' }}>{item.weight || 0} kg</div>
-                </div>
-                <div>
-                  <div style={{ color: '#666', fontSize: '0.7rem' }}>Size</div>
-                  <div style={{ color: '#fff', fontSize: '0.85rem' }}>{item.size || 1}</div>
-                </div>
-                <div>
-                  <div style={{ color: '#666', fontSize: '0.7rem' }}>Max Stack</div>
-                  <div style={{ color: '#fff', fontSize: '0.85rem' }}>{item.maxStack || 1}</div>
-                </div>
-                <div>
-                  <div style={{ color: '#666', fontSize: '0.7rem' }}>Value</div>
-                  <div style={{ color: '#0f0', fontSize: '0.85rem' }}>{item.value || 0} cr</div>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
-                  className="btn-neon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openItemEditor(item, actualIndex);
-                  }}
-                  style={{ flex: 1, fontSize: '0.75rem', padding: '0.4rem 0.75rem' }}
-                >
-                  <EditIcon size={14} /> EDIT
-                </button>
-                <button
-                  className="btn-neon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    confirmDelete(item, actualIndex);
-                  }}
-                  style={{
-                    flex: 1,
-                    fontSize: '0.75rem',
-                    padding: '0.4rem 0.75rem',
-                    borderColor: '#ff6b6b',
-                    color: '#ff6b6b'
-                  }}
-                >
-                  <DeleteIcon size={14} /> DELETE
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
         </>
       )}
 

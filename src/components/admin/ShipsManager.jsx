@@ -156,7 +156,8 @@ export default function ShipsManager() {
         power: 100,
         cargo: 50,
         speed: 5,
-        agility: 5
+        agility: 5,
+        actionPoints: 5
       },
       fuelCapacity: {
         min: 50,
@@ -302,16 +303,46 @@ export default function ShipsManager() {
   return (
     <div style={{ padding: '1rem' }}>
       {/* Sub-Tabs */}
-      <div className="theme-menu">
+      <div style={{ 
+        display: 'flex', 
+        gap: '0.5rem', 
+        marginBottom: '1rem',
+        borderBottom: '1px solid rgba(0, 255, 255, 0.1)',
+        paddingBottom: '0.5rem'
+      }}>
         <button
-          className={`theme-menu-tab ${activeTab === 'builder' ? 'active' : ''}`}
           onClick={() => setActiveTab('builder')}
+          style={{
+            padding: '0.4rem 0.75rem',
+            fontSize: '0.75rem',
+            background: activeTab === 'builder' ? 'rgba(0, 255, 255, 0.15)' : 'transparent',
+            border: activeTab === 'builder' ? '1px solid rgba(0, 255, 255, 0.4)' : '1px solid transparent',
+            borderRadius: '4px',
+            color: activeTab === 'builder' ? '#34e0ff' : '#7ab8c4',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            fontWeight: activeTab === 'builder' ? 'bold' : 'normal'
+          }}
         >
           Ship Builder
         </button>
         <button
-          className={`theme-menu-tab ${activeTab === 'tiers' ? 'active' : ''}`}
           onClick={() => setActiveTab('tiers')}
+          style={{
+            padding: '0.4rem 0.75rem',
+            fontSize: '0.75rem',
+            background: activeTab === 'tiers' ? 'rgba(0, 255, 255, 0.15)' : 'transparent',
+            border: activeTab === 'tiers' ? '1px solid rgba(0, 255, 255, 0.4)' : '1px solid transparent',
+            borderRadius: '4px',
+            color: activeTab === 'tiers' ? '#34e0ff' : '#7ab8c4',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            fontWeight: activeTab === 'tiers' ? 'bold' : 'normal'
+          }}
         >
           Ship Tiers
         </button>
@@ -549,13 +580,66 @@ export default function ShipsManager() {
             maxWidth: '1200px',
             width: '100%',
             maxHeight: '90vh',
-            overflow: 'auto',
-            padding: '1rem'
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
           }}>
-            <h2 className="theme-subtitle" style={{ marginBottom: '1rem' }}>
-              {ships.find(s => s.id === editingShip.id) ? 'Edit Ship' : 'Create New Ship'}
-            </h2>
+            {/* STICKY HEADER with Save/Cancel buttons */}
+            <div style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 10,
+              background: 'rgba(0, 20, 40, 0.98)',
+              borderBottom: '2px solid var(--neon-cyan)',
+              padding: '1rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <h2 className="theme-subtitle" style={{ margin: 0 }}>
+                {ships.find(s => s.id === editingShip.id) ? 'Edit Ship' : 'Create New Ship'}
+              </h2>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button
+                  onClick={() => setEditingShip(null)}
+                  className="theme-button"
+                  style={{
+                    background: 'rgba(255, 107, 107, 0.1)',
+                    border: '2px solid rgba(255, 107, 107, 0.5)',
+                    color: '#ff6b6b',
+                    padding: '0.5rem 1.5rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveShip}
+                  className="theme-button"
+                  style={{
+                    background: 'rgba(0, 255, 136, 0.1)',
+                    border: '2px solid var(--neon-cyan)',
+                    color: 'var(--neon-cyan)',
+                    padding: '0.5rem 1.5rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}
+                >
+                  <SaveIcon size={16} />
+                  Save Ship
+                </button>
+              </div>
+            </div>
 
+            {/* SCROLLABLE CONTENT AREA */}
+            <div style={{
+              flex: 1,
+              overflow: 'auto',
+              padding: '1rem'
+            }}>
             {/* Two-Column Layout */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               {/* LEFT COLUMN */}
@@ -1065,35 +1149,7 @@ export default function ShipsManager() {
                 </div>
               </div>
             </div>
-
-            {/* Modal Actions */}
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-              <button
-                onClick={() => setEditingShip(null)}
-                className="glass-button"
-                style={{
-                  padding: '0.6rem 1.2rem',
-                  background: 'rgba(100, 100, 100, 0.1)',
-                  border: '2px solid #666',
-                  borderRadius: '6px',
-                  color: '#aaa'
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={saveShip}
-                className="glass-button"
-                style={{
-                  padding: '0.6rem 1.2rem',
-                  background: 'rgba(0, 255, 255, 0.1)',
-                  border: '2px solid var(--neon-cyan)',
-                  borderRadius: '6px',
-                  color: 'var(--neon-cyan)'
-                }}
-              >
-                Save Ship
-              </button>
+            {/* End of scrollable content */}
             </div>
           </div>
         </div>

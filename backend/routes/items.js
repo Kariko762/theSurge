@@ -72,7 +72,7 @@ router.get('/:category/:id', async (req, res) => {
 router.post('/:category', authenticateToken, async (req, res) => {
   try {
     const { category } = req.params;
-    const validCategories = ['weapons', 'subsystems', 'resources', 'consumables', 'equipment', 'artifacts'];
+    const validCategories = ['weapons', 'subsystems', 'resources', 'consumables', 'equipment', 'artifacts', 'ships'];
     
     if (!validCategories.includes(category)) {
       return res.status(400).json({ error: 'Invalid category. Must be one of: ' + validCategories.join(', ') });

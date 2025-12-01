@@ -80,46 +80,6 @@ const UITemplate = () => {
     categoryBg: 'rgba(52, 224, 255, 0.15)',
     categoryBorder: '#34e0ff',
     categoryText: '#34e0ff',
-
-    // Menu Tabs
-    menuTabHeight: 34,
-    menuTabFontSize: 0.9,
-    menuTabPadTop: 0.75,
-    menuTabPadBottom: 0.75,
-    menuTabPadLeft: 1.5,
-    menuTabPadRight: 1.5,
-    menuTabGap: 0.5,
-    menuTabJustify: 'flex-start',
-    menuTabBg: 'rgba(0, 255, 255, 0.06)',
-    menuTabText: '#34e0ff',
-    menuTabBorder: 'rgba(0, 255, 255, 0.15)',
-    menuContainerBg: 'rgba(0, 255, 255, 0.08)',
-    // SubMenu Tabs
-    submenuTabHeight: 28,
-    submenuTabFontSize: 0.85,
-    submenuTabPadTop: 0.6,
-    submenuTabPadBottom: 0.6,
-    submenuTabPadLeft: 1.2,
-    submenuTabPadRight: 1.2,
-    submenuTabGap: 0.4,
-    submenuTabJustify: 'flex-start',
-    submenuTabBg: 'rgba(0, 255, 255, 0.05)',
-    submenuTabText: '#7ab8c4',
-    submenuTabBorder: 'rgba(0, 255, 255, 0.12)',
-    submenuContainerBg: 'rgba(0, 255, 255, 0.06)',
-    // SubSubMenu Tabs
-    subsubmenuTabHeight: 24,
-    subsubmenuTabFontSize: 0.8,
-    subsubmenuTabPadTop: 0.45,
-    subsubmenuTabPadBottom: 0.45,
-    subsubmenuTabPadLeft: 1,
-    subsubmenuTabPadRight: 1,
-    subsubmenuTabGap: 0.3,
-    subsubmenuTabJustify: 'flex-start',
-    subsubmenuTabBg: 'rgba(0, 255, 255, 0.04)',
-    subsubmenuTabText: '#7ab8c4',
-    subsubmenuTabBorder: 'rgba(0, 255, 255, 0.1)',
-    subsubmenuContainerBg: 'rgba(0, 255, 255, 0.05)'
   });
 
   const updateTheme = (key, value) => setTheme(t => ({ ...t, [key]: value }));
@@ -200,47 +160,6 @@ const UITemplate = () => {
     root.style.setProperty('--theme-category-bg', theme.categoryBg);
     root.style.setProperty('--theme-category-border', theme.categoryBorder);
     root.style.setProperty('--theme-category-text', theme.categoryText);
-
-    // Menu Tabs
-    root.style.setProperty('--menu-tab-height', `${theme.menuTabHeight}px`);
-    root.style.setProperty('--menu-tab-font-size', `${theme.menuTabFontSize}rem`);
-    root.style.setProperty('--menu-tab-padding-top', `${theme.menuTabPadTop}rem`);
-    root.style.setProperty('--menu-tab-padding-bottom', `${theme.menuTabPadBottom}rem`);
-    root.style.setProperty('--menu-tab-padding-left', `${theme.menuTabPadLeft}rem`);
-    root.style.setProperty('--menu-tab-padding-right', `${theme.menuTabPadRight}rem`);
-    root.style.setProperty('--menu-tab-gap', `${theme.menuTabGap}rem`);
-    root.style.setProperty('--menu-tab-justify', theme.menuTabJustify);
-    root.style.setProperty('--menu-tab-bg', theme.menuTabBg);
-    root.style.setProperty('--menu-tab-text', theme.menuTabText);
-    root.style.setProperty('--menu-tab-border', theme.menuTabBorder);
-    root.style.setProperty('--menu-container-bg', theme.menuContainerBg);
-    // SubMenu Tabs
-    root.style.setProperty('--submenu-tab-height', `${theme.submenuTabHeight}px`);
-    root.style.setProperty('--submenu-tab-font-size', `${theme.submenuTabFontSize}rem`);
-    root.style.setProperty('--submenu-tab-padding-top', `${theme.submenuTabPadTop}rem`);
-    root.style.setProperty('--submenu-tab-padding-bottom', `${theme.submenuTabPadBottom}rem`);
-    root.style.setProperty('--submenu-tab-padding-left', `${theme.submenuTabPadLeft}rem`);
-    root.style.setProperty('--submenu-tab-padding-right', `${theme.submenuTabPadRight}rem`);
-    root.style.setProperty('--submenu-tab-gap', `${theme.submenuTabGap}rem`);
-    root.style.setProperty('--submenu-tab-justify', theme.submenuTabJustify);
-    root.style.setProperty('--submenu-tab-bg', theme.submenuTabBg);
-    root.style.setProperty('--submenu-tab-text', theme.submenuTabText);
-    root.style.setProperty('--submenu-tab-border', theme.submenuTabBorder);
-    root.style.setProperty('--submenu-container-bg', theme.submenuContainerBg);
-    
-    // SubSubMenu Tabs
-    root.style.setProperty('--subsubmenu-tab-height', `${theme.subsubmenuTabHeight}px`);
-    root.style.setProperty('--subsubmenu-tab-font-size', `${theme.subsubmenuTabFontSize}rem`);
-    root.style.setProperty('--subsubmenu-tab-padding-top', `${theme.subsubmenuTabPadTop}rem`);
-    root.style.setProperty('--subsubmenu-tab-padding-bottom', `${theme.subsubmenuTabPadBottom}rem`);
-    root.style.setProperty('--subsubmenu-tab-padding-left', `${theme.subsubmenuTabPadLeft}rem`);
-    root.style.setProperty('--subsubmenu-tab-padding-right', `${theme.subsubmenuTabPadRight}rem`);
-    root.style.setProperty('--subsubmenu-tab-gap', `${theme.subsubmenuTabGap}rem`);
-    root.style.setProperty('--subsubmenu-tab-justify', theme.subsubmenuTabJustify);
-    root.style.setProperty('--subsubmenu-tab-bg', theme.subsubmenuTabBg);
-    root.style.setProperty('--subsubmenu-tab-text', theme.subsubmenuTabText);
-    root.style.setProperty('--subsubmenu-tab-border', theme.subsubmenuTabBorder);
-    root.style.setProperty('--subsubmenu-container-bg', theme.subsubmenuContainerBg);
   }, [theme]);
 
   return (
@@ -324,11 +243,11 @@ const UITemplate = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
             <div>
               <label style={{ color: theme.bodyColor, fontSize: theme.bodySize, display: 'block', marginBottom: '0.3rem' }}>Gradient Start</label>
-              <input type="color" value={theme.gradientStart} onChange={e => updateTheme('gradientStart', e.target.value)} style={{ width: '100%', height: '30px' }} />
+              <input type="text" value={theme.gradientStart} onChange={e => updateTheme('gradientStart', e.target.value)} style={{ width: '100%', height: '30px' }} />
             </div>
             <div>
               <label style={{ color: theme.bodyColor, fontSize: theme.bodySize, display: 'block', marginBottom: '0.3rem' }}>Gradient End</label>
-              <input type="color" value={theme.gradientEnd} onChange={e => updateTheme('gradientEnd', e.target.value)} style={{ width: '100%', height: '30px' }} />
+              <input type="text" value={theme.gradientEnd} onChange={e => updateTheme('gradientEnd', e.target.value)} style={{ width: '100%', height: '30px' }} />
             </div>
           </div>
           <label style={{ color: theme.bodyColor, fontSize: theme.bodySize, display: 'block', marginBottom: '0.3rem' }}>Gradient Angle ({theme.gradientAngle}Â°)</label>
@@ -379,7 +298,7 @@ const UITemplate = () => {
           <h4 style={{ color: theme.titleColor, fontSize: '0.85rem', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Borders</h4>
           
           <label style={{ color: theme.bodyColor, fontSize: theme.bodySize, display: 'block', marginBottom: '0.3rem' }}>Border Color</label>
-          <input type="color" value={theme.borderColor} onChange={e => updateTheme('borderColor', e.target.value)} 
+          <input type="text" value={theme.borderColor} onChange={e => updateTheme('borderColor', e.target.value)} 
             style={{ width: '100%', marginBottom: '0.75rem', height: '30px' }} />
           
           <label style={{ color: theme.bodyColor, fontSize: theme.bodySize, display: 'block', marginBottom: '0.3rem' }}>Border Radius ({parseFloat(theme.borderRadius)}px)</label>
@@ -674,179 +593,6 @@ const UITemplate = () => {
           fontSize: theme.bodySize
         }}>
           <strong>â„¹ï¸ Information:</strong> This is an info banner used to display important contextual information to users.
-        </div>
-      </div>
-
-      {/* Menu Tabs Section */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: '25% 75%', 
-        gap: '1rem', 
-        marginBottom: '1rem',
-        background: `linear-gradient(${theme.gradientAngle}deg, ${theme.gradientStart}, ${theme.gradientEnd})`,
-        border: `${theme.borderWidth} solid ${theme.borderColor}`,
-        borderRadius: theme.borderRadius,
-        padding: '1rem'
-      }}>
-        {/* Controls */}
-        <div>
-          <h4 style={{ color: theme.titleColor, fontSize: '0.85rem', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Menu Tabs</h4>
-
-          {/* Main Tab Controls */}
-          <h5 style={{ color: theme.titleColor, fontSize: '0.75rem', marginTop: '0.75rem', marginBottom: '0.5rem', opacity: 0.8 }}>MAIN TAB</h5>
-          
-          <div className="slider-compact">
-            <label>Tab Height</label>
-            <input type="range" min="24" max="56" value={theme.menuTabHeight} onChange={e => updateTheme('menuTabHeight', parseInt(e.target.value,10))} />
-            <span className="value">{theme.menuTabHeight}px</span>
-          </div>
-
-          <div className="slider-compact">
-            <label>Font Size</label>
-            <input type="range" min="0.65" max="1.2" step="0.05" value={theme.menuTabFontSize} onChange={e => updateTheme('menuTabFontSize', parseFloat(e.target.value))} />
-            <span className="value">{theme.menuTabFontSize}rem</span>
-          </div>
-
-          <div className="slider-compact">
-            <label>Padding X</label>
-            <input type="range" min="0.2" max="2" step="0.05" value={theme.menuTabPadLeft} onChange={e => { const v = parseFloat(e.target.value); updateTheme('menuTabPadLeft', v); updateTheme('menuTabPadRight', v); }} />
-            <span className="value">{theme.menuTabPadLeft}rem</span>
-          </div>
-
-          <div className="slider-compact">
-            <label>Padding Y</label>
-            <input type="range" min="0.1" max="1.2" step="0.05" value={theme.menuTabPadTop} onChange={e => { const v = parseFloat(e.target.value); updateTheme('menuTabPadTop', v); updateTheme('menuTabPadBottom', v); }} />
-            <span className="value">{theme.menuTabPadTop}rem</span>
-          </div>
-
-          <div className="slider-compact">
-            <label>Gap</label>
-            <input type="range" min="0" max="1.5" step="0.05" value={theme.menuTabGap} onChange={e => updateTheme('menuTabGap', parseFloat(e.target.value))} />
-            <span className="value">{theme.menuTabGap}rem</span>
-          </div>
-
-          <label style={{ color: theme.bodyColor, fontSize: theme.bodySize, display: 'block', marginTop: '0.5rem', marginBottom: '0.3rem' }}>Alignment</label>
-          <select value={theme.menuTabJustify} onChange={e => updateTheme('menuTabJustify', e.target.value)} className="theme-input" style={{ marginBottom: '0.5rem' }}>
-            <option value="flex-start">Left</option>
-            <option value="center">Center</option>
-            <option value="flex-end">Right</option>
-            <option value="space-between">Space Between</option>
-          </select>
-
-          <label style={{ color: theme.bodyColor, fontSize: theme.bodySize, display: 'block', marginBottom: '0.3rem' }}>Main Menu Background</label>
-          <input type="text" value={theme.menuContainerBg} onChange={e => updateTheme('menuContainerBg', e.target.value)} 
-            style={{ width: '100%', marginBottom: '0.75rem', padding: '0.4rem 0.6rem', background: 'rgba(0,10,20,0.8)', border: `1px solid rgba(52,224,255,0.3)`, borderRadius: '4px', color: theme.bodyColor, fontSize: theme.bodySize }} />
-
-          {/* SubMenu Controls */}
-          <h5 style={{ color: theme.titleColor, fontSize: '0.75rem', marginTop: '0.75rem', marginBottom: '0.5rem', opacity: 0.8 }}>SUB TAB</h5>
-          
-          <div className="slider-compact">
-            <label>Tab Height</label>
-            <input type="range" min="20" max="48" value={theme.submenuTabHeight} onChange={e => updateTheme('submenuTabHeight', parseInt(e.target.value,10))} />
-            <span className="value">{theme.submenuTabHeight}px</span>
-          </div>
-
-          <div className="slider-compact">
-            <label>Font Size</label>
-            <input type="range" min="0.6" max="1.1" step="0.05" value={theme.submenuTabFontSize} onChange={e => updateTheme('submenuTabFontSize', parseFloat(e.target.value))} />
-            <span className="value">{theme.submenuTabFontSize}rem</span>
-          </div>
-
-          <div className="slider-compact">
-            <label>Padding X</label>
-            <input type="range" min="0.2" max="2" step="0.05" value={theme.submenuTabPadLeft} onChange={e => { const v = parseFloat(e.target.value); updateTheme('submenuTabPadLeft', v); updateTheme('submenuTabPadRight', v); }} />
-            <span className="value">{theme.submenuTabPadLeft}rem</span>
-          </div>
-
-          <div className="slider-compact">
-            <label>Padding Y</label>
-            <input type="range" min="0.1" max="1" step="0.05" value={theme.submenuTabPadTop} onChange={e => { const v = parseFloat(e.target.value); updateTheme('submenuTabPadTop', v); updateTheme('submenuTabPadBottom', v); }} />
-            <span className="value">{theme.submenuTabPadTop}rem</span>
-          </div>
-
-          <div className="slider-compact">
-            <label>Gap</label>
-            <input type="range" min="0" max="1.5" step="0.05" value={theme.submenuTabGap} onChange={e => updateTheme('submenuTabGap', parseFloat(e.target.value))} />
-            <span className="value">{theme.submenuTabGap}rem</span>
-          </div>
-
-          <label style={{ color: theme.bodyColor, fontSize: theme.bodySize, display: 'block', marginTop: '0.5rem', marginBottom: '0.3rem' }}>Alignment</label>
-          <select value={theme.submenuTabJustify} onChange={e => updateTheme('submenuTabJustify', e.target.value)} className="theme-input" style={{ marginBottom: '0.5rem' }}>
-            <option value="flex-start">Left</option>
-            <option value="center">Center</option>
-            <option value="flex-end">Right</option>
-            <option value="space-between">Space Between</option>
-          </select>
-
-          <label style={{ color: theme.bodyColor, fontSize: theme.bodySize, display: 'block', marginBottom: '0.3rem' }}>SubMenu Background</label>
-          <input type="text" value={theme.submenuContainerBg} onChange={e => updateTheme('submenuContainerBg', e.target.value)} 
-            style={{ width: '100%', marginBottom: '0.75rem', padding: '0.4rem 0.6rem', background: 'rgba(0,10,20,0.8)', border: `1px solid rgba(52,224,255,0.3)`, borderRadius: '4px', color: theme.bodyColor, fontSize: theme.bodySize }} />
-
-          {/* SubSubMenu Controls */}
-          <h5 style={{ color: theme.titleColor, fontSize: '0.75rem', marginTop: '0.75rem', marginBottom: '0.5rem', opacity: 0.8 }}>SUB-SUB TAB</h5>
-          
-          <div className="slider-compact">
-            <label>Tab Height</label>
-            <input type="range" min="18" max="40" value={theme.subsubmenuTabHeight} onChange={e => updateTheme('subsubmenuTabHeight', parseInt(e.target.value,10))} />
-            <span className="value">{theme.subsubmenuTabHeight}px</span>
-          </div>
-
-          <div className="slider-compact">
-            <label>Font Size</label>
-            <input type="range" min="0.55" max="1" step="0.05" value={theme.subsubmenuTabFontSize} onChange={e => updateTheme('subsubmenuTabFontSize', parseFloat(e.target.value))} />
-            <span className="value">{theme.subsubmenuTabFontSize}rem</span>
-          </div>
-
-          <div className="slider-compact">
-            <label>Padding X</label>
-            <input type="range" min="0.2" max="1.5" step="0.05" value={theme.subsubmenuTabPadLeft} onChange={e => { const v = parseFloat(e.target.value); updateTheme('subsubmenuTabPadLeft', v); updateTheme('subsubmenuTabPadRight', v); }} />
-            <span className="value">{theme.subsubmenuTabPadLeft}rem</span>
-          </div>
-
-          <div className="slider-compact">
-            <label>Padding Y</label>
-            <input type="range" min="0.1" max="0.9" step="0.05" value={theme.subsubmenuTabPadTop} onChange={e => { const v = parseFloat(e.target.value); updateTheme('subsubmenuTabPadTop', v); updateTheme('subsubmenuTabPadBottom', v); }} />
-            <span className="value">{theme.subsubmenuTabPadTop}rem</span>
-          </div>
-
-          <div className="slider-compact">
-            <label>Gap</label>
-            <input type="range" min="0" max="1.2" step="0.05" value={theme.subsubmenuTabGap} onChange={e => updateTheme('subsubmenuTabGap', parseFloat(e.target.value))} />
-            <span className="value">{theme.subsubmenuTabGap}rem</span>
-          </div>
-
-          <label style={{ color: theme.bodyColor, fontSize: theme.bodySize, display: 'block', marginTop: '0.5rem', marginBottom: '0.3rem' }}>Alignment</label>
-          <select value={theme.subsubmenuTabJustify} onChange={e => updateTheme('subsubmenuTabJustify', e.target.value)} className="theme-input" style={{ marginBottom: '0.5rem' }}>
-            <option value="flex-start">Left</option>
-            <option value="center">Center</option>
-            <option value="flex-end">Right</option>
-            <option value="space-between">Space Between</option>
-          </select>
-
-          <label style={{ color: theme.bodyColor, fontSize: theme.bodySize, display: 'block', marginBottom: '0.3rem' }}>SubSubMenu Background</label>
-          <input type="text" value={theme.subsubmenuContainerBg} onChange={e => updateTheme('subsubmenuContainerBg', e.target.value)} 
-            style={{ width: '100%', padding: '0.4rem 0.6rem', background: 'rgba(0,10,20,0.8)', border: `1px solid rgba(52,224,255,0.3)`, borderRadius: '4px', color: theme.bodyColor, fontSize: theme.bodySize }} />
-        </div>
-
-        {/* Preview */}
-        <div style={{ paddingRight: '1rem' }}>
-          <div className="theme-menu">
-            <button className="theme-menu-tab active">Overview</button>
-            <button className="theme-menu-tab">Ships</button>
-            <button className="theme-menu-tab">Tiers</button>
-            <button className="theme-menu-tab">Factions</button>
-          </div>
-          <div className="theme-submenu">
-            <button className="theme-submenu-tab active">List</button>
-            <button className="theme-submenu-tab">Create</button>
-            <button className="theme-submenu-tab">Settings</button>
-          </div>
-          <div className="theme-subsubmenu">
-            <button className="theme-subsubmenu-tab active">Details</button>
-            <button className="theme-subsubmenu-tab">Stats</button>
-            <button className="theme-subsubmenu-tab">Loot</button>
-            <button className="theme-subsubmenu-tab">Images</button>
-          </div>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
 import { generateSystem, exampleSeeds, calculateTotalRisk, calculateStaticExposure, calculateWakeSignature } from '../lib/systemGenerator.js'
 import { generateSystemV2, flattenPOIs } from '../lib/systemGeneratorV2.js'
+import { loadPOILibrary } from '../lib/poiLibraryLoader.js'
 import { getGameTime } from '../lib/timeAdapter.js'
 import { calculateShipAttributes, DEFAULT_SHIP_LOADOUT, DEFAULT_POWER_ALLOCATION, COMPONENTS } from '../lib/shipComponents.js'
 import { getShipState } from '../lib/shipState.js'
@@ -415,9 +416,8 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
   const [terminalExpanded, setTerminalExpanded] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
   const [movementProgress, setMovementProgress] = useState(0);
-  const [scanPingRadius, setScanPingRadius] = useState(0); // Current ping radius in AU
-  const [isPinging, setIsPinging] = useState(false); // Is ping animation active
-  const [pingOpacity, setPingOpacity] = useState(1); // Ping opacity for fade-out
+  const [revealingPOIs, setRevealingPOIs] = useState(new Set()); // POIs currently being revealed with scan lines
+  const [revealedPOIs, setRevealedPOIs] = useState(new Set()); // POIs that have been fully revealed
   const [cursorWorldPos, setCursorWorldPos] = useState({ x: 0, y: 0 }); // Cursor position in AU
   const [isOutsideHeliosphere, setIsOutsideHeliosphere] = useState(false);
   const [droppedPins, setDroppedPins] = useState([]); // Array of {id, x, y, name}
@@ -513,18 +513,39 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
 
   // Seed + generated system
   const [seedInput, setSeedInput] = useState(initialSeed || exampleSeeds()[0]);
-  const system = useMemo(() => {
-    // Use V2 generator
-    const generated = generateSystemV2(seedInput);
-    console.log(`[SEED: ${seedInput}] Generated system V2:`, {
-      star: generated.star.class,
-      heliosphere: generated.heliosphere.radiusAU.toFixed(2),
-      poiCount: generated.pois.length,
-      orbitalCount: generated.metadata.orbitalCount,
-      radius: generated.radius.toFixed(2)
-    });
-    return generated;
-  }, [seedInput]);
+  const [system, setSystem] = useState(null);
+  const [poiConfig, setPoiConfig] = useState(null);
+  
+  // Load POI library on mount
+  useEffect(() => {
+    async function loadConfig() {
+      console.log('[ShipConsole] Loading POI library...');
+      const config = await loadPOILibrary();
+      setPoiConfig(config);
+      console.log('[ShipConsole] POI library loaded:', Object.keys(config.poiTypes).length, 'types');
+    }
+    loadConfig();
+  }, []);
+  
+  // Generate system when seed or POI config changes
+  useEffect(() => {
+    if (!poiConfig) return; // Wait for POI config to load
+    
+    async function generateSystem() {
+      const generated = await generateSystemV2(seedInput, poiConfig);
+      console.log(`[SEED: ${seedInput}] Generated system V2:`, {
+        star: generated.star.class,
+        heliosphere: generated.heliosphere.radiusAU.toFixed(2),
+        poiCount: generated.pois.length,
+        orbitalCount: generated.metadata.orbitalCount,
+        radius: generated.radius.toFixed(2),
+        usedPOIConfig: generated.metadata.usedPOIConfig
+      });
+      setSystem(generated);
+    }
+    
+    generateSystem();
+  }, [seedInput, poiConfig]);
   
   // Sync ship position on mount and center view
   useEffect(() => {
@@ -1111,10 +1132,10 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
   };
   const startSystemScan = () => {
     if (scanningActive) return;
+    console.log('[SCAN] Starting scan-line reveal');
     setScanningActive(true);
-    setIsPinging(true);
-    setScanPingRadius(0);
-    setPingOpacity(1);
+    setRevealingPOIs(new Set());
+    setRevealedPOIs(new Set());
     
     // Build structured event containers
     const conversational = [];
@@ -1126,34 +1147,6 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
     stream.push(`> Star Class ${system.star.class} | Luminosity ${system.star.luminosity.toFixed(2)} | Stellar Protection ${system.star.stellarProtection.toFixed(2)}`);
     setTerminalLog(prev => [...prev, '> ARIA: Initiating sensor sweep...']);
     
-    // Animate ping expanding from ship to sensor range
-    // Total duration: 3 seconds (2.5s visible + 0.5s fade)
-    const pingDuration = 2500; // 2.5 seconds for ping to expand at full opacity
-    const fadeStart = 2500; // Start fade at 2.5 seconds
-    const fadeDuration = 500; // 0.5 seconds for fade-out
-    const totalDuration = 3000; // Total 3 seconds
-    const startTime = Date.now();
-    
-    const pingInterval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / pingDuration, 1);
-      const currentRadius = shipAttributes.sensorRange * progress;
-      setScanPingRadius(currentRadius);
-      
-      // Handle fade-out after 2.5 seconds
-      if (elapsed >= fadeStart) {
-        const fadeProgress = (elapsed - fadeStart) / fadeDuration;
-        setPingOpacity(Math.max(0, 1 - fadeProgress));
-      }
-      
-      if (elapsed >= totalDuration) {
-        clearInterval(pingInterval);
-        setIsPinging(false);
-        setScanPingRadius(0);
-        setPingOpacity(1);
-      }
-    }, 16); // ~60fps
-    
     // Filter POIs within sensor range and sort by distance from ship
     const poisWithinRange = pois.filter(p => {
       if (p.id === 'SUN') return false;
@@ -1162,47 +1155,79 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
         Math.pow(p.distanceAU * Math.sin(p.angleRad) - shipPosition.y, 2)
       );
       return distFromShip <= shipAttributes.sensorRange;
-    }).sort((a, b) => {
-      const distA = Math.sqrt(Math.pow(a.distanceAU * Math.cos(a.angleRad) - shipPosition.x, 2) + Math.pow(a.distanceAU * Math.sin(a.angleRad) - shipPosition.y, 2));
-      const distB = Math.sqrt(Math.pow(b.distanceAU * Math.cos(b.angleRad) - shipPosition.x, 2) + Math.pow(b.distanceAU * Math.sin(b.angleRad) - shipPosition.y, 2));
-      return distA - distB;
-    });
+    }).map(p => {
+      const distFromShip = Math.sqrt(
+        Math.pow(p.distanceAU * Math.cos(p.angleRad) - shipPosition.x, 2) +
+        Math.pow(p.distanceAU * Math.sin(p.angleRad) - shipPosition.y, 2)
+      );
+      return { poi: p, distance: distFromShip };
+    }).sort((a, b) => a.distance - b.distance);
     
     // Count POIs out of range
     const totalPois = pois.filter(p => p.id !== 'SUN').length;
     const outOfRange = totalPois - poisWithinRange.length;
-
-    // Progressive reveal as ping reaches each POI
+    
+    // Group into batches of 2-3 POIs
+    const batches = [];
+    for (let i = 0; i < poisWithinRange.length;) {
+      const batchSize = Math.min(Math.floor(Math.random() * 2) + 2, poisWithinRange.length - i);
+      batches.push(poisWithinRange.slice(i, i + batchSize));
+      i += batchSize;
+    }
+    
+    // Progressive reveal with scan-line effect
     const detectedSummary = { planets: 0, moons: 0, belts: 0, habitats: 0, anomalies: 0, conflicts: 0, orbitals: 0, other: 0 };
-
-    poisWithinRange.forEach((poi) => {
-      const distFromShip = Math.sqrt(
-        Math.pow(poi.distanceAU * Math.cos(poi.angleRad) - shipPosition.x, 2) +
-        Math.pow(poi.distanceAU * Math.sin(poi.angleRad) - shipPosition.y, 2)
-      );
-      // Calculate when ping will reach this POI
-      const timeToReach = (distFromShip / shipAttributes.sensorRange) * pingDuration;
+    let totalDuration = 0;
+    
+    batches.forEach((batch, batchIndex) => {
+      const revealDelay = batchIndex * 400; // 400ms between batches
+      totalDuration = Math.max(totalDuration, revealDelay + 1000);
       
       setTimeout(() => {
-        setScanProgress(prev => [...prev, poi.id]);
-        shipState.scanPOI(poi.id);
-        const x = (poi.distanceAU * Math.cos(poi.angleRad)).toFixed(2);
-        const y = (poi.distanceAU * Math.sin(poi.angleRad)).toFixed(2);
-        // Data stream line
-        stream.push(`> Detected ${poi.type} (${x}, ${y}) distance ${distFromShip.toFixed(2)} AU`);
-        // Increment summary counters
-        const t = poi.type.toLowerCase();
-        if (t.includes('planet')) detectedSummary.planets++;
-        else if (t.includes('moon')) detectedSummary.moons++;
-        else if (t.includes('belt')) detectedSummary.belts++;
-        else if (t.includes('habitat')) detectedSummary.habitats++;
-        else if (t.includes('anomaly')) detectedSummary.anomalies++;
-        else if (t.includes('conflict')) detectedSummary.conflicts++;
-        else if (t.includes('orbital')) detectedSummary.orbitals++;
-        else detectedSummary.other++;
-      }, timeToReach);
+        // Start scan-line reveal for this batch
+        setRevealingPOIs(prev => {
+          const next = new Set(prev);
+          batch.forEach(({ poi }) => next.add(poi.id));
+          return next;
+        });
+        
+        // Mark POIs as scanned and log them
+        batch.forEach(({ poi, distance }) => {
+          setScanProgress(prev => [...prev, poi.id]);
+          shipState.scanPOI(poi.id);
+          const x = (poi.distanceAU * Math.cos(poi.angleRad)).toFixed(2);
+          const y = (poi.distanceAU * Math.sin(poi.angleRad)).toFixed(2);
+          stream.push(`> Detected ${poi.type} (${x}, ${y}) distance ${distance.toFixed(2)} AU`);
+          
+          // Increment summary counters
+          const t = poi.type.toLowerCase();
+          if (t.includes('planet')) detectedSummary.planets++;
+          else if (t.includes('moon')) detectedSummary.moons++;
+          else if (t.includes('belt')) detectedSummary.belts++;
+          else if (t.includes('habitat')) detectedSummary.habitats++;
+          else if (t.includes('anomaly')) detectedSummary.anomalies++;
+          else if (t.includes('conflict')) detectedSummary.conflicts++;
+          else if (t.includes('orbital')) detectedSummary.orbitals++;
+          else detectedSummary.other++;
+        });
+        
+        // After scan-line animation (800ms), mark as fully revealed
+        setTimeout(() => {
+          setRevealedPOIs(prev => {
+            const next = new Set(prev);
+            batch.forEach(({ poi }) => next.add(poi.id));
+            return next;
+          });
+          setRevealingPOIs(prev => {
+            const next = new Set(prev);
+            batch.forEach(({ poi }) => next.delete(poi.id));
+            return next;
+          });
+        }, 200); // Start POI fade-in at 200ms (early in warp animation)
+      }, revealDelay);
     });
 
+    
     setTimeout(() => {
       const rangeMsg = outOfRange > 0 
         ? `> ARIA: Scan complete. ${poisWithinRange.length} contacts detected. ${outOfRange} beyond range.`
@@ -1222,7 +1247,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
       }]);
 
       setScanningActive(false);
-    }, pingDuration + 500);
+    }, totalDuration + 500);
   };
   
   // Mining handlers
@@ -2489,6 +2514,33 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
     return Math.max(minSize, Math.min(maxSize, responsiveSize));
   };
   
+  // Loading state while POI config loads
+  if (!system || !poiConfig) {
+    return (
+      <div className="terminal-frame" style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        background: 'rgba(0, 0, 0, 0.95)'
+      }}>
+        <div style={{
+          textAlign: 'center',
+          color: '#34e0ff',
+          fontFamily: 'monospace',
+          letterSpacing: '2px'
+        }}>
+          <div style={{ fontSize: '14px', marginBottom: '20px' }}>
+            {!poiConfig ? 'LOADING POI LIBRARY...' : 'GENERATING SYSTEM...'}
+          </div>
+          <div style={{ fontSize: '24px', animation: 'pulse 1.5s ease-in-out infinite' }}>
+            ▰▱▱▱▱
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="terminal-frame">
       {/* Fullscreen Solar System Map - Always visible */}
@@ -3582,37 +3634,56 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                   </div>
                 ) : null;
                 
-                // Ping wave expanding from ship (sensor sweep visualization)
-                const pingWave = isPinging ? (() => {
-                  const shipPos = toXY(shipPosition.distanceAU, shipPosition.angleRad);
-                  // Convert scan radius from AU to viewport percentage using same calculation as toXY
-                  const radiusInViewport = (scanPingRadius / system.heliosphere.radiusAU) * 0.92 * zoom;
-                  const diameterPx = radiusInViewport * 2 * canvasDimensions.minDim;
-                  const shipPosX = parseFloat(shipPos.left);
-                  const shipPosY = parseFloat(shipPos.top);
-                  const leftPx = (shipPosX / 100) * canvasDimensions.width;
-                  const topPx = (shipPosY / 100) * canvasDimensions.height;
+                // Horizontal flare effects for POIs being revealed (exclude child POIs)
+                const warpEffects = Array.from(revealingPOIs).map(poiId => {
+                  const poi = pois.find(p => p.id === poiId);
+                  if (!poi || poi.parentId) return null; // Skip child POIs
+                  
+                  const poiPos = toXY(poi.distanceAU, poi.angleRad);
+                  
                   return (
                     <div
+                      key={`warp-${poiId}`}
                       style={{
                         position: 'absolute',
-                        left: `${leftPx}px`,
-                        top: `${topPx}px`,
+                        left: poiPos.left,
+                        top: poiPos.top,
                         transform: 'translate(-50%, -50%)',
-                        width: `${diameterPx}px`,
-                        height: `${diameterPx}px`,
-                        border: '2px solid rgba(52, 224, 255, 0.8)',
-                        borderRadius: '50%',
-                        boxShadow: '0 0 20px rgba(52, 224, 255, 0.6), inset 0 0 20px rgba(52, 224, 255, 0.3)',
+                        width: '2px',
+                        height: '2px',
+                        background: 'radial-gradient(ellipse, rgba(52, 224, 255, 1) 0%, rgba(52, 224, 255, 0.8) 50%, transparent 100%)',
+                        filter: 'blur(0.5px)',
+                        animation: 'horizontalFlare 0.8s ease-in-out forwards',
                         pointerEvents: 'none',
-                        animation: 'pulse 0.5s ease-in-out infinite',
-                        opacity: pingOpacity,
-                        transition: 'opacity 0.5s ease-out',
-                        zIndex: 5
+                        zIndex: 15
                       }}
-                    />
+                    >
+                      {/* Glow layers */}
+                      <div style={{
+                        position: 'absolute',
+                        left: '50%',
+                        top: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '150%',
+                        height: '150%',
+                        background: 'inherit',
+                        filter: 'blur(4px)',
+                        opacity: 0.7
+                      }} />
+                      <div style={{
+                        position: 'absolute',
+                        left: '50%',
+                        top: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '200%',
+                        height: '200%',
+                        background: 'inherit',
+                        filter: 'blur(8px)',
+                        opacity: 0.5
+                      }} />
+                    </div>
                   );
-                })() : null;
+                });
                 
                 // Sun marker - scales with zoom
                 const sunBaseSize = 16; // Base size in pixels
@@ -3775,7 +3846,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                       return <svg width={size} height={size} viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="2"/><circle cx="8" cy="8" r="2" fill="currentColor" opacity="0.4"/><circle cx="15" cy="10" r="1.5" fill="currentColor" opacity="0.3"/><circle cx="10" cy="14" r="1.2" fill="currentColor" opacity="0.35"/></svg>;
                     
                     case 'belt':
-                      return <svg width={size} height={size} viewBox="0 0 24 24"><circle cx="8" cy="8" r="2" fill="currentColor"/><circle cx="16" cy="10" r="1.5" fill="currentColor"/><circle cx="12" cy="16" r="2.5" fill="currentColor"/><circle cx="18" cy="16" r="1" fill="currentColor"/></svg>;
+                      return <svg width={size} height={size} viewBox="0 0 24 24"><circle cx="6" cy="6" r="3" fill="currentColor"/><circle cx="18" cy="8" r="2.5" fill="currentColor"/><circle cx="12" cy="14" r="3.5" fill="currentColor"/><circle cx="20" cy="18" r="2" fill="currentColor"/><circle cx="8" cy="18" r="2" fill="currentColor"/></svg>;
                     
                     case 'orbital':
                     case 'station':
@@ -3862,6 +3933,12 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                   // Check if ship is at this POI location (will show selection menu above)
                   const shipDist = Math.sqrt(Math.pow(p.distanceAU * Math.cos(p.angleRad) - shipPosition.x, 2) + Math.pow(p.distanceAU * Math.sin(p.angleRad) - shipPosition.y, 2));
                   const shipAtPOI = shipDist < 0.05; // threshold AU
+                  
+                  // Check if this POI is expanded (showing child menu) or has ship menu
+                  const hasChildren = group.children.length > 0;
+                  const isExpanded = expandedPOIs.has(p.id);
+                  const isThisPOISelected = selectedPOI === p.id || (selectedPOI === 'SHIP' && shipAtPOI);
+                  const hasActiveMenu = isExpanded || shipAtPOI;
                   
                   // Render parent POI and orbitals in a container
                   const renderPOICircle = (poi, size, iconSz, xOffset = 0) => (
@@ -3968,9 +4045,6 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                     </div>
                   );
                   
-                  const isExpanded = expandedPOIs.has(p.id) || shipAtPOI; // Auto-expand if ship is here
-                  const hasChildren = group.children.length > 0 || shipAtPOI; // Has children if orbitals OR ship present
-                  
                   // Main container for parent + children (children positioned absolutely below parent)
                   groupMarkers.push(
                     <div
@@ -3980,7 +4054,10 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                         position: 'absolute',
                         transform: 'translate(-50%, -50%)',
                         transition: panTransition ? 'left 0.8s ease-in-out, top 0.8s ease-in-out' : 'none',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        // Elevated z-index when this POI is selected/has active menu
+                        // Lower z-index when ANY other POI has an active menu
+                        zIndex: hasActiveMenu ? 30000 : (expandedPOIs.size > 0 ? 500 : 1000)
                       }}
                       onMouseEnter={() => { setHoveredPOI(p.id); }}
                       onMouseLeave={() => { setHoveredPOI(null); }}
@@ -4034,9 +4111,9 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                     >
                       {/* Parent POI - anchored at exact position */}
                       <div style={{ 
-                        position: 'relative', 
-                        // High z-index when this POI is selected OR when ship at this POI is selected
-                        zIndex: (selectedPOI === p.id || (selectedPOI === 'SHIP' && shipAtPOI)) ? 30000 : 1000
+                        position: 'relative',
+                        opacity: revealedPOIs.has(p.id) ? 1 : 0,
+                        animation: revealedPOIs.has(p.id) ? 'materializePOI 0.6s ease-out forwards' : 'none'
                       }}>
                         {renderPOICircle(p, poiSize, iconSize, 0)}
                         
@@ -5026,7 +5103,7 @@ const ShipCommandConsole = ({ onNavigate, initialSeed, initialPosition, devMode,
                     })()}
                     {scaleRings}
                     {rings}
-                    {pingWave}
+                    {warpEffects}
                     {shipMarker}
                     {sunMarker}
                     {markers}

@@ -27,14 +27,20 @@
     "size": 3,
     "maxStack": 1,
     "value": 800,
-    "tags": {
-      "0": "subsystem",
-      "1": "ecm",
-      "2": "defense"
-    },
+    "tags": [
+      "subsystem",
+      "ecm",
+      "defense",
+      "tier_1"
+    ],
     "properties": {
       "evasion": 10,
       "jamming": 15
+    },
+    "combatProperties": {
+      "evasionBonus": 1,
+      "jamDC": 12,
+      "tier": 1
     }
   },
   {
@@ -48,16 +54,51 @@
     "size": 4,
     "maxStack": 1,
     "value": 2800,
-    "tags": {
-      "0": "subsystem",
-      "1": "ecm",
-      "2": "defense",
-      "3": "military"
-    },
+    "tags": [
+      "subsystem",
+      "ecm",
+      "defense",
+      "military",
+      "tier_2"
+    ],
     "properties": {
       "evasion": 25,
       "jamming": 40,
       "decoys": 3
+    },
+    "combatProperties": {
+      "evasionBonus": 2,
+      "jamDC": 14,
+      "tier": 2
+    }
+  },
+  {
+    "id": "ecm_suite_enhanced",
+    "name": "ECM Suite - Enhanced",
+    "description": "Top-tier countermeasures with quantum jamming and holographic decoys.",
+    "category": "subsystem",
+    "subcategory": "ecm",
+    "tier": "epic",
+    "weight": 9,
+    "size": 5,
+    "maxStack": 1,
+    "value": 5500,
+    "tags": [
+      "subsystem",
+      "ecm",
+      "defense",
+      "military",
+      "tier_3"
+    ],
+    "properties": {
+      "evasion": 40,
+      "jamming": 65,
+      "decoys": 5
+    },
+    "combatProperties": {
+      "evasionBonus": 3,
+      "jamDC": 16,
+      "tier": 3
     }
   },
   {
@@ -71,14 +112,20 @@
     "size": 3,
     "maxStack": 1,
     "value": 600,
-    "tags": {
-      "0": "subsystem",
-      "1": "sensor",
-      "2": "detection"
-    },
+    "tags": [
+      "subsystem",
+      "sensor",
+      "detection",
+      "tier_1"
+    ],
     "properties": {
       "range": 500,
       "accuracy": 15
+    },
+    "combatProperties": {
+      "accuracyBonus": 1,
+      "scanBonus": 1,
+      "tier": 1
     }
   },
   {
@@ -92,16 +139,51 @@
     "size": 4,
     "maxStack": 1,
     "value": 1500,
-    "tags": {
-      "0": "subsystem",
-      "1": "sensor",
-      "2": "detection",
-      "3": "longrange"
-    },
+    "tags": [
+      "subsystem",
+      "sensor",
+      "detection",
+      "longrange",
+      "tier_2"
+    ],
     "properties": {
       "range": 1200,
-      "accuracy": 25,
-      "gravitic": true
+      "accuracy": 30,
+      "tracking": 20
+    },
+    "combatProperties": {
+      "accuracyBonus": 2,
+      "scanBonus": 2,
+      "tier": 2
+    }
+  },
+  {
+    "id": "sensor_array_improved",
+    "name": "Improved Sensor Array",
+    "description": "Military-grade sensor package with quantum targeting and predictive algorithms.",
+    "category": "subsystem",
+    "subcategory": "sensor",
+    "tier": "rare",
+    "weight": 8,
+    "size": 5,
+    "maxStack": 1,
+    "value": 3200,
+    "tags": [
+      "subsystem",
+      "sensor",
+      "detection",
+      "military",
+      "tier_3"
+    ],
+    "properties": {
+      "range": 2000,
+      "accuracy": 50,
+      "tracking": 35
+    },
+    "combatProperties": {
+      "accuracyBonus": 3,
+      "scanBonus": 3,
+      "tier": 3
     }
   },
   {
@@ -115,14 +197,47 @@
     "size": 5,
     "maxStack": 1,
     "value": 900,
-    "tags": {
-      "0": "subsystem",
-      "1": "power",
-      "2": "reactor"
-    },
+    "tags": [
+      "subsystem",
+      "power",
+      "reactor",
+      "tier_1"
+    ],
     "properties": {
       "output": 100,
       "efficiency": 80
+    },
+    "combatProperties": {
+      "powerBonus": 7,
+      "efficiencyBonus": 5,
+      "tier": 1
+    }
+  },
+  {
+    "id": "power_core_standard",
+    "name": "Standard Power Core",
+    "description": "Balanced fusion reactor with improved output and efficiency.",
+    "category": "subsystem",
+    "subcategory": "power",
+    "tier": "uncommon",
+    "weight": 12,
+    "size": 6,
+    "maxStack": 1,
+    "value": 2200,
+    "tags": [
+      "subsystem",
+      "power",
+      "reactor",
+      "tier_2"
+    ],
+    "properties": {
+      "output": 160,
+      "efficiency": 90
+    },
+    "combatProperties": {
+      "powerBonus": 10,
+      "efficiencyBonus": 7,
+      "tier": 2
     }
   },
   {
@@ -136,16 +251,22 @@
     "size": 8,
     "maxStack": 1,
     "value": 4500,
-    "tags": {
-      "0": "subsystem",
-      "1": "power",
-      "2": "reactor",
-      "3": "military"
-    },
+    "tags": [
+      "subsystem",
+      "power",
+      "reactor",
+      "military",
+      "tier_3"
+    ],
     "properties": {
       "output": 250,
-      "efficiency": 90,
+      "efficiency": 95,
       "overcharge": true
+    },
+    "combatProperties": {
+      "powerBonus": 13,
+      "efficiencyBonus": 10,
+      "tier": 3
     }
   },
   {
@@ -159,14 +280,20 @@
     "size": 6,
     "maxStack": 1,
     "value": 1200,
-    "tags": {
-      "0": "subsystem",
-      "1": "shield",
-      "2": "defense"
-    },
+    "tags": [
+      "subsystem",
+      "shield",
+      "defense",
+      "tier_1"
+    ],
     "properties": {
       "strength": 100,
       "recharge": 10
+    },
+    "combatProperties": {
+      "shieldBonus": 6,
+      "recharge": "1d4",
+      "tier": 1
     }
   },
   {
@@ -188,6 +315,67 @@
     "properties": {
       "strength": 175,
       "recharge": 18
+    },
+    "combatProperties": {
+      "shieldBonus": 10,
+      "recharge": "1d6",
+      "tier": 2
+    }
+  },
+  {
+    "id": "shield_generator_mk3",
+    "name": "Shield Generator Mk3",
+    "description": "Military-grade shield system with adaptive harmonics and rapid regeneration.",
+    "category": "subsystem",
+    "subcategory": "shield",
+    "tier": "rare",
+    "weight": 14,
+    "size": 8,
+    "maxStack": 1,
+    "value": 5000,
+    "tags": [
+      "subsystem",
+      "shield",
+      "defense",
+      "military",
+      "tier_3"
+    ],
+    "properties": {
+      "strength": 280,
+      "recharge": 28,
+      "adaptive": true
+    },
+    "combatProperties": {
+      "shieldBonus": 14,
+      "recharge": "1d8",
+      "tier": 3
+    }
+  },
+  {
+    "id": "hull_plating_light",
+    "name": "Light Hull Plating",
+    "description": "Basic armor plating that adds minimal protection without excessive weight.",
+    "category": "subsystem",
+    "subcategory": "hull",
+    "tier": "common",
+    "weight": 12,
+    "size": 7,
+    "maxStack": 1,
+    "value": 900,
+    "tags": [
+      "subsystem",
+      "hull",
+      "armor",
+      "tier_1"
+    ],
+    "properties": {
+      "armor": 30,
+      "hullBonus": 15
+    },
+    "combatProperties": {
+      "hullBonus": 7,
+      "damageReduction": 1,
+      "tier": 1
     }
   },
   {
@@ -201,14 +389,49 @@
     "size": 10,
     "maxStack": 1,
     "value": 1800,
-    "tags": {
-      "0": "subsystem",
-      "1": "hull",
-      "2": "armor"
-    },
+    "tags": [
+      "subsystem",
+      "hull",
+      "armor",
+      "tier_2"
+    ],
     "properties": {
       "armor": 50,
       "hullBonus": 25
+    },
+    "combatProperties": {
+      "hullBonus": 10,
+      "damageReduction": 2,
+      "tier": 2
+    }
+  },
+  {
+    "id": "hull_plating_heavy",
+    "name": "Heavy Hull Plating",
+    "description": "Military-grade composite armor with ablative layers and kinetic dampeners.",
+    "category": "subsystem",
+    "subcategory": "hull",
+    "tier": "rare",
+    "weight": 28,
+    "size": 13,
+    "maxStack": 1,
+    "value": 3600,
+    "tags": [
+      "subsystem",
+      "hull",
+      "armor",
+      "military",
+      "tier_3"
+    ],
+    "properties": {
+      "armor": 80,
+      "hullBonus": 40,
+      "ablative": true
+    },
+    "combatProperties": {
+      "hullBonus": 14,
+      "damageReduction": 3,
+      "tier": 3
     }
   },
   {
@@ -222,13 +445,146 @@
     "size": 12,
     "maxStack": 1,
     "value": 800,
-    "tags": {
-      "0": "subsystem",
-      "1": "cargo",
-      "2": "storage"
-    },
+    "tags": [
+      "subsystem",
+      "cargo",
+      "storage",
+      "tier_1"
+    ],
     "properties": {
       "cargoBonus": 50
+    }
+  },
+  {
+    "id": "cargo_expander_mk2",
+    "name": "Cargo Hold Expander Mk2",
+    "description": "Advanced modular cargo system with optimized space utilization.",
+    "category": "subsystem",
+    "subcategory": "cargo",
+    "tier": "uncommon",
+    "weight": 18,
+    "size": 14,
+    "maxStack": 1,
+    "value": 1600,
+    "tags": [
+      "subsystem",
+      "cargo",
+      "storage",
+      "tier_2"
+    ],
+    "properties": {
+      "cargoBonus": 90
+    }
+  },
+  {
+    "id": "rad_scrubber_mk1",
+    "name": "Radiation Scrubber Mk1",
+    "description": "Basic radiation filtration system. Reduces radiation damage over time.",
+    "category": "subsystem",
+    "subcategory": "utility",
+    "tier": "common",
+    "weight": 10,
+    "size": 6,
+    "maxStack": 1,
+    "value": 1200,
+    "tags": [
+      "subsystem",
+      "utility",
+      "radiation",
+      "tier_1"
+    ],
+    "properties": {
+      "radReduction": 25,
+      "scrubRate": 5
+    }
+  },
+  {
+    "id": "rad_scrubber_mk2",
+    "name": "Radiation Scrubber Mk2",
+    "description": "Enhanced radiation countermeasure system with active particle filtering.",
+    "category": "subsystem",
+    "subcategory": "utility",
+    "tier": "uncommon",
+    "weight": 12,
+    "size": 7,
+    "maxStack": 1,
+    "value": 2400,
+    "tags": [
+      "subsystem",
+      "utility",
+      "radiation",
+      "tier_2"
+    ],
+    "properties": {
+      "radReduction": 50,
+      "scrubRate": 10
+    }
+  },
+  {
+    "id": "repair_drones_mk1",
+    "name": "Repair Drones Mk1",
+    "description": "Autonomous repair drones. Slowly restore hull integrity during combat.",
+    "category": "subsystem",
+    "subcategory": "utility",
+    "tier": "uncommon",
+    "weight": 8,
+    "size": 5,
+    "maxStack": 1,
+    "value": 1800,
+    "tags": [
+      "subsystem",
+      "utility",
+      "repair",
+      "tier_1"
+    ],
+    "properties": {
+      "hullRepair": "1d4",
+      "deployRate": 3
+    }
+  },
+  {
+    "id": "repair_drones_mk2",
+    "name": "Repair Drones Mk2",
+    "description": "Advanced repair drone swarm with improved materials and faster deployment.",
+    "category": "subsystem",
+    "subcategory": "utility",
+    "tier": "rare",
+    "weight": 10,
+    "size": 6,
+    "maxStack": 1,
+    "value": 3600,
+    "tags": [
+      "subsystem",
+      "utility",
+      "repair",
+      "tier_2"
+    ],
+    "properties": {
+      "hullRepair": "1d6",
+      "deployRate": 2
+    }
+  },
+  {
+    "id": "repair_drones_mk3",
+    "name": "Repair Drones Mk3",
+    "description": "Military-grade nanite repair system with rapid hull reconstruction.",
+    "category": "subsystem",
+    "subcategory": "utility",
+    "tier": "epic",
+    "weight": 12,
+    "size": 7,
+    "maxStack": 1,
+    "value": 7200,
+    "tags": [
+      "subsystem",
+      "utility",
+      "repair",
+      "military",
+      "tier_3"
+    ],
+    "properties": {
+      "hullRepair": "1d8",
+      "deployRate": 1
     }
   }
 ]

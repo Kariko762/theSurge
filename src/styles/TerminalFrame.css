@@ -1904,3 +1904,99 @@ body {
     right: 10px;
   }
 }
+
+/* Horizontal flare effect - line expands horizontally then collapses */
+@keyframes horizontalFlare {
+  0% {
+    width: 2px;
+    height: 2px;
+    opacity: 1;
+    filter: blur(0.5px) brightness(2);
+  }
+  25% {
+    width: 50px;
+    height: 4px;
+    opacity: 1;
+    filter: blur(2px) brightness(2.5);
+  }
+  50% {
+    width: 100px;
+    height: 6px;
+    opacity: 1;
+    filter: blur(3px) brightness(3);
+  }
+  75% {
+    width: 50px;
+    height: 4px;
+    opacity: 0.8;
+    filter: blur(2px) brightness(2);
+  }
+  100% {
+    width: 2px;
+    height: 2px;
+    opacity: 0;
+    filter: blur(0.5px) brightness(1);
+  }
+}
+
+/* Scan-line reveal animations */
+@keyframes scanLineH-0 {
+  0% { transform: translateY(-200px); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(0); opacity: 0; }
+}
+
+@keyframes scanLineH-1 {
+  0% { transform: translateY(200px); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(0); opacity: 0; }
+}
+
+@keyframes scanLineH-2 {
+  0% { transform: translateY(-100px); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(0); opacity: 0; }
+}
+
+@keyframes scanLineV-0 {
+  0% { transform: translateX(-200px); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(0); opacity: 0; }
+}
+
+@keyframes scanLineV-1 {
+  0% { transform: translateX(200px); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(0); opacity: 0; }
+}
+
+@keyframes scanLineV-2 {
+  0% { transform: translateX(-100px); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(0); opacity: 0; }
+}
+
+@keyframes scanConverge {
+  0% {
+    transform: translate(-50%, -50%) scale(3);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+}
+
+@keyframes materializePOI {
+  0% {
+    opacity: 0;
+    filter: blur(8px) brightness(3);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0) brightness(1);
+  }
+}

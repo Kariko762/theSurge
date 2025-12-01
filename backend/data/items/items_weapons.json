@@ -15,12 +15,19 @@
       "weapon",
       "laser",
       "energy",
-      "military"
+      "military",
+      "tier_1"
     ],
     "properties": {
       "damage": 15,
       "range": 200,
       "fireRate": 2
+    },
+    "combatProperties": {
+      "damageDice": "1d6+1",
+      "attackBonus": 2,
+      "tier": 1,
+      "powerUsage": 2
     }
   },
   {
@@ -39,37 +46,176 @@
       "weapon",
       "laser",
       "energy",
-      "military"
+      "military",
+      "tier_2"
     ],
     "properties": {
       "damage": 22,
       "range": 250,
       "fireRate": 2.5
+    },
+    "combatProperties": {
+      "damageDice": "1d6+2",
+      "attackBonus": 3,
+      "tier": 2,
+      "powerUsage": 3
     }
   },
   {
-    "id": "beam_laser",
-    "name": "Beam Laser",
-    "description": "Continuous beam laser weapon. Excellent sustained damage but high power consumption.",
+    "id": "pulse_laser_mk3",
+    "name": "Pulse Laser Mk3",
+    "description": "Advanced pulse laser with superior heat dissipation and maximum damage output.",
     "category": "weapon",
     "subcategory": "laser",
     "tier": "rare",
+    "weight": 14,
+    "size": 5,
+    "maxStack": 1,
+    "value": 2200,
+    "faction": null,
+    "tags": [
+      "weapon",
+      "laser",
+      "energy",
+      "military",
+      "tier_3"
+    ],
+    "properties": {
+      "damage": 28,
+      "range": 300,
+      "fireRate": 3
+    },
+    "combatProperties": {
+      "damageDice": "1d6+3",
+      "attackBonus": 4,
+      "tier": 3,
+      "powerUsage": 4
+    }
+  },
+  {
+    "id": "beam_laser_mk1",
+    "name": "Beam Laser Mk1",
+    "description": "Continuous beam laser weapon. Sustained damage output with moderate power consumption.",
+    "category": "weapon",
+    "subcategory": "laser",
+    "tier": "uncommon",
     "weight": 15,
     "size": 6,
     "maxStack": 1,
-    "value": 2500,
+    "value": 1800,
     "faction": null,
     "tags": [
       "weapon",
       "laser",
       "energy",
       "beam",
-      "military"
+      "military",
+      "tier_2"
     ],
     "properties": {
-      "damage": 35,
+      "damage": 30,
+      "range": 250,
+      "fireRate": 4
+    },
+    "combatProperties": {
+      "damageDice": "1d8+2",
+      "attackBonus": 3,
+      "tier": 2,
+      "powerUsage": 4
+    }
+  },
+  {
+    "id": "beam_laser_mk2",
+    "name": "Beam Laser Mk2",
+    "description": "Advanced continuous beam laser. Excellent sustained damage with efficient power management.",
+    "category": "weapon",
+    "subcategory": "laser",
+    "tier": "rare",
+    "weight": 17,
+    "size": 6,
+    "maxStack": 1,
+    "value": 3200,
+    "faction": null,
+    "tags": [
+      "weapon",
+      "laser",
+      "energy",
+      "beam",
+      "military",
+      "tier_3"
+    ],
+    "properties": {
+      "damage": 38,
       "range": 300,
       "fireRate": 5
+    },
+    "combatProperties": {
+      "damageDice": "1d8+3",
+      "attackBonus": 4,
+      "tier": 3,
+      "powerUsage": 5
+    }
+  },
+  {
+    "id": "autocannon_mk1",
+    "name": "Autocannon Mk1",
+    "description": "Rapid-fire kinetic weapon. High rate of fire with moderate damage per shot.",
+    "category": "weapon",
+    "subcategory": "kinetic",
+    "tier": "common",
+    "weight": 12,
+    "size": 6,
+    "maxStack": 1,
+    "value": 700,
+    "faction": null,
+    "tags": [
+      "weapon",
+      "kinetic",
+      "ballistic",
+      "military",
+      "tier_1"
+    ],
+    "properties": {
+      "damage": 18,
+      "range": 300,
+      "fireRate": 10
+    },
+    "combatProperties": {
+      "damageDice": "1d6+1",
+      "attackBonus": 2,
+      "tier": 1,
+      "powerUsage": 1
+    }
+  },
+  {
+    "id": "autocannon_mk2",
+    "name": "Autocannon Mk2",
+    "description": "Improved rotary autocannon with enhanced penetration and fire rate.",
+    "category": "weapon",
+    "subcategory": "kinetic",
+    "tier": "uncommon",
+    "weight": 14,
+    "size": 6,
+    "maxStack": 1,
+    "value": 1400,
+    "faction": null,
+    "tags": [
+      "weapon",
+      "kinetic",
+      "ballistic",
+      "military",
+      "tier_2"
+    ],
+    "properties": {
+      "damage": 24,
+      "range": 350,
+      "fireRate": 12
+    },
+    "combatProperties": {
+      "damageDice": "1d6+2",
+      "attackBonus": 3,
+      "tier": 2,
+      "powerUsage": 2
     }
   },
   {
@@ -82,19 +228,60 @@
     "weight": 8,
     "size": 4,
     "maxStack": 1,
-    "value": 600,
+    "value": 800,
     "faction": null,
     "tags": [
       "weapon",
       "missile",
       "explosive",
-      "military"
+      "military",
+      "tier_1"
     ],
     "properties": {
       "damage": 40,
       "range": 500,
       "fireRate": 0.5,
       "tracking": true
+    },
+    "combatProperties": {
+      "damageDice": "2d6+2",
+      "attackBonus": 3,
+      "tier": 1,
+      "powerUsage": 2,
+      "reload": 1
+    }
+  },
+  {
+    "id": "missile_launcher_medium",
+    "name": "Medium Missile Launcher",
+    "description": "Standard warhead launcher. Balanced damage and reload speed for sustained combat.",
+    "category": "weapon",
+    "subcategory": "missile",
+    "tier": "uncommon",
+    "weight": 12,
+    "size": 6,
+    "maxStack": 1,
+    "value": 1600,
+    "faction": null,
+    "tags": [
+      "weapon",
+      "missile",
+      "explosive",
+      "military",
+      "tier_2"
+    ],
+    "properties": {
+      "damage": 55,
+      "range": 600,
+      "fireRate": 0.4,
+      "tracking": true
+    },
+    "combatProperties": {
+      "damageDice": "2d6+3",
+      "attackBonus": 4,
+      "tier": 2,
+      "powerUsage": 3,
+      "reload": 1
     }
   },
   {
@@ -114,13 +301,21 @@
       "missile",
       "explosive",
       "heavy",
-      "military"
+      "military",
+      "tier_3"
     ],
     "properties": {
       "damage": 120,
       "range": 800,
       "fireRate": 0.2,
       "tracking": true
+    },
+    "combatProperties": {
+      "damageDice": "2d8+3",
+      "attackBonus": 5,
+      "tier": 3,
+      "powerUsage": 4,
+      "reload": 2
     }
   },
   {
@@ -139,18 +334,59 @@
       "weapon",
       "rail",
       "kinetic",
-      "military"
+      "military",
+      "tier_2"
     ],
     "properties": {
       "damage": 50,
       "range": 600,
       "fireRate": 1,
       "armorPiercing": true
+    },
+    "combatProperties": {
+      "damageDice": "1d10+2",
+      "attackBonus": 3,
+      "tier": 2,
+      "powerUsage": 4,
+      "armorPiercing": true
     }
   },
   {
-    "id": "plasma_cannon",
-    "name": "Plasma Cannon",
+    "id": "railgun_mk2",
+    "name": "Railgun Mk2",
+    "description": "Advanced electromagnetic accelerator. Superior penetration and velocity.",
+    "category": "weapon",
+    "subcategory": "rail",
+    "tier": "rare",
+    "weight": 20,
+    "size": 7,
+    "maxStack": 1,
+    "value": 3200,
+    "faction": null,
+    "tags": [
+      "weapon",
+      "rail",
+      "kinetic",
+      "military",
+      "tier_3"
+    ],
+    "properties": {
+      "damage": 62,
+      "range": 700,
+      "fireRate": 1.2,
+      "armorPiercing": true
+    },
+    "combatProperties": {
+      "damageDice": "1d10+3",
+      "attackBonus": 4,
+      "tier": 3,
+      "powerUsage": 5,
+      "armorPiercing": true
+    }
+  },
+  {
+    "id": "plasma_cannon_mk1",
+    "name": "Plasma Cannon Mk1",
     "description": "Superheated plasma projector. Devastating thermal damage at medium range.",
     "category": "weapon",
     "subcategory": "plasma",
@@ -165,37 +401,21 @@
       "plasma",
       "thermal",
       "epic",
-      "military"
+      "military",
+      "tier_3"
     ],
     "properties": {
       "damage": 80,
       "range": 350,
       "fireRate": 1.5,
       "thermal": true
-    }
-  },
-  {
-    "id": "autocannon",
-    "name": "Rotary Autocannon",
-    "description": "Rapid-fire kinetic weapon. High rate of fire with moderate damage per shot.",
-    "category": "weapon",
-    "subcategory": "kinetic",
-    "tier": "common",
-    "weight": 12,
-    "size": 6,
-    "maxStack": 1,
-    "value": 700,
-    "faction": null,
-    "tags": [
-      "weapon",
-      "kinetic",
-      "ballistic",
-      "military"
-    ],
-    "properties": {
-      "damage": 8,
-      "range": 300,
-      "fireRate": 10
+    },
+    "combatProperties": {
+      "damageDice": "2d10+2",
+      "attackBonus": 4,
+      "tier": 3,
+      "powerUsage": 8,
+      "overheat": true
     }
   }
 ]

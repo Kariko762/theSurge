@@ -7,6 +7,8 @@ import GalaxyCreator from './components/GalaxyCreator'
 import Login from './components/admin/Login'
 import AdminPanel from './components/admin/AdminPanel'
 import { exampleSeeds } from './lib/systemGenerator'
+import DevCombatSandbox from './components/dev/DevCombatSandbox'
+import FramedCombatPage from './components/combat/FramedCombatPage.jsx'
 
 function GameApp() {
   const [currentFrame, setCurrentFrame] = useState('login')
@@ -74,6 +76,9 @@ function App() {
       <Routes>
         {/* Game Routes */}
         <Route path="/" element={<GameApp />} />
+        {/* Dev Combat Sandbox */}
+        <Route path="/dev/combat" element={<DevCombatSandbox />} />
+        <Route path="/dev/combat-framed" element={<FramedCombatPage />} />
         
         {/* Admin Routes */}
         <Route path="/login" element={<Login />} />
